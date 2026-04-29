@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CaneCreme — Pure Sugarcane Goodness</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">CaneCreme</a>
+      <div class="nav-links">
+        <a href="shop.html">Shop</a>
+        <a href="about.html">About</a>
+        <a href="#" id="cart-icon">Cart <span class="cart-count" id="cart-count">0</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <p class="hero-tag">100% Natural</p>
+      <h1>Pure Sugarcane.<br/>Crafted for You.</h1>
+      <p class="hero-sub">Experience the raw, natural sweetness of sugarcane — transformed into premium products you'll love.</p>
+      <a href="shop.html" class="btn-primary">Shop Now</a>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-circle"></div>
+    </div>
+  </section>
+
+  <!-- FEATURED PRODUCTS -->
+  <section class="section">
+    <div class="section-header">
+      <h2>Our Products</h2>
+      <a href="shop.html" class="link-more">View All →</a>
+    </div>
+    <div class="products-grid" id="featured-products">
+      <div class="product-skeleton"></div>
+      <div class="product-skeleton"></div>
+      <div class="product-skeleton"></div>
+    </div>
+  </section>
+
+  <!-- VALUES -->
+  <section class="values-section">
+    <div class="value-item">
+      <span class="value-icon">🌿</span>
+      <h3>100% Natural</h3>
+      <p>No artificial additives or preservatives</p>
+    </div>
+    <div class="value-item">
+      <span class="value-icon">🚚</span>
+      <h3>Fast Delivery</h3>
+      <p>Pan-India shipping within 3-5 days</p>
+    </div>
+    <div class="value-item">
+      <span class="value-icon">✨</span>
+      <h3>Premium Quality</h3>
+      <p>Carefully sourced and crafted</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>© 2026 CaneCreme. All rights reserved.</p>
+    <p><a href="mailto:canecreme@gmail.com">canecreme@gmail.com</a></p>
+  </footer>
+
+  <!-- CART SIDEBAR -->
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <div class="cart-sidebar" id="cart-sidebar">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button id="cart-close">✕</button>
+    </div>
+    <div class="cart-items" id="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total">Total: ₹<span id="cart-total">0</span></div>
+      <a href="checkout.html" class="btn-primary" id="checkout-btn">Proceed to Checkout</a>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/products.js"></script>
+  <script>
+    loadFeaturedProducts('featured-products', 3);
+  </script>
+</body>
+</html>

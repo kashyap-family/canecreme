@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About — CaneCreme</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">CaneCreme</a>
+      <div class="nav-links">
+        <a href="shop.html">Shop</a>
+        <a href="about.html" class="active">About</a>
+        <a href="#" id="cart-icon">Cart <span class="cart-count" id="cart-count">0</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>About CaneCreme</h1>
+  </div>
+
+  <section class="about-section">
+    <div class="about-content">
+      <h2>Our Story</h2>
+      <p>CaneCreme was born from a simple love for pure, natural sugarcane. We believe that nature's sweetness should be accessible to everyone — without compromise.</p>
+      <p>Every product we craft is made from carefully sourced sugarcane, processed with care to retain maximum natural goodness.</p>
+      <h2>Our Promise</h2>
+      <p>No artificial flavors. No preservatives. Just pure, honest sugarcane — the way nature intended.</p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>© 2026 CaneCreme. All rights reserved.</p>
+    <p><a href="mailto:canecreme@gmail.com">canecreme@gmail.com</a></p>
+  </footer>
+
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <div class="cart-sidebar" id="cart-sidebar">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button id="cart-close">✕</button>
+    </div>
+    <div class="cart-items" id="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total">Total: ₹<span id="cart-total">0</span></div>
+      <a href="checkout.html" class="btn-primary">Proceed to Checkout</a>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/cart.js"></script>
+</body>
+</html>

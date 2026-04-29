@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shop — CaneCreme</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">CaneCreme</a>
+      <div class="nav-links">
+        <a href="shop.html" class="active">Shop</a>
+        <a href="about.html">About</a>
+        <a href="#" id="cart-icon">Cart <span class="cart-count" id="cart-count">0</span></a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>All Products</h1>
+    <p>Pure sugarcane goodness, delivered to your door</p>
+  </div>
+
+  <section class="section">
+    <div class="products-grid" id="all-products">
+      <div class="product-skeleton"></div>
+      <div class="product-skeleton"></div>
+      <div class="product-skeleton"></div>
+      <div class="product-skeleton"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>© 2026 CaneCreme. All rights reserved.</p>
+  </footer>
+
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <div class="cart-sidebar" id="cart-sidebar">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button id="cart-close">✕</button>
+    </div>
+    <div class="cart-items" id="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total">Total: ₹<span id="cart-total">0</span></div>
+      <a href="checkout.html" class="btn-primary" id="checkout-btn">Proceed to Checkout</a>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/products.js"></script>
+  <script>
+    loadFeaturedProducts('all-products', 100);
+  </script>
+</body>
+</html>
