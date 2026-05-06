@@ -3,18 +3,18 @@
 :root {
   /* ── Royal Purple & Yellow palette ── */
   --cream:        #ffffff;
-  --cream-dark:   #f7f3ff;
-  --green:        #5b2d8e;      /* royal purple — primary */
-  --green-mid:    #4a2275;      /* deeper purple */
-  --green-light:  #7b4db8;      /* lighter purple hover */
-  --green-pale:   #f0e8ff;      /* very light purple tint */
-  --gold:         #ffe600;      /* bright yellow accent */
-  --gold-light:   #fff176;      /* lighter yellow */
+  --cream-dark:   #f5f0ff;
+  --green:        #6B21A8;      /* vibrant royal purple */
+  --green-mid:    #581C87;      /* deeper purple */
+  --green-light:  #9333EA;      /* bright purple hover */
+  --green-pale:   #EDE9FE;      /* very light purple tint */
+  --gold:         #FACC15;      /* vivid golden yellow */
+  --gold-light:   #FEF08A;      /* lighter yellow */
   --dark:         #0d0d0d;
   --dark-mid:     #1a1a1a;
   --gray:         #6b6b6b;
   --gray-light:   #9a9a9a;
-  --border:       #e8d9ff;
+  --border:       #DDD6FE;
   --white:        #ffffff;
 
   --font-display: 'Cormorant Garamond', serif;
@@ -47,8 +47,8 @@ img { display: block; max-width: 100%; }
 
 /* ===== ANNOUNCEMENT BAR ===== */
 .announcement-bar {
-  background: var(--dark);
-  color: rgba(255,255,255,0.9);
+  background: var(--green-mid);
+  color: var(--gold);
   font-size: 0.76rem;
   font-weight: 400;
   letter-spacing: 0.05em;
@@ -195,57 +195,71 @@ img { display: block; max-width: 100%; }
 
 /* ===== HERO ===== */
 .hero {
-  background: var(--cream-dark);
-  min-height: 88vh;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  position: relative;
-}
-
-.hero-inner {
-  max-width: 1240px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 5rem 2rem;
+  min-height: 90vh;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 4rem;
+  overflow: hidden;
 }
+
+/* Left half — solid purple */
+.hero-content {
+  background: var(--green);
+  padding: 5.5rem 4rem 5.5rem 3.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle decorative circle in bg */
+.hero-content::before {
+  content: '';
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  bottom: -140px;
+  left: -120px;
+  pointer-events: none;
+}
+
+.hero-inner { display: contents; }
 
 .hero-eyebrow {
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--green);
+  color: var(--gold);
   margin-bottom: 1.2rem;
   display: inline-block;
-  background: var(--green-pale);
+  background: rgba(250,204,21,0.15);
   padding: 0.35rem 1rem;
   border-radius: 100px;
+  width: fit-content;
 }
 
 .hero-title {
   font-family: var(--font-display);
-  font-size: clamp(2.6rem, 5vw, 4.2rem);
+  font-size: clamp(2.6rem, 4.5vw, 4rem);
   font-weight: 600;
   line-height: 1.08;
-  color: var(--dark);
+  color: var(--white);
   margin-bottom: 1.5rem;
 }
 
 .hero-title em {
   font-style: italic;
   font-weight: 400;
-  color: var(--green);
+  color: var(--gold);
 }
 
 .hero-desc {
-  font-size: 1rem;
-  color: var(--gray);
-  max-width: 440px;
+  font-size: 0.98rem;
+  color: rgba(255,255,255,0.75);
+  max-width: 420px;
   margin-bottom: 2.25rem;
   line-height: 1.8;
   font-weight: 300;
@@ -258,15 +272,15 @@ img { display: block; max-width: 100%; }
   align-items: center;
 }
 
-/* Hero buttons — yellow primary on light bg */
+/* Hero buttons on purple bg */
 .hero .btn-primary {
   background: var(--gold);
   color: var(--dark);
   font-weight: 700;
 }
 .hero .btn-primary:hover {
-  background: #f0d800;
-  box-shadow: 0 6px 24px rgba(255,230,0,0.45);
+  background: #fbbf24;
+  box-shadow: 0 6px 24px rgba(250,204,21,0.5);
   transform: translateY(-2px);
 }
 
@@ -275,20 +289,20 @@ img { display: block; max-width: 100%; }
   align-items: center;
   justify-content: center;
   background: transparent;
-  color: var(--green);
+  color: white;
   padding: 0.85rem 2.1rem;
   border-radius: var(--radius);
   font-family: var(--font-body);
   font-size: 0.875rem;
   font-weight: 500;
-  border: 1.5px solid var(--green);
+  border: 1.5px solid rgba(255,255,255,0.5);
   cursor: pointer;
   transition: all var(--transition);
   letter-spacing: 0.03em;
 }
 .btn-ghost-dark:hover {
-  background: var(--green);
-  color: white;
+  background: rgba(255,255,255,0.15);
+  border-color: white;
   transform: translateY(-1px);
 }
 
@@ -300,22 +314,22 @@ img { display: block; max-width: 100%; }
 }
 .hero-trust span {
   font-size: 0.77rem;
-  color: var(--gray);
+  color: rgba(255,255,255,0.6);
   font-weight: 400;
 }
 
-/* Hero right: image column */
+/* Right half — full-bleed image */
 .hero-visual {
   position: relative;
-  z-index: 1;
+  overflow: hidden;
 }
 
 .hero-img-wrap {
   position: relative;
-  border-radius: 20px;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
   overflow: hidden;
-  aspect-ratio: 4/5;
-  box-shadow: var(--shadow-lg);
 }
 
 .hero-product-img {
@@ -327,54 +341,44 @@ img { display: block; max-width: 100%; }
 
 .hero-visual:hover .hero-product-img { transform: scale(1.04); }
 
-/* Decorative block behind image */
-.hero-visual::before {
-  content: '';
-  position: absolute;
-  width: 88%;
-  height: 88%;
-  background: var(--green);
-  border-radius: 20px;
-  top: 1.5rem;
-  right: -1.5rem;
-  z-index: -1;
-  opacity: 0.18;
-}
-
-/* Floating badge */
+/* Floating badge on image */
 .hero-badge {
   position: absolute;
   bottom: 2rem;
-  left: -1.75rem;
-  background: var(--green);
-  color: white;
+  left: 1.5rem;
+  background: var(--gold);
+  color: var(--dark);
   padding: 0.85rem 1.15rem;
   border-radius: 14px;
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  box-shadow: 0 8px 28px rgba(91,45,142,0.4);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.25);
   z-index: 2;
 }
 .hero-badge-icon { font-size: 1.5rem; }
 .hero-badge-txt {
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.35;
   letter-spacing: 0.02em;
+  color: var(--dark);
 }
 .hero-badge-txt strong {
   display: block;
   font-size: 0.85rem;
-  color: var(--gold);
+  color: var(--green-mid);
 }
 
 /* ===== CATEGORIES ===== */
 .categories-section {
   padding: 5rem 2rem;
-  background: var(--white);
+  background: var(--green);
   text-align: center;
 }
+
+.categories-section .section-title { color: white; }
+.categories-section .eyebrow { color: var(--gold); }
 
 .categories-grid {
   display: flex;
@@ -400,8 +404,8 @@ img { display: block; max-width: 100%; }
   width: 130px;
   height: 130px;
   border-radius: 50%;
-  background: var(--green-pale);
-  border: 3px solid var(--border);
+  background: rgba(255,255,255,0.12);
+  border: 3px solid rgba(255,255,255,0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -410,15 +414,15 @@ img { display: block; max-width: 100%; }
 }
 
 .category-card:hover .category-circle {
-  background: var(--green);
-  border-color: var(--green);
-  box-shadow: 0 8px 28px rgba(91,45,142,0.3);
+  background: var(--gold);
+  border-color: var(--gold);
+  box-shadow: 0 8px 28px rgba(250,204,21,0.5);
 }
 
 .category-card span {
   font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--dark);
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
   text-align: center;
 }
 
@@ -586,16 +590,17 @@ img { display: block; max-width: 100%; }
 
 .eyebrow {
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--green);
   margin-bottom: 0.65rem;
   display: block;
 }
-/* Eyebrow on dark/purple backgrounds stays yellow */
+/* Eyebrow on dark/purple backgrounds */
 .cta-banner .eyebrow,
-.split-content .eyebrow { color: var(--gold); }
+.split-content .eyebrow,
+.categories-section .eyebrow { color: var(--gold); }
 
 .section-title {
   font-family: var(--font-display);
@@ -901,9 +906,9 @@ img { display: block; max-width: 100%; }
 
 /* ===== PROCESS SECTION ===== */
 .process-section {
-  background: var(--cream-dark);
-  border-top: 3px solid var(--gold);
-  border-bottom: 3px solid var(--gold);
+  background: var(--gold);
+  border-top: none;
+  border-bottom: none;
   padding: 4.5rem 2rem;
 }
 
@@ -934,7 +939,7 @@ img { display: block; max-width: 100%; }
   font-family: var(--font-display);
   font-size: 2.5rem;
   font-weight: 300;
-  color: var(--border);
+  color: rgba(107,33,168,0.25);
   line-height: 1;
   margin-bottom: 0.5rem;
 }
@@ -942,21 +947,23 @@ img { display: block; max-width: 100%; }
 .process-step h4 {
   font-family: var(--font-display);
   font-size: 1.2rem;
-  font-weight: 500;
-  color: var(--dark);
+  font-weight: 600;
+  color: var(--green-mid);
   margin-bottom: 0.4rem;
 }
 
 .process-step p {
   font-size: 0.82rem;
-  color: var(--gray);
+  color: var(--green-mid);
+  opacity: 0.75;
   line-height: 1.6;
 }
 
 .process-arrow {
   font-size: 1.2rem;
-  color: var(--border);
+  color: var(--green);
   flex-shrink: 0;
+  font-weight: 700;
 }
 
 /* ===== CTA BANNER ===== */
@@ -1779,22 +1786,16 @@ img { display: block; max-width: 100%; }
   .nav-links a { font-size: 1rem; }
   .nav-links a::after { display: none; }
 
-  .hero { min-height: auto; }
-  .hero-inner {
-    grid-template-columns: 1fr;
-    padding: 4rem 1.5rem 3rem;
-    gap: 2.5rem;
-    text-align: center;
-  }
-  .hero-content { order: 2; }
-  .hero-visual { order: 1; }
+  .hero { grid-template-columns: 1fr; min-height: auto; }
+  .hero-inner { display: contents; }
+  .hero-content { order: 2; padding: 3.5rem 1.75rem 3rem; text-align: center; }
+  .hero-content::before { display: none; }
+  .hero-visual { order: 1; min-height: 55vw; }
+  .hero-img-wrap { height: 100%; min-height: 55vw; }
   .hero-eyebrow { margin: 0 auto 1rem; }
-  .hero-desc { margin: 0 auto 2rem; text-align: left; }
   .hero-actions { justify-content: center; }
   .hero-trust { justify-content: center; }
-  .hero-badge { left: 50%; transform: translateX(-50%); bottom: -1rem; }
-  .hero-visual::before { display: none; }
-  .hero-img-wrap { aspect-ratio: 16/9; border-radius: 16px; }
+  .hero-badge { left: 1rem; bottom: 1rem; }
   .categories-grid { gap: 1.5rem; }
   .category-circle { width: 100px; height: 100px; font-size: 2.3rem; }
 
