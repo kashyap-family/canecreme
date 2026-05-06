@@ -1,28 +1,28 @@
 /* ===== CANECREME — REDESIGNED STYLESHEET ===== */
 
 :root {
-  /* ── Royal Purple & Yellow palette ── */
+  /* ── Mango Fiesta palette — Orange + Teal ── */
   --cream:        #ffffff;
-  --cream-dark:   #f5f0ff;
-  --green:        #6B21A8;      /* vibrant royal purple */
-  --green-mid:    #581C87;      /* deeper purple */
-  --green-light:  #9333EA;      /* bright purple hover */
-  --green-pale:   #EDE9FE;      /* very light purple tint */
-  --gold:         #FACC15;      /* vivid golden yellow */
-  --gold-light:   #FEF08A;      /* lighter yellow */
+  --cream-dark:   #FFF7ED;      /* warm orange tint */
+  --green:        #F97316;      /* vibrant orange — primary */
+  --green-mid:    #EA580C;      /* deeper orange */
+  --green-light:  #FB923C;      /* lighter orange hover */
+  --green-pale:   #FFEDD5;      /* very light orange tint */
+  --gold:         #14B8A6;      /* bright teal accent */
+  --gold-light:   #5EEAD4;      /* lighter teal */
   --dark:         #0d0d0d;
   --dark-mid:     #1a1a1a;
   --gray:         #6b6b6b;
   --gray-light:   #9a9a9a;
-  --border:       #DDD6FE;
+  --border:       #FED7AA;      /* light orange border */
   --white:        #ffffff;
 
   --font-display: 'Cormorant Garamond', serif;
   --font-body:    'DM Sans', sans-serif;
 
-  --shadow-sm:  0 2px 12px rgba(91,45,142,0.08);
-  --shadow:     0 4px 24px rgba(91,45,142,0.14);
-  --shadow-lg:  0 12px 48px rgba(91,45,142,0.18);
+  --shadow-sm:  0 2px 12px rgba(249,115,22,0.10);
+  --shadow:     0 4px 24px rgba(249,115,22,0.16);
+  --shadow-lg:  0 12px 48px rgba(249,115,22,0.20);
 
   --radius:     8px;
   --radius-lg:  16px;
@@ -235,7 +235,7 @@ img { display: block; max-width: 100%; }
   color: var(--gold);
   margin-bottom: 1.2rem;
   display: inline-block;
-  background: rgba(250,204,21,0.15);
+  background: rgba(20,184,166,0.18);
   padding: 0.35rem 1rem;
   border-radius: 100px;
   width: fit-content;
@@ -279,8 +279,8 @@ img { display: block; max-width: 100%; }
   font-weight: 700;
 }
 .hero .btn-primary:hover {
-  background: #fbbf24;
-  box-shadow: 0 6px 24px rgba(250,204,21,0.5);
+  background: var(--gold-light);
+  box-shadow: 0 6px 24px rgba(20,184,166,0.5);
   transform: translateY(-2px);
 }
 
@@ -490,7 +490,7 @@ img { display: block; max-width: 100%; }
 .btn-primary:hover {
   background: var(--green-light);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(91,45,142,0.45);
+  box-shadow: 0 6px 20px rgba(249,115,22,0.45);
 }
 
 .btn-primary:active { transform: translateY(0); }
@@ -719,7 +719,7 @@ img { display: block; max-width: 100%; }
   flex-shrink: 0;
 }
 
-/* Star ratings */
+/* Star ratings — always gold/yellow */
 .product-stars {
   display: flex;
   gap: 2px;
@@ -727,10 +727,10 @@ img { display: block; max-width: 100%; }
 }
 .product-stars span {
   font-size: 0.78rem;
-  color: var(--gold);
+  color: #F59E0B;
   filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
 }
-.star-empty { color: var(--border) !important; }
+.star-empty { color: #e5e7eb !important; }
 
 .product-info { padding: 1.2rem 1.4rem 1.5rem; }
 
@@ -901,7 +901,7 @@ img { display: block; max-width: 100%; }
 .split-content .btn-outline:hover {
   background: var(--gold);
   color: var(--dark);
-  box-shadow: 0 6px 20px rgba(255,230,0,0.4);
+  box-shadow: 0 6px 20px rgba(20,184,166,0.4);
 }
 
 /* ===== PROCESS SECTION ===== */
@@ -939,7 +939,7 @@ img { display: block; max-width: 100%; }
   font-family: var(--font-display);
   font-size: 2.5rem;
   font-weight: 300;
-  color: rgba(107,33,168,0.25);
+  color: rgba(255,255,255,0.25);
   line-height: 1;
   margin-bottom: 0.5rem;
 }
@@ -948,14 +948,13 @@ img { display: block; max-width: 100%; }
   font-family: var(--font-display);
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--green-mid);
+  color: var(--white);
   margin-bottom: 0.4rem;
 }
 
 .process-step p {
   font-size: 0.82rem;
-  color: var(--green-mid);
-  opacity: 0.75;
+  color: rgba(255,255,255,0.75);
   line-height: 1.6;
 }
 
@@ -1016,7 +1015,7 @@ img { display: block; max-width: 100%; }
 }
 .cta-banner .btn-primary:hover {
   background: var(--gold-light);
-  box-shadow: 0 6px 24px rgba(255,230,0,0.55);
+  box-shadow: 0 6px 24px rgba(20,184,166,0.55);
 }
 
 /* ===== PAGE HEADER ===== */
@@ -1340,7 +1339,7 @@ img { display: block; max-width: 100%; }
 .form-group textarea:focus,
 .form-group select:focus {
   border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(91,45,142,0.12);
+  box-shadow: 0 0 0 3px rgba(249,115,22,0.12);
 }
 
 .form-group small { font-size: 0.78rem; color: var(--gray-light); margin-top: 0.3rem; display: block; }
@@ -1399,7 +1398,7 @@ img { display: block; max-width: 100%; }
   align-items: center;
   justify-content: center;
   margin: 0 auto 2rem;
-  box-shadow: 0 8px 24px rgba(30,61,14,0.25);
+  box-shadow: 0 8px 24px rgba(20,184,166,0.25);
 }
 
 .success-page h1 {
@@ -1528,7 +1527,7 @@ img { display: block; max-width: 100%; }
   position: absolute;
   width: 220px;
   height: 220px;
-  background: rgba(255,230,0,0.08);
+  background: rgba(20,184,166,0.08);
   border-radius: 50%;
   top: -80px;
   right: -60px;
@@ -1556,7 +1555,7 @@ img { display: block; max-width: 100%; }
 
 .popup-offer-badge {
   background: var(--gold);
-  box-shadow: 0 4px 20px rgba(255,230,0,0.5);
+  box-shadow: 0 4px 20px rgba(20,184,166,0.5);
   border-radius: 50%;
   width: 90px;
   height: 90px;
@@ -1666,7 +1665,7 @@ img { display: block; max-width: 100%; }
 .popup-field input:focus {
   border-color: var(--green);
   background: var(--white);
-  box-shadow: 0 0 0 3px rgba(91,45,142,0.1);
+  box-shadow: 0 0 0 3px rgba(249,115,22,0.1);
 }
 
 .popup-field input::placeholder { color: var(--gray-light); }
@@ -1684,7 +1683,7 @@ img { display: block; max-width: 100%; }
 .popup-phone-wrap:focus-within {
   border-color: var(--green);
   background: var(--white);
-  box-shadow: 0 0 0 3px rgba(91,45,142,0.1);
+  box-shadow: 0 0 0 3px rgba(249,115,22,0.1);
 }
 
 .popup-phone-code {
@@ -1729,7 +1728,7 @@ img { display: block; max-width: 100%; }
 .popup-submit:hover {
   background: #f0d800;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(255,230,0,0.4);
+  box-shadow: 0 6px 20px rgba(20,184,166,0.4);
 }
 
 .popup-skip {
