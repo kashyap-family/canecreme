@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Confirmed — CaneCreme</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <div class="announcement-bar">
+    <div class="marquee-track">
+      <span>🌿 Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp; Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp;</span>
+      <span aria-hidden="true">🌿 Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp; Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp;</span>
+    </div>
+  </div>
+
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">
+        <img src="Assets/logo.png" alt="CaneCreme" class="logo-img" />
+      </a>
+      <div class="nav-links" id="nav-links">
+        <a href="shop.html">Shop</a>
+        <a href="about.html">About</a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="success-page">
+    <div class="success-icon">✓</div>
+    <h1>Order Confirmed!</h1>
+    <p>Thank you for your order. We've received your payment and will begin processing right away.</p>
+    <p id="order-id-display" style="font-size:0.85rem;color:var(--gray-light);margin-top:0.25rem;"></p>
+
+    <div style="margin:2rem 0;padding:1.5rem;background:var(--green-pale);border-radius:var(--radius-lg);text-align:left;">
+      <p style="font-size:0.88rem;color:var(--green);font-weight:500;margin-bottom:0.75rem;">What happens next?</p>
+      <p style="font-size:0.84rem;color:var(--gray);margin-bottom:0.5rem;">📦 &nbsp;Packed within 1–2 business days</p>
+      <p style="font-size:0.84rem;color:var(--gray);margin-bottom:0.5rem;">🚚 &nbsp;Delivered pan-India within 3–5 business days</p>
+      <p style="font-size:0.84rem;color:var(--gray);">📧 &nbsp;Questions? <a href="mailto:canecreme@gmail.com" style="color:var(--green);font-weight:500;">canecreme@gmail.com</a></p>
+    </div>
+
+    <a href="shop.html" class="btn-primary">Continue Shopping</a>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-bottom" style="border-top:none;max-width:100%;padding:1.5rem 2rem;">
+      <p>© 2026 CaneCreme. All rights reserved.</p>
+      <p>Made with 🌿 in India</p>
+    </div>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get('order');
+    if (orderId) {
+      document.getElementById('order-id-display').textContent = `Order ID: ${orderId}`;
+    }
+  </script>
+</body>
+</html>
