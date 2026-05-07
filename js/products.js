@@ -30,13 +30,13 @@ function renderStars(rating) {
 function renderProductCard(product) {
   let imageHtml;
   if (product.images && product.images.length > 1) {
-    const slides = product.images.map((src, i) =>
-      `<img src="${src}" alt="${product.name}" class="carousel-slide${i === 0 ? ' active' : ''}" loading="lazy" onerror="this.style.display='none'" />`
+    const slides = product.images.map((src) =>
+      `<img src="${src}" alt="${product.name}" class="carousel-slide" loading="lazy" />`
     ).join('');
     const dots = product.images.map((_, i) =>
       `<button class="carousel-dot${i === 0 ? ' active' : ''}" onclick="carouselGo(this,${i})" aria-label="Image ${i+1}"></button>`
     ).join('');
-    imageHtml = `<div class="product-image carousel">${slides}<div class="carousel-dots">${dots}</div></div>`;
+    imageHtml = `<div class="product-image carousel"><div class="carousel-track">${slides}</div><div class="carousel-dots">${dots}</div></div>`;
   } else if (product.images && product.images.length === 1) {
     imageHtml = `<div class="product-image"><img src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.parentElement.innerHTML='🌿'" /></div>`;
   } else {
@@ -86,7 +86,7 @@ function renderProductCard(product) {
 
 function carouselGo(dotEl, index) {
   const card = dotEl.closest('.product-image');
-  card.querySelectorAll('.carousel-slide').forEach((s, i) => s.classList.toggle('active', i === index));
+  card.querySelector('.carousel-track').style.transform = `translateX(-${index * 100}%)`;
   card.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === index));
 }
 
