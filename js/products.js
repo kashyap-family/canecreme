@@ -28,9 +28,20 @@ function renderStars(rating) {
 }
 
 function renderProductCard(product) {
-  const imageHtml = (product.images && product.images.length > 0)
-    ? `<div class="product-image"><img src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.parentElement.innerHTML='🌿'" /></div>`
-    : `<div class="product-image">🌿</div>`;
+  let imageHtml;
+  if (product.images && product.images.length > 1) {
+    const slides = product.images.map((src, i) =>
+      `<img src="${src}" alt="${product.name}" class="carousel-slide${i === 0 ? ' active' : ''}" loading="lazy" onerror="this.style.display='none'" />`
+    ).join('');
+    const dots = product.images.map((_, i) =>
+      `<button class="carousel-dot${i === 0 ? ' active' : ''}" onclick="carouselGo(this,${i})" aria-label="Image ${i+1}"></button>`
+    ).join('');
+    imageHtml = `<div class="product-image carousel">${slides}<div class="carousel-dots">${dots}</div></div>`;
+  } else if (product.images && product.images.length === 1) {
+    imageHtml = `<div class="product-image"><img src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.parentElement.innerHTML='🌿'" /></div>`;
+  } else {
+    imageHtml = `<div class="product-image product-image-empty">🌿</div>`;
+  }
 
   const hasSale = product.compare_at_price && parseFloat(product.compare_at_price) > parseFloat(product.price);
   const badge   = hasSale
@@ -71,6 +82,12 @@ function renderProductCard(product) {
       </div>
     </div>
   `;
+}
+
+function carouselGo(dotEl, index) {
+  const card = dotEl.closest('.product-image');
+  card.querySelectorAll('.carousel-slide').forEach((s, i) => s.classList.toggle('active', i === index));
+  card.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === index));
 }
 
 async function loadFeaturedProducts(containerId, limit = 3) {
