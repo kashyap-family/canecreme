@@ -1607,7 +1607,7 @@ img { display: block; max-width: 100%; }
 
 .popup-logo {
   width: 130px;
-  filter: brightness(0) invert(1);
+  filter: invert(1);
   mix-blend-mode: screen;
   margin: 0 auto 1rem;
   position: relative;
