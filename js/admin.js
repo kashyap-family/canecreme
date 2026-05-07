@@ -43,8 +43,6 @@ function showTab(tab) {
 }
 
 // ===== PRODUCTS =====
-let adminProductsMap = {};
-
 async function loadProducts() {
   const tbody = document.getElementById('products-table-body');
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;">Loading...</td></tr>';
@@ -53,9 +51,6 @@ async function loadProducts() {
     headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
   });
   const products = await res.json();
-
-  adminProductsMap = {};
-  products.forEach(p => adminProductsMap[p.id] = p);
 
   if (products.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#6b6b6b;">No products yet. Add your first product!</td></tr>';
@@ -70,26 +65,50 @@ async function loadProducts() {
       <td>${p.stock}</td>
       <td><span class="status-badge ${p.is_active ? 'status-paid' : 'status-cancelled'}">${p.is_active ? 'Active' : 'Hidden'}</span></td>
       <td>
-        <button class="action-btn" onclick="openProductModal('${p.id}')">Edit</button>
+        <button class="action-btn edit-product-btn" data-id="${p.id}">Edit</button>
         <button class="action-btn danger" onclick="deleteProduct('${p.id}')">Delete</button>
       </td>
     </tr>
   `).join('');
+
+  tbody.querySelectorAll('.edit-product-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      openProductModal(this.getAttribute('data-id'));
+    });
+  });
 }
 
-function openProductModal(productId = null) {
-  const product = productId ? adminProductsMap[productId] : null;
-  document.getElementById('p-id').value = product ? product.id : '';
-  document.getElementById('p-name').value = product ? product.name : '';
-  document.getElementById('p-description').value = product ? (product.description || '') : '';
-  document.getElementById('p-price').value = product ? product.price : '';
-  document.getElementById('p-compare-price').value = product ? (product.compare_at_price || '') : '';
-  document.getElementById('p-stock').value = product ? product.stock : '';
-  document.getElementById('p-image').value = product ? ((product.images || []).join('\n')) : '';
-  document.getElementById('p-active').checked = product ? product.is_active : true;
-  document.getElementById('modal-title').textContent = product ? 'Edit Product' : 'Add Product';
+async function openProductModal(productId) {
+  const overlay = document.getElementById('product-modal-overlay');
+  document.getElementById('modal-title').textContent = productId ? 'Edit Product' : 'Add Product';
   document.getElementById('product-error').style.display = 'none';
-  document.getElementById('product-modal-overlay').style.display = 'flex';
+  document.getElementById('p-id').value = '';
+  document.getElementById('p-name').value = '';
+  document.getElementById('p-description').value = '';
+  document.getElementById('p-price').value = '';
+  document.getElementById('p-compare-price').value = '';
+  document.getElementById('p-stock').value = '';
+  document.getElementById('p-image').value = '';
+  document.getElementById('p-active').checked = true;
+  overlay.style.display = 'flex';
+
+  if (!productId) return;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/products?id=eq.${productId}`, {
+    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+  });
+  const data = await res.json();
+  const product = data[0];
+  if (!product) return;
+
+  document.getElementById('p-id').value = product.id;
+  document.getElementById('p-name').value = product.name;
+  document.getElementById('p-description').value = product.description || '';
+  document.getElementById('p-price').value = product.price;
+  document.getElementById('p-compare-price').value = product.compare_at_price || '';
+  document.getElementById('p-stock').value = product.stock;
+  document.getElementById('p-image').value = (product.images || []).join('\n');
+  document.getElementById('p-active').checked = product.is_active;
 }
 
 function closeProductModal() {
