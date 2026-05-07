@@ -661,7 +661,10 @@ img { display: block; max-width: 100%; }
 .product-card:hover .product-image img { transform: scale(1.04); }
 
 /* Carousel */
-.product-image.carousel { display: block; }
+.product-image.carousel {
+  display: block;
+  position: relative;
+}
 .carousel-slide {
   position: absolute;
   inset: 0;
@@ -671,7 +674,7 @@ img { display: block; max-width: 100%; }
   opacity: 0;
   transition: opacity 0.35s ease;
 }
-.carousel-slide.active { opacity: 1; position: relative; }
+.carousel-slide.active { opacity: 1; }
 .carousel-dots {
   position: absolute;
   bottom: 8px;
