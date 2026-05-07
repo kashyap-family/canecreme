@@ -1606,10 +1606,12 @@ img { display: block; max-width: 100%; }
 }
 
 .popup-logo {
-  width: 130px;
-  filter: invert(1);
-  mix-blend-mode: screen;
+  width: 120px;
+  display: block;
   margin: 0 auto 1rem;
+  background: white;
+  border-radius: 8px;
+  padding: 8px 16px;
   position: relative;
   z-index: 1;
 }
