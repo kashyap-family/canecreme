@@ -665,13 +665,14 @@ img { display: block; max-width: 100%; }
   display: block;
   position: relative;
 }
-.carousel-slide {
+.product-image.carousel .carousel-slide {
   display: none;
   width: 100%;
+  height: auto;
   aspect-ratio: 1/1;
   object-fit: contain;
 }
-.carousel-slide.active {
+.product-image.carousel .carousel-slide.active {
   display: block;
 }
 .carousel-dots {
