@@ -55,7 +55,7 @@ function renderProductCard(product) {
   const inStock = product.stock === undefined || product.stock > 0;
 
   const actionHtml = inStock
-    ? `<button class="add-to-cart" onclick='addToCart(${JSON.stringify({
+    ? `<button class="add-to-cart" onclick='event.stopPropagation();addToCart(${JSON.stringify({
         id:    product.id,
         name:  product.name,
         price: product.price,
@@ -64,7 +64,7 @@ function renderProductCard(product) {
     : `<span class="out-of-stock-label">Out of Stock</span>`;
 
   return `
-    <div class="product-card">
+    <div class="product-card" onclick="window.location.href='product.html?id=${product.id}'" style="cursor:pointer;">
       ${imageHtml}
       ${badge}
       <div class="product-info">

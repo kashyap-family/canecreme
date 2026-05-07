@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Product — CaneCreme</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Lexend:wght@300;400;500;600;700&family=Lobster&display=swap" rel="stylesheet"/>
+  <style>
+    .product-detail-wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2.5rem 2rem 4rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3.5rem;
+      align-items: start;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      color: var(--gray);
+      text-decoration: none;
+      margin: 1.5rem 2rem 0;
+      max-width: 1100px;
+    }
+    .back-link:hover { color: var(--green); }
+
+    /* Gallery */
+    .pd-gallery { display: flex; gap: 1rem; }
+    .pd-thumbs {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .pd-thumb {
+      width: 72px;
+      height: 72px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      cursor: pointer;
+      background: var(--green-pale);
+      flex-shrink: 0;
+    }
+    .pd-thumb.active { border-color: var(--green); }
+    .pd-thumb img { width: 100%; height: 100%; object-fit: contain; }
+    .pd-main-img {
+      flex: 1;
+      aspect-ratio: 1/1;
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--green-pale);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pd-main-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* Info */
+    .pd-info { display: flex; flex-direction: column; gap: 1.2rem; }
+    .pd-name {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--dark);
+      line-height: 1.2;
+    }
+    .pd-stars { display: flex; gap: 3px; }
+    .pd-stars span { font-size: 1rem; color: var(--gold); }
+    .pd-price-row { display: flex; align-items: baseline; gap: 0.75rem; }
+    .pd-price {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--green);
+    }
+    .pd-compare {
+      font-size: 1rem;
+      color: var(--gray-light);
+      text-decoration: line-through;
+    }
+    .pd-save {
+      background: #e8f5e9;
+      color: #2e7d32;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+    }
+    .pd-desc {
+      font-size: 0.95rem;
+      color: var(--gray);
+      line-height: 1.75;
+      border-top: 1px solid var(--border);
+      padding-top: 1.2rem;
+    }
+    .pd-stock {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .pd-stock-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+    .pd-stock-dot.out { background: #ef4444; }
+
+    /* Quantity */
+    .pd-qty-label { font-size: 0.85rem; font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; }
+    .pd-qty-row { display: flex; align-items: center; gap: 1.2rem; }
+    .qty-stepper {
+      display: flex;
+      align-items: center;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .qty-btn {
+      width: 40px; height: 44px;
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--green);
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+    .qty-btn:hover { background: var(--green-pale); }
+    .qty-val {
+      width: 44px;
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--dark);
+      border: none;
+      outline: none;
+      background: none;
+    }
+    .pd-add-btn {
+      flex: 1;
+      padding: 0.9rem 1.5rem;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .pd-add-btn:hover { background: var(--green-light); }
+    .pd-add-btn:disabled { background: var(--gray-light); cursor: not-allowed; }
+
+    /* Badges */
+    .pd-badges {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .pd-badge {
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      background: var(--green-pale);
+      color: var(--green);
+      border: 1px solid var(--border);
+    }
+
+    @media (max-width: 768px) {
+      .product-detail-wrap {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        padding: 1.5rem 1rem 3rem;
+      }
+      .pd-name { font-size: 1.5rem; }
+      .pd-thumb { width: 56px; height: 56px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="announcement-bar">
+    <div class="marquee-track">
+      <span>🌿 Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp; Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp;</span>
+      <span aria-hidden="true">🌿 Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp; Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp;</span>
+    </div>
+  </div>
+
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">
+        <img src="Assets/logo.png" alt="CaneCreme" class="logo-img" />
+      </a>
+      <div class="nav-links" id="nav-links">
+        <a href="shop.html">Shop</a>
+        <a href="about.html">About</a>
+        <a href="#" id="cart-icon" class="cart-link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+          <span class="cart-count" id="cart-count">0</span>
+        </a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <a href="shop.html" class="back-link">← Back to Shop</a>
+
+  <div class="product-detail-wrap" id="product-detail">
+    <!-- Skeleton -->
+    <div class="pd-gallery">
+      <div class="pd-thumbs" id="pd-thumbs"></div>
+      <div class="pd-main-img" id="pd-main-img">
+        <div style="font-size:3rem;">🌿</div>
+      </div>
+    </div>
+    <div class="pd-info" id="pd-info" style="padding-top:0.5rem;">
+      <div style="height:2.5rem;background:var(--cream-dark);border-radius:8px;width:70%;"></div>
+      <div style="height:1.2rem;background:var(--cream-dark);border-radius:8px;width:40%;"></div>
+      <div style="height:1.5rem;background:var(--cream-dark);border-radius:8px;width:30%;"></div>
+      <div style="height:5rem;background:var(--cream-dark);border-radius:8px;"></div>
+    </div>
+  </div>
+
+  <!-- Cart sidebar (same as other pages) -->
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <div class="cart-sidebar" id="cart-sidebar">
+    <div class="cart-header">
+      <h3>Your Cart</h3>
+      <button class="cart-close" id="cart-close">✕</button>
+    </div>
+    <div class="cart-items" id="cart-items"></div>
+    <div class="cart-footer" id="cart-footer"></div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <img src="Assets/logo.png" alt="CaneCreme" class="footer-logo-img" />
+        <p>Cane Creme goodness,<br/>crafted with love from India.</p>
+        <a href="mailto:canecreme@gmail.com" class="footer-email">canecreme@gmail.com</a>
+      </div>
+      <div class="footer-nav">
+        <div class="footer-col">
+          <h4>SHOP</h4>
+          <a href="shop.html">All Products</a>
+        </div>
+        <div class="footer-col">
+          <h4>COMPANY</h4>
+          <a href="about.html">About Us</a>
+          <a href="#">Contact</a>
+        </div>
+        <div class="footer-col">
+          <h4>HELP</h4>
+          <a href="#">Support</a>
+          <a href="tel:9891239312">9891239312</a>
+          <a href="shipping-policy.html">Shipping Policy</a>
+          <a href="return-policy.html">Returns &amp; Refunds</a>
+          <a href="privacy-policy.html">Privacy Policy</a>
+          <a href="terms.html">Terms</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 CaneCreme. All rights reserved.</p>
+      <p>Made with 🌿 in India</p>
+    </div>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const productId = params.get('id');
+
+    async function loadProduct() {
+      if (!productId) { window.location.href = 'shop.html'; return; }
+
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/products?id=eq.${productId}&limit=1`,
+        { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+      );
+      const data = await res.json();
+      if (!data || !data[0]) { window.location.href = 'shop.html'; return; }
+      renderProduct(data[0]);
+    }
+
+    function renderProduct(p) {
+      document.title = `${p.name} — CaneCreme`;
+
+      const images = (p.images && p.images.length) ? p.images : [];
+      let currentImg = 0;
+
+      // Gallery
+      const mainImgEl = document.getElementById('pd-main-img');
+      const thumbsEl  = document.getElementById('pd-thumbs');
+
+      if (images.length) {
+        mainImgEl.innerHTML = `<img id="pd-active-img" src="${images[0]}" alt="${p.name}" />`;
+
+        thumbsEl.innerHTML = images.map((src, i) => `
+          <div class="pd-thumb ${i === 0 ? 'active' : ''}" onclick="switchImg(${i})">
+            <img src="${src}" alt="${p.name}" />
+          </div>
+        `).join('');
+
+        window.switchImg = function(i) {
+          currentImg = i;
+          document.getElementById('pd-active-img').src = images[i];
+          document.querySelectorAll('.pd-thumb').forEach((t, idx) =>
+            t.classList.toggle('active', idx === i)
+          );
+        };
+      } else {
+        mainImgEl.innerHTML = `<div style="font-size:4rem;">🌿</div>`;
+      }
+
+      // Info
+      const inStock = p.stock === undefined || p.stock > 0;
+      const hasSale = p.compare_at_price && parseFloat(p.compare_at_price) > parseFloat(p.price);
+      const saving  = hasSale ? Math.round(parseFloat(p.compare_at_price) - parseFloat(p.price)) : 0;
+      const rating  = Math.round(parseFloat(p.rating) || 5);
+      const stars   = Array.from({length:5}, (_,i) =>
+        `<span style="color:${i < rating ? 'var(--gold)' : '#e5e7eb'}">★</span>`
+      ).join('');
+
+      document.getElementById('pd-info').innerHTML = `
+        <div class="pd-name">${p.name}</div>
+        <div class="pd-stars">${stars}</div>
+        <div class="pd-price-row">
+          <span class="pd-price">₹${parseFloat(p.price).toFixed(0)}</span>
+          ${hasSale ? `<span class="pd-compare">₹${parseFloat(p.compare_at_price).toFixed(0)}</span>` : ''}
+          ${hasSale ? `<span class="pd-save">Save ₹${saving}</span>` : ''}
+        </div>
+        <div class="pd-stock">
+          <div class="pd-stock-dot ${inStock ? '' : 'out'}"></div>
+          <span>${inStock ? 'In Stock' : 'Out of Stock'}</span>
+        </div>
+        ${p.description ? `<div class="pd-desc">${p.description}</div>` : ''}
+        <div class="pd-badges">
+          <span class="pd-badge">🌿 100% Natural</span>
+          <span class="pd-badge">✓ No Preservatives</span>
+          <span class="pd-badge">🚚 Pan-India Delivery</span>
+        </div>
+        <div>
+          <div class="pd-qty-label">Quantity</div>
+          <div class="pd-qty-row">
+            <div class="qty-stepper">
+              <button class="qty-btn" onclick="changeQty(-1)">−</button>
+              <input class="qty-val" id="qty-val" type="number" value="1" min="1" max="20" readonly />
+              <button class="qty-btn" onclick="changeQty(1)">+</button>
+            </div>
+            <button class="pd-add-btn" id="pd-add-btn" onclick="addToCartFromPage()" ${!inStock ? 'disabled' : ''}>
+              ${inStock ? 'Add to Cart' : 'Out of Stock'}
+            </button>
+          </div>
+        </div>
+      `;
+
+      window.changeQty = function(delta) {
+        const el = document.getElementById('qty-val');
+        const newVal = Math.max(1, Math.min(20, parseInt(el.value) + delta));
+        el.value = newVal;
+      };
+
+      window.addToCartFromPage = function() {
+        const qty = parseInt(document.getElementById('qty-val').value) || 1;
+        for (let i = 0; i < qty; i++) {
+          addToCart({ id: p.id, name: p.name, price: p.price, image: images[0] || null });
+        }
+      };
+    }
+
+    loadProduct();
+  </script>
+</body>
+</html>
