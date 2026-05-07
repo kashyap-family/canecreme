@@ -1238,36 +1238,38 @@ img { display: block; max-width: 100%; }
 /* ===== PLATFORMS STRIP ===== */
 .platforms-strip {
   background: var(--cream-dark);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  border-top: 2px solid var(--border);
+  border-bottom: 2px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.2rem;
-  padding: 1rem 2rem;
+  gap: 2rem;
+  padding: 2.5rem 2rem;
   flex-wrap: wrap;
 }
 .platforms-label {
-  font-size: 0.9rem;
-  color: var(--gray);
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--dark);
 }
 .platform-badge {
-  font-size: 0.9rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
   font-weight: 700;
-  padding: 0.35rem 1.1rem;
-  border-radius: 20px;
-  letter-spacing: 0.01em;
+  padding: 0.7rem 2rem;
+  border-radius: 50px;
+  letter-spacing: 0.02em;
 }
 .platform-badge.zomato {
   background: #fff0f0;
   color: #cb202d;
-  border: 1.5px solid #f5c6c8;
+  border: 2px solid #f5c6c8;
 }
 .platform-badge.swiggy {
   background: #fff5ee;
   color: #fc6a03;
-  border: 1.5px solid #fdd5b0;
+  border: 2px solid #fdd5b0;
 }
 
 /* ===== FOOTER ===== */
