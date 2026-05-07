@@ -31,7 +31,7 @@ function renderProductCard(product) {
   let imageHtml;
   if (product.images && product.images.length > 1) {
     const slides = product.images.map((src) =>
-      `<img src="${src}" alt="${product.name}" class="carousel-slide" loading="lazy" />`
+      `<img src="${src}" alt="${product.name}" class="carousel-slide" loading="lazy" onerror="this.style.display='none'" />`
     ).join('');
     const dots = product.images.map((_, i) =>
       `<button class="carousel-dot${i === 0 ? ' active' : ''}" onclick="carouselGo(this,${i})" aria-label="Image ${i+1}"></button>`

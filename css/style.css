@@ -666,6 +666,7 @@ img { display: block; max-width: 100%; }
 .product-image.carousel {
   display: block;
   padding: 0;
+  font-size: 0;
 }
 .carousel-track {
   position: absolute;
