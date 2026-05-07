@@ -146,7 +146,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
         email: email,
         contact: phone
       },
-      theme: { color: '#2d5016' },
+      theme: { color: '#283618' },
       handler: async function(response) {
         await updatePaymentStatus(currentOrderId, response.razorpay_payment_id);
         localStorage.removeItem('canecreme_cart');
