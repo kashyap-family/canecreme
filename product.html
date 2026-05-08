@@ -235,15 +235,32 @@
     </div>
   </div>
 
-  <!-- Cart sidebar (same as other pages) -->
+  <!-- Cart sidebar -->
   <div class="cart-overlay" id="cart-overlay"></div>
   <div class="cart-sidebar" id="cart-sidebar">
     <div class="cart-header">
       <h3>Your Cart</h3>
-      <button class="cart-close" id="cart-close">✕</button>
+      <button id="cart-close" aria-label="Close cart">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
-    <div class="cart-items" id="cart-items"></div>
-    <div class="cart-footer" id="cart-footer"></div>
+    <div class="cart-body">
+      <div class="cart-items" id="cart-items"></div>
+      <div class="cart-note-wrap">
+        <button class="cart-note-toggle" id="cart-note-toggle" onclick="toggleCartNote()">✎ Add Order Note</button>
+        <textarea id="cart-note" class="cart-note-input" placeholder="Special instructions, gift messages, dietary needs..."></textarea>
+      </div>
+      <div class="cart-suggestions" id="cart-suggestions"></div>
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total-row">
+        <span>Subtotal</span>
+        <span class="cart-total-amt">₹<span id="cart-total">0</span></span>
+      </div>
+      <p class="cart-shipping-note">Shipping calculated at checkout</p>
+      <a href="checkout.html" class="btn-primary btn-full" id="checkout-btn">Proceed to Checkout</a>
+      <a href="shop.html" class="btn-continue">Continue Shopping</a>
+    </div>
   </div>
 
   <footer class="footer">
