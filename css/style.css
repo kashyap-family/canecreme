@@ -1330,20 +1330,35 @@ img { display: block; max-width: 100%; }
 .empty-cart a { color: var(--green); font-weight: 500; font-size: 0.9rem; }
 
 /* ===== GALLERY COLLAGE ===== */
-.gallery-section { padding: 5rem 2rem; background: var(--cream); }
+.gallery-section { padding: 5rem 0; background: var(--cream); overflow: hidden; }
+.gallery-section .section-header { padding: 0 2rem 2.5rem; max-width: 1200px; margin: 0 auto; }
 
 .gallery-collage {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: 220px;
+  display: flex;
   gap: 12px;
-  max-width: 1200px;
-  margin: 0 auto;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 0 2rem 1.5rem;
+  cursor: grab;
+  -webkit-overflow-scrolling: touch;
 }
+.gallery-collage:active { cursor: grabbing; }
+.gallery-collage::-webkit-scrollbar { height: 4px; }
+.gallery-collage::-webkit-scrollbar-track { background: var(--cream-dark); border-radius: 4px; }
+.gallery-collage::-webkit-scrollbar-thumb { background: var(--green); border-radius: 4px; }
+
 .gallery-item {
   overflow: hidden;
   border-radius: 14px;
   background: var(--green-pale);
+  flex-shrink: 0;
+  height: 300px;
+  width: 240px;
+}
+.gallery-item.gallery-tall {
+  height: 360px;
+  width: 260px;
+  margin-top: -30px;
 }
 .gallery-item img {
   width: 100%;
@@ -1351,24 +1366,13 @@ img { display: block; max-width: 100%; }
   object-fit: cover;
   transition: transform 0.5s ease;
   display: block;
+  pointer-events: none;
 }
 .gallery-item:hover img { transform: scale(1.06); }
-.gallery-tall { grid-row: span 2; }
-.gallery-wide { grid-column: span 2; }
 
-@media (max-width: 900px) {
-  .gallery-collage {
-    grid-template-columns: repeat(3, 1fr);
-    grid-auto-rows: 160px;
-  }
-}
-@media (max-width: 600px) {
-  .gallery-collage {
-    grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: 140px;
-  }
-  .gallery-tall { grid-row: span 1; }
-  .gallery-wide { grid-column: span 1; }
+@media (max-width: 768px) {
+  .gallery-item { height: 220px; width: 180px; }
+  .gallery-item.gallery-tall { height: 270px; width: 200px; margin-top: -25px; }
 }
 
 /* ===== PLATFORMS STRIP ===== */

@@ -188,20 +188,34 @@
         <h2 class="section-title">From Our Kitchen <span class="title-script">to Yours</span></h2>
       </div>
     </div>
-    <div class="gallery-collage">
+    <div class="gallery-collage" id="gallery-collage">
       <div class="gallery-item gallery-tall"><img src="Assets/galeto-1.jpeg" alt="CaneCreme Gelato" loading="lazy" /></div>
       <div class="gallery-item"><img src="Assets/beet-bites-1.jpg" alt="Beet Bites" loading="lazy" /></div>
-      <div class="gallery-item"><img src="Assets/galeto-2.jpeg" alt="CaneCreme Gelato" loading="lazy" /></div>
-      <div class="gallery-item gallery-tall"><img src="Assets/galeto-3.jpeg" alt="CaneCreme Gelato" loading="lazy" /></div>
+      <div class="gallery-item gallery-tall"><img src="Assets/galeto-2.jpeg" alt="CaneCreme Gelato" loading="lazy" /></div>
       <div class="gallery-item"><img src="Assets/chocochip-1.jpg" alt="Chocochip Cookies" loading="lazy" /></div>
-      <div class="gallery-item"><img src="Assets/galeto-4.jpg" alt="CaneCreme Gelato" loading="lazy" /></div>
+      <div class="gallery-item gallery-tall"><img src="Assets/galeto-3.jpeg" alt="CaneCreme Gelato" loading="lazy" /></div>
       <div class="gallery-item"><img src="Assets/atta-cookies-1.jpg" alt="Atta Cookies" loading="lazy" /></div>
-      <div class="gallery-item gallery-wide"><img src="Assets/galeto-5.jpg" alt="CaneCreme Gelato" loading="lazy" /></div>
+      <div class="gallery-item gallery-tall"><img src="Assets/galeto-4.jpg" alt="CaneCreme Gelato" loading="lazy" /></div>
       <div class="gallery-item"><img src="Assets/powerbite-1.jpg" alt="Powerbite" loading="lazy" /></div>
-      <div class="gallery-item"><img src="Assets/galeto-6.jpg" alt="CaneCreme Gelato" loading="lazy" /></div>
+      <div class="gallery-item gallery-tall"><img src="Assets/galeto-5.jpg" alt="CaneCreme Gelato" loading="lazy" /></div>
       <div class="gallery-item"><img src="Assets/broccoli-bites-1.jpg" alt="Broccoli Bites" loading="lazy" /></div>
+      <div class="gallery-item gallery-tall"><img src="Assets/galeto-6.jpg" alt="CaneCreme Gelato" loading="lazy" /></div>
       <div class="gallery-item"><img src="Assets/soya-bites-1.jpg" alt="Soya Bites" loading="lazy" /></div>
     </div>
+    <script>
+      // Drag to scroll
+      const gc = document.getElementById('gallery-collage');
+      let isDown = false, startX, scrollLeft;
+      gc.addEventListener('mousedown', e => { isDown = true; startX = e.pageX - gc.offsetLeft; scrollLeft = gc.scrollLeft; });
+      gc.addEventListener('mouseleave', () => isDown = false);
+      gc.addEventListener('mouseup', () => isDown = false);
+      gc.addEventListener('mousemove', e => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - gc.offsetLeft;
+        gc.scrollLeft = scrollLeft - (x - startX) * 1.5;
+      });
+    </script>
   </section>
 
   <!-- FULL-WIDTH CTA BANNER -->
