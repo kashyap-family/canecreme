@@ -86,10 +86,82 @@ function updateCartUI() {
   `).join('');
 }
 
+function toggleCartNote() {
+  const textarea = document.getElementById('cart-note');
+  const btn = document.getElementById('cart-note-toggle');
+  if (!textarea) return;
+  const isOpen = textarea.classList.toggle('open');
+  if (btn) btn.textContent = isOpen ? '✕ Remove Note' : '✎ Add Order Note';
+  if (isOpen) {
+    textarea.value = localStorage.getItem('canecreme_order_note') || '';
+    textarea.focus();
+    textarea.addEventListener('input', () => {
+      localStorage.setItem('canecreme_order_note', textarea.value);
+    });
+  } else {
+    localStorage.removeItem('canecreme_order_note');
+    textarea.value = '';
+  }
+}
+
+async function loadCartSuggestions() {
+  const suggestionsEl = document.getElementById('cart-suggestions');
+  if (!suggestionsEl) return;
+  if (cart.length === 0) { suggestionsEl.innerHTML = ''; return; }
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/products?is_active=eq.true&limit=10`,
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+    );
+    const all = await res.json();
+    const cartIds = cart.map(i => i.id);
+    const suggestions = all.filter(p => !cartIds.includes(p.id)).slice(0, 3);
+    if (!suggestions.length) { suggestionsEl.innerHTML = ''; return; }
+
+    suggestionsEl.innerHTML = `
+      <div class="cart-suggestions-title">You May Also Like</div>
+      <div class="cart-suggestions-list">
+        ${suggestions.map(p => `
+          <div class="cart-suggestion-item">
+            <div class="cart-suggestion-img">
+              ${p.images && p.images[0]
+                ? `<img src="${p.images[0]}" alt="${p.name}" />`
+                : '🌿'}
+            </div>
+            <div class="cart-suggestion-info">
+              <div class="cart-suggestion-name">${p.name}</div>
+              <div class="cart-suggestion-price">₹${parseFloat(p.price).toFixed(0)}</div>
+            </div>
+            <button class="cart-suggestion-add" onclick='addToCart(${JSON.stringify({
+              id: p.id, name: p.name, price: p.price,
+              image: (p.images && p.images[0]) || null
+            })})'>+ Add</button>
+          </div>
+        `).join('')}
+      </div>`;
+  } catch(e) {
+    suggestionsEl.innerHTML = '';
+  }
+}
+
 function openCart() {
   document.getElementById('cart-sidebar')?.classList.add('open');
   document.getElementById('cart-overlay')?.classList.add('open');
   document.body.style.overflow = 'hidden';
+  loadCartSuggestions();
+  // Restore saved note
+  const saved = localStorage.getItem('canecreme_order_note');
+  const textarea = document.getElementById('cart-note');
+  const btn = document.getElementById('cart-note-toggle');
+  if (saved && textarea && btn) {
+    textarea.value = saved;
+    textarea.classList.add('open');
+    btn.textContent = '✕ Remove Note';
+    textarea.addEventListener('input', () => {
+      localStorage.setItem('canecreme_order_note', textarea.value);
+    });
+  }
 }
 
 function closeCart() {
