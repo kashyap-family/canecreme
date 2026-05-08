@@ -872,6 +872,30 @@ img { display: block; max-width: 100%; }
   font-size: 6rem;
 }
 
+/* Split collage grid */
+.split-collage { padding: 0; }
+.split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
+  height: 100%;
+}
+.split-grid-item {
+  overflow: hidden;
+  background: var(--green-pale);
+}
+.split-grid-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+  display: block;
+}
+.split-grid-item:hover img { transform: scale(1.06); }
+.split-grid-tall { grid-row: span 2; }
+
 .split-image-caption {
   position: absolute;
   bottom: 1.5rem;
