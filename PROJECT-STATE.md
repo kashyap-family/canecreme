@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 3 (2026-05-06)
+> Last updated: Session 7 (2026-05-08)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -176,7 +176,7 @@ Inferred from code — verify in Supabase dashboard before modifying.
 ### Logo Rules
 - `Assets/logo.png` = black text on white background PNG
 - On light bg (nav): `mix-blend-mode: multiply` (white bg disappears)
-- On dark/coloured bg (footer, popup): `filter: brightness(0) invert(1)` + `mix-blend-mode: screen`
+- On dark/coloured bg (footer, popup): `filter: invert(1)` + `mix-blend-mode: screen` (NOT brightness(0) invert — that makes everything white)
 
 ---
 
@@ -189,19 +189,22 @@ Inferred from code — verify in Supabase dashboard before modifying.
 4. Amber marquee strip (`#DDA15E` bg, dark text, ✦ separators)
 5. **Product Categories** — forest green `#283618` section, 4 emoji circles: 🥗 Healthy Bites · 🍪 Power Cookies · 🌾 Nutritious Makhana · 🌿 All Products
 6. **Bestsellers** — 3 featured products loaded from Supabase (`id="featured-products"`)
-7. **Story Split** — `beet-bite-website2.jpg` left, dark panel right ("From the Farm, With Intention")
+7. **Story Split** — LEFT: `canecreme-banner.jpeg` (⚠️ LOCAL ONLY — NOT pushed to GitHub yet, pending user approval). Dark panel right ("From the Farm, With Intention")
 8. **Process Steps** — amber `#DDA15E` bg: Sourced → Crafted → Packed → Delivered
-9. **CTA Banner** — forest green `#283618` bg ("Nature's Sweetness, Delivered." — "Delivered." in Lobster)
-10. Footer (dark `#0d0d0d` bg, 4-col: brand + Shop + Company + Help)
-11. Cart sidebar (slide-in from right)
-12. Entry popup (green top panel + logo in white pill + form bottom, amber submit button)
-13. Social proof toast (bottom-left, green left border)
+9. **Gallery Collage** — horizontal scroll strip with 12 photos (6 gelato + 6 product shots). Drag to scroll. CSS class `.gallery-collage`. ✅ LIVE
+10. **CTA Banner** — forest green `#283618` bg ("Nature's Sweetness, Delivered." — "Delivered." in Lobster)
+11. **Zomato & Swiggy strip** — above footer, cream bg, red Zomato badge + orange Swiggy badge. ✅ LIVE
+12. Footer (dark `#0d0d0d` bg, 4-col: brand + Shop + Company + Help). Footer text: "Cane Creme goodness, crafted with love from India."
+13. Cart sidebar (slide-in from right) — now includes "You May Also Like" suggestions + "Add Order Note" textarea
+14. Entry popup (green top panel + logo in white pill + form bottom, amber submit button)
+15. Social proof toast (bottom-left, green left border)
 
 ### shop.html — products grid, all loaded from Supabase (`id="all-products"`)
 ### about.html — brand story + values process strip + CTA
 ### checkout.html — shipping form + order summary + Razorpay
 ### success.html — order confirmed, shows order ID from URL param `?order=`
 ### admin.html — password-protected: add/edit/delete products
+### product.html — ⭐ NEW: individual product detail page. URL: `product.html?id=PRODUCT_UUID`. Shows image gallery with thumbnails, quantity stepper, Add to Cart, Save badge, stock status, badges. Product cards on shop/homepage now link here on click (Add to Cart button uses `event.stopPropagation()`).
 
 ---
 
@@ -213,6 +216,9 @@ Inferred from code — verify in Supabase dashboard before modifying.
 - `addToCart(product)` → opens sidebar + shows toast
 - `openCart()` / `closeCart()` — sidebar toggle
 - Escape key closes cart
+- **Order note** — `toggleCartNote()` shows/hides textarea. Saved to `localStorage` key: `canecreme_order_note`
+- **"You May Also Like"** — `loadCartSuggestions()` fetches all products, filters out cart items, shows up to 3 suggestions with "+ Add" button. Called on `openCart()`
+- Cart sidebar structure: `cart-header` → `cart-body` (contains `cart-items` + `cart-note-wrap` + `cart-suggestions`) → `cart-footer`
 
 ### products.js
 - Fetches from Supabase: `GET /rest/v1/products?is_active=eq.true&order=created_at.desc`
@@ -238,13 +244,15 @@ Inferred from code — verify in Supabase dashboard before modifying.
 ---
 
 ## 10. Pending Tasks
-- [ ] **More products** — Beet Bites and Broccoli Bites added. More products pending — ask user for names/descriptions/prices/photos.
+- [ ] **Push canecreme-banner.jpeg split section** — index.html split section updated locally to use `Assets/canecreme-banner.jpeg` instead of the old collage grid. ⚠️ NOT pushed yet — user must approve local preview first, then push.
+- [ ] **Push canecreme-banner.jpeg asset** — file exists in Assets/ locally but not committed to GitHub yet.
+- [ ] **Category filtering** — user wants products categorised. All 6 current products = "Healthy Bites". User was in process of adding `category` text column to Supabase `products` table (was on wrong screen — needed to open existing `products` table and add column, not create new table). Once column added: update admin.html to include category field, update shop.html to show filter tabs.
 - [ ] **Razorpay live mode** — currently on test key `rzp_test_SjNBmQxDuMl0Oo`. User must activate Razorpay, complete KYC, verify website `https://www.canecreme.co`, generate a Live Mode API key, and provide ONLY the Live Key ID (`rzp_live_...`) for `js/config.js`. Do NOT ask for or store the Key Secret in this repo/chat.
 - [ ] **Secure payment verification** — before accepting real payments, add server-side Razorpay payment verification (recommended: Supabase Edge Function or another backend). Current static checkout updates payment status client-side after Razorpay handler, which is not enough for production-grade verification.
-- [ ] **Supabase tables** — confirm `products`, `orders`, `order_items`, `leads` tables exist with correct schema
-- [ ] **Category circles** — emoji placeholders updated to new category names. Could be replaced with real product images once available.
-- [ ] **Policy pages** — draft pages exist, but owner should review final shipping fees, courier timelines, refund eligibility, GST/business details, and legal wording before launch
-- [ ] **Broccoli Bites images** — only 1 image uploaded so far (broccoli-bites-1.jpg). Add broccoli-bites-2.jpg, broccoli-bites-3.jpg when available.
+- [ ] **Order note in checkout** — order note is saved to `localStorage` key `canecreme_order_note` but checkout.js does NOT yet read/send it to Supabase. Add to orders table and wire up in checkout.js.
+- [ ] **Policy pages** — draft pages exist, but owner should review final shipping fees, courier timelines, refund eligibility, GST/business details, and legal wording before launch.
+- [ ] **Hero image** — `beet-bite-website1.jpg` referenced in hero CSS background but file does NOT exist in Assets/. Hero may be broken. Replace with a real CaneCreme photo.
+- [ ] **Razorpay live mode** — currently on test key. See section 10A.
 
 ---
 
@@ -287,11 +295,27 @@ How to add product images correctly:
 - Images load via relative URL — `Assets/filename.jpg` resolves to `canecreme.co/Assets/filename.jpg` on live site
 - Browser cache can make old version appear — always verify in Incognito or after cache clear (Ctrl+Shift+Delete)
 
-## 10D. Current Products in Supabase
-| Product | Images | Price | Stock |
-|---------|--------|-------|-------|
-| Beet Bites | Assets/beet-bites-1.jpg → beet-bites-4.jpg (4 images) | ₹149 | 100 |
-| Broccoli Bites | Assets/broccoli-bites-1.jpg (1 image so far) | ₹149 | (check DB) |
+## 10D. Current Products in Supabase (verified via API 2026-05-08)
+| Product | ID | Images | Price |
+|---------|-----|--------|-------|
+| Beet Bites | cf3d5ba7-177f-4033-9ab4-598201bf6cfd | beet-bites-1 → 4 (4 images) | ₹149 |
+| Broccoli Bites | 2df1da36-c102-46a6-8f30-cf169499cf71 | broccoli-bites-1 → 4 (4 images) | ₹149 |
+| Soya Bites | 863f3532-45f8-4c1b-bcfb-2bdb27d05c96 | soya-bites-1 → 4 (4 images) | (check DB) |
+| Pure Ghee Atta Cookies | a494afdd-6bff-44a0-9913-6615badba224 | atta-cookies-1 → 4 (4 images) | ₹229 |
+| Powerbite Multigrain Cookies | 7caa3e8d-6ab3-4fe9-878f-3e4f9a882109 | powerbite-1 → 4 (4 images) | ₹275 |
+| Chocochip Oatmeal Cookies | ec95d67c-5f95-4392-a127-f295dd071ea4 | chocochip-1 → 4 (4 images) | ₹275 |
+
+## 10E. Current Assets in Assets/ folder (verified 2026-05-08)
+- beet-bites-1.jpg → beet-bites-4.jpg
+- broccoli-bites-1.jpg → broccoli-bites-4.jpg
+- soya-bites-1.jpg → soya-bites-4.jpg
+- atta-cookies-1.jpg → atta-cookies-4.jpg
+- powerbite-1.jpg → powerbite-4.jpg
+- chocochip-1.jpg → chocochip-4.jpg
+- galeto-1.jpeg, galeto-2.jpeg, galeto-3.jpeg (JPEG format)
+- galeto-4.jpg, galeto-5.jpg, galeto-6.jpg (JPG format)
+- canecreme-banner.jpeg ← ⚠️ LOCAL ONLY, not pushed to GitHub yet
+- logo.png, logo.svg (logo.svg unused)
 
 ## 11. Known Decisions & Rules
 - User is **non-technical** — always explain before doing, ask one question at a time
@@ -299,13 +323,14 @@ How to add product images correctly:
 - **No assumptions** — always verify before changing anything
 - User confirmed on 2026-05-06: keep shop/checkout visible, delivery is pan-India, customer support phone is `9891239312`, keep fake social proof, keep 10% popup, online payment only, Razorpay live mode not activated yet, prepare draft policy pages.
 - All text previously saying "sugarcane" or "Pure Sugarcane" was changed to **"raw cane sugar"** / **"Raw Cane Sugar"** across all pages
+- Footer text changed from "Raw cane sugar goodness" → **"Cane Creme goodness, crafted with love from India."** across all pages
 - Colour has been changed 7 times — always present numbered options and wait for user to pick
-- Image assets (`beet-bite-website*.jpg`) are placeholder lifestyle images. Replace with real CaneCreme product photos when provided.
 - `logo.svg` in Assets/ is an old unused file — do not reference it
 - **Font change rule:** Fonts are Lexend + Lobster + DM Sans. Do NOT revert to Cormorant Garamond.
 - **Hero is full-bleed** — CSS `background-image` on `.hero`, NOT an `<img>` tag. The `.hero-overlay` div provides the dark tint.
-- **Worktree workflow:** This project uses Claude worktrees. Always edit files in `canecreme-main/` (main folder). The preview server serves from `.claude/worktrees/trusting-ellis-76e924/` — sync with `cp` after edits.
-- **Preview server:** Uses PowerShell inline HTTP server. launch.json is at `.claude/worktrees/trusting-ellis-76e924/.claude/launch.json`. Port 3456.
+- **⚠️ IMPORTANT — Preview before push rule:** User instructed on 2026-05-08: ALWAYS make changes locally first, let user preview by opening `canecreme-main/index.html` in their browser, then push to GitHub only after user says "looks good" or "push it".
+- **Worktree workflow:** Always edit files in `canecreme-main/` (main folder). Do NOT edit worktree copies.
+- **Preview server:** Python not fully installed. Use browser file:// directly for preview (`file:///C:/Users/kritika kashyap/Desktop/cane creme website/canecreme-main/index.html`)
 
 ---
 
@@ -318,3 +343,4 @@ How to add product images correctly:
 | Session 4 | 2026-05-06 | Captured launch answers: pan-India, phone 9891239312, online payment only, keep shop/checkout/social proof/10% popup, Razorpay not live. Added draft Shipping, Returns, Privacy, and Terms pages; linked policies in footer; updated checkout Razorpay theme to #283618. |
 | Session 5 | 2026-05-06 | Explained Razorpay setup step by step for non-technical owner. Saved requirement to share only Live Key ID, never Key Secret. Added production warning that secure server-side Razorpay payment verification is needed before real payments. |
 | Session 6 | 2026-05-07 | Category names updated (Healthy Bites / Power Cookies / Nutritious Makhana). Product image ratio fixed to square (1/1, object-fit: contain). Multi-image carousel added (sliding track + dots). Admin Edit button fixed (data-id + fresh fetch). Images field changed to textarea (multiple URLs). Popup logo fixed (white pill). Popup text updated ("Cane Creme goodness"). Products added: Beet Bites (4 images), Broccoli Bites (1 image). All images pushed to GitHub. Browser cache issue identified — images visible in Incognito. |
+| Session 7 | 2026-05-08 | Product cards equal height fixed (flexbox). Footer logo fixed (filter: invert(1)). Footer text updated to "Cane Creme goodness". Product images pushed: broccoli-bites 2-4, soya-bites 1-4, atta-cookies 1-4, powerbite 1-4, chocochip 1-4, galeto 1-6. All 6 products confirmed in Supabase with 4 images each. NEW: product.html detail page with image gallery + quantity stepper. Product cards now clickable → product.html. Cart sidebar upgraded: "You May Also Like" suggestions + order note textarea. Zomato & Swiggy strip added above footer. Gallery collage (horizontal scroll) added on homepage. Split section updated locally to use canecreme-banner.jpeg (NOT pushed — pending user approval). ⚠️ NEW RULE: always preview locally before pushing to GitHub. |
