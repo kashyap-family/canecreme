@@ -873,18 +873,20 @@ img { display: block; max-width: 100%; }
 }
 
 /* Split collage grid */
-.split-collage { padding: 0; }
+.split-collage { padding: 6px; }
 .split-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: repeat(3, 1fr);
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 1fr;
   gap: 6px;
   width: 100%;
   height: 100%;
 }
 .split-grid-item {
   overflow: hidden;
+  border-radius: 8px;
   background: var(--green-pale);
+  aspect-ratio: 1/1;
 }
 .split-grid-item img {
   width: 100%;
@@ -893,8 +895,7 @@ img { display: block; max-width: 100%; }
   transition: transform 0.5s ease;
   display: block;
 }
-.split-grid-item:hover img { transform: scale(1.06); }
-.split-grid-tall { grid-row: span 2; }
+.split-grid-item:hover img { transform: scale(1.08); }
 
 .split-image-caption {
   position: absolute;
