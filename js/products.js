@@ -44,7 +44,11 @@ function renderProductCard(product) {
   }
 
   const hasSale = product.compare_at_price && parseFloat(product.compare_at_price) > parseFloat(product.price);
-  const badge   = hasSale
+  const bestsellerNames = ['beet', 'soya', 'powerbite'];
+  const isBestseller = bestsellerNames.some(n => product.name.toLowerCase().includes(n));
+  const badge = isBestseller
+    ? `<div class="product-badge bestseller-badge">⭐ Bestseller</div>`
+    : hasSale
     ? `<div class="product-badge">Sale</div>`
     : `<div class="product-badge new-badge">New</div>`;
 
@@ -90,6 +94,34 @@ function carouselGo(dotEl, index) {
   card.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === index));
 }
 
+function carouselSetIndex(card, index) {
+  card.querySelector('.carousel-track').style.transform = `translateX(-${index * 100}%)`;
+  card.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === index));
+}
+
+function initCarouselHover() {
+  document.querySelectorAll('.product-image.carousel').forEach(card => {
+    const total = card.querySelectorAll('.carousel-slide').length;
+    if (total < 2) return;
+    let timer = null;
+    let current = 0;
+
+    card.addEventListener('mouseenter', () => {
+      timer = setInterval(() => {
+        current = (current + 1) % total;
+        carouselSetIndex(card, current);
+      }, 900);
+    });
+
+    card.addEventListener('mouseleave', () => {
+      clearInterval(timer);
+      timer = null;
+      current = 0;
+      carouselSetIndex(card, 0);
+    });
+  });
+}
+
 async function loadFeaturedProducts(containerId, limit = 3) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -107,6 +139,8 @@ async function loadFeaturedProducts(containerId, limit = 3) {
   }
 
   container.innerHTML = products.map(renderProductCard).join('');
+
+  initCarouselHover();
 
   // Trigger stagger animation if main.js loaded
   if (typeof window.onProductsLoaded === 'function') {

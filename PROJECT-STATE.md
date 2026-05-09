@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 7 (2026-05-08)
+> Last updated: Session 8 (2026-05-09)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -111,6 +111,7 @@ Inferred from code — verify in Supabase dashboard before modifying.
 | is_active | boolean | false = hidden from shop |
 | rating | numeric | optional, defaults to 5 in JS |
 | created_at | timestamp | |
+| delivery_type | text | ⚠️ NOT ADDED YET. Values: `pan_india` / `delhi_only`. Default: `pan_india`. Must be added manually in Supabase Table Editor. |
 
 ### `orders`
 | Column | Type |
@@ -145,19 +146,21 @@ Inferred from code — verify in Supabase dashboard before modifying.
 
 ## 7. Current Design System
 
-### Active Colour Palette: Earthy Organic
+### Active Colour Palette: Lime & Orange
 ```css
---cream:        #FEFAE0;   /* warm cream — main background */
---cream-dark:   #F2EDD0;   /* slightly deeper cream */
---green:        #283618;   /* deep forest green — primary */
---green-mid:    #1E2910;   /* darker green */
---green-light:  #3A5020;   /* lighter green hover */
---green-pale:   #E8EED8;   /* very light green tint */
---gold:         #DDA15E;   /* warm amber accent */
---gold-light:   #E8B87A;   /* lighter amber */
---dark:         #0F1508;   /* deep dark */
---border:       #D4C9A0;   /* warm cream border */
+--cream:        #FAFEF0;   /* light lime-white — main background */
+--cream-dark:   #EEF9B0;   /* light green tint */
+--green:        #BAD50D;   /* lime green — primary buttons, strips, CTA */
+--green-mid:    #1C2400;   /* deep dark olive — dark section backgrounds */
+--green-light:  #8FA309;   /* darker lime — hover states */
+--green-pale:   #EEF9B0;   /* very light lime tint — card backgrounds */
+--gold:         #F7AD4E;   /* orange — accent, badges, tagline */
+--gold-light:   #FBCF8A;   /* lighter orange */
+--dark:         #1C2400;   /* deep dark olive — all body text */
+--border:       #DFF09A;   /* light lime border */
 ```
+Footer hardcoded: `background: #1C2400`
+Razorpay theme colour: `#BAD50D`
 
 ### Colour Palette History (most recent = active)
 1. Green / nature
@@ -166,7 +169,8 @@ Inferred from code — verify in Supabase dashboard before modifying.
 4. Vibrant Purple (#6B21A8)
 5. Mango Fiesta (orange #F97316 + teal #14B8A6)
 6. Rich Chocolate & Gold (#92400E + #F59E0B)
-7. **Earthy Organic (#283618 + #FEFAE0 + #DDA15E) ← CURRENT**
+7. Earthy Organic (#283618 + #FEFAE0 + #DDA15E)
+8. **Lime & Orange (#BAD50D + #F7AD4E + #FAFEF0) ← CURRENT**
 
 ### Typography
 - Display font: `Lexend` (headings, product names)
@@ -183,28 +187,28 @@ Inferred from code — verify in Supabase dashboard before modifying.
 ## 8. Page Layout & Sections
 
 ### index.html (Homepage)
-1. Announcement bar (marquee — dark green bg `#1E2910` + amber text)
-2. Sticky nav (cream `#FEFAE0` bg, logo, Shop / About links + cart icon)
-3. **Hero** — FULL-BLEED `beet-bite-website1.jpg` as CSS background-image, dark overlay `rgba(15,21,8,0.72)`, centered content: Lobster tagline "No More Guilt Indulgence" (amber), eyebrow pill, Lexend bold title, amber CTA button
-4. Amber marquee strip (`#DDA15E` bg, dark text, ✦ separators)
-5. **Product Categories** — forest green `#283618` section, 4 emoji circles: 🥗 Healthy Bites · 🍪 Power Cookies · 🌾 Nutritious Makhana · 🌿 All Products
+1. Announcement bar (marquee — dark olive bg `#1C2400` + orange text)
+2. Sticky nav (light lime-white `#FAFEF0` bg, logo, Shop / About links + cart icon)
+3. **Hero** — FULL-BLEED `beet-bite-website1.jpg` as CSS background-image, dark overlay, centered content: Lobster tagline "No More Guilt Indulgence" (orange), eyebrow pill, Lexend bold title, lime CTA button
+4. Lime marquee strip (`#BAD50D` bg, dark text, ✦ separators)
+5. **Product Categories** — dark olive `#1C2400` section, 4 emoji circles: 🥗 Healthy Bites · 🍪 Power Cookies · 🌾 Nutritious Makhana · 🌿 All Products
 6. **Bestsellers** — 3 featured products loaded from Supabase (`id="featured-products"`)
 7. **Story Split** — LEFT: `canecreme-banner.jpeg` (⚠️ LOCAL ONLY — NOT pushed to GitHub yet, pending user approval). Dark panel right ("From the Farm, With Intention")
-8. **Process Steps** — amber `#DDA15E` bg: Sourced → Crafted → Packed → Delivered
+8. **Process Steps** — orange `#F7AD4E` bg: Sourced → Crafted → Packed → Delivered
 9. **Gallery Collage** — horizontal scroll strip with 12 photos (6 gelato + 6 product shots). Drag to scroll. CSS class `.gallery-collage`. ✅ LIVE
-10. **CTA Banner** — forest green `#283618` bg ("Nature's Sweetness, Delivered." — "Delivered." in Lobster)
-11. **Zomato & Swiggy strip** — above footer, cream bg, red Zomato badge + orange Swiggy badge. ✅ LIVE
-12. Footer (dark `#0d0d0d` bg, 4-col: brand + Shop + Company + Help). Footer text: "Cane Creme goodness, crafted with love from India."
+10. **CTA Banner** — lime `#BAD50D` bg ("Healthy Cravings, Delivered." — "Delivered." in Lobster orange)
+11. **Zomato & Swiggy strip** — above footer, light bg, red Zomato badge + orange Swiggy badge. ✅ LIVE
+12. Footer (dark olive `#1C2400` bg, 4-col: brand + Shop + Company + Help). Footer text: "Cane Creme goodness, crafted with love from India."
 13. Cart sidebar (slide-in from right) — now includes "You May Also Like" suggestions + "Add Order Note" textarea
-14. Entry popup (green top panel + logo in white pill + form bottom, amber submit button)
-15. Social proof toast (bottom-left, green left border)
+14. Entry popup (green top panel + logo in white pill + form bottom, orange submit button)
+15. Social proof toast (bottom-left, lime left border)
 
 ### shop.html — products grid, all loaded from Supabase (`id="all-products"`)
 ### about.html — brand story + values process strip + CTA
 ### checkout.html — shipping form + order summary + Razorpay
 ### success.html — order confirmed, shows order ID from URL param `?order=`
-### admin.html — password-protected: add/edit/delete products
-### product.html — ⭐ NEW: individual product detail page. URL: `product.html?id=PRODUCT_UUID`. Shows image gallery with thumbnails, quantity stepper, Add to Cart, Save badge, stock status, badges. Product cards on shop/homepage now link here on click (Add to Cart button uses `event.stopPropagation()`).
+### admin.html — password-protected: add/edit/delete products. Now includes **Delivery Zone** dropdown (Pan India / Delhi Only) per product.
+### product.html — individual product detail page. URL: `product.html?id=PRODUCT_UUID`. Shows image gallery with thumbnails, quantity stepper, Add to Cart, Save badge, stock status, badges. Now includes **Pin Code Delivery Checker** (see section 9 below). Product cards on shop/homepage now link here on click (Add to Cart button uses `event.stopPropagation()`).
 
 ---
 
@@ -226,6 +230,7 @@ Inferred from code — verify in Supabase dashboard before modifying.
 - `loadFeaturedProducts(containerId, limit)` — called by homepage (limit=3) and shop (limit=100)
 - Stars are always 5 ★ by default unless `product.rating` field is set in DB
 - **Multi-image carousel** — if product has 2+ images, renders a `.carousel-track` with slides. `carouselGo(dotEl, index)` uses `translateX(-N*100%)` to slide between images. Dot buttons at the bottom. Single image uses simple `<img>` tag. No images = 🌿 emoji.
+- **Hover auto-slide** — `initCarouselHover()` called after render. On mouseenter: slides cycle every 900ms. On mouseleave: stops + resets to image 0. Uses `carouselSetIndex(card, index)` internally.
 - **Product image aspect ratio** — square `1/1`, `object-fit: contain` (shows full product, no cropping)
 
 ### main.js
@@ -239,20 +244,34 @@ Inferred from code — verify in Supabase dashboard before modifying.
 ### checkout.js
 - Validates: name, email, phone, address1, city, state, pin
 - Flow: create order in DB → save order_items → open Razorpay modal → on payment success → update payment_status to 'paid' → redirect to `success.html`
-- Razorpay theme colour is `#283618` (current brand green)
+- Razorpay theme colour is `#BAD50D` (current brand lime green)
+
+### product.html — Pin Code Delivery Checker
+- UI: box with text input (6-digit pin) + Check button. Appears on every product detail page.
+- Logic in `checkPincode(deliveryType)` function (inline script in product.html):
+  - `deliveryType` comes from `p.delivery_type` Supabase field (default: `'pan_india'` if null)
+  - `pan_india`: any valid 6-digit pin → ✓ available
+  - `delhi_only`: only pins starting with `'110'` → ✓ available; others → ✗ not available
+  - Delhi pin codes all start with `110` (110001–110096)
+  - Enter key on input also triggers check
+- Badge on product page shows "Delhi Delivery Only" or "Pan-India Delivery" based on `delivery_type`
+- ⚠️ `delivery_type` column does NOT exist in Supabase yet — user needs to add it manually:
+  - Table Editor → products → Add column → Name: `delivery_type` | Type: `text` | Default: `pan_india`
+  - All 6 current products = pan_india (user confirmed). Once column added, bulk update via API:
+    `PATCH /rest/v1/products?is_active=eq.true` with `{"delivery_type":"pan_india"}`
 
 ---
 
 ## 10. Pending Tasks
+- [ ] **Add `delivery_type` column in Supabase** — column does not exist yet. User must: Table Editor → products → Add column → `delivery_type` (text, default: `pan_india`). Then run bulk PATCH to set all 6 products to `pan_india`. Code is ready and waiting.
 - [ ] **Push canecreme-banner.jpeg split section** — index.html split section updated locally to use `Assets/canecreme-banner.jpeg` instead of the old collage grid. ⚠️ NOT pushed yet — user must approve local preview first, then push.
 - [ ] **Push canecreme-banner.jpeg asset** — file exists in Assets/ locally but not committed to GitHub yet.
-- [ ] **Category filtering** — user wants products categorised. All 6 current products = "Healthy Bites". User was in process of adding `category` text column to Supabase `products` table (was on wrong screen — needed to open existing `products` table and add column, not create new table). Once column added: update admin.html to include category field, update shop.html to show filter tabs.
+- [ ] **Category filtering** — user wants products categorised. All 6 current products = "Healthy Bites". User was in process of adding `category` text column to Supabase `products` table. Once column added: update admin.html to include category field, update shop.html to show filter tabs.
 - [ ] **Razorpay live mode** — currently on test key `rzp_test_SjNBmQxDuMl0Oo`. User must activate Razorpay, complete KYC, verify website `https://www.canecreme.co`, generate a Live Mode API key, and provide ONLY the Live Key ID (`rzp_live_...`) for `js/config.js`. Do NOT ask for or store the Key Secret in this repo/chat.
 - [ ] **Secure payment verification** — before accepting real payments, add server-side Razorpay payment verification (recommended: Supabase Edge Function or another backend). Current static checkout updates payment status client-side after Razorpay handler, which is not enough for production-grade verification.
 - [ ] **Order note in checkout** — order note is saved to `localStorage` key `canecreme_order_note` but checkout.js does NOT yet read/send it to Supabase. Add to orders table and wire up in checkout.js.
 - [ ] **Policy pages** — draft pages exist, but owner should review final shipping fees, courier timelines, refund eligibility, GST/business details, and legal wording before launch.
 - [ ] **Hero image** — `beet-bite-website1.jpg` referenced in hero CSS background but file does NOT exist in Assets/. Hero may be broken. Replace with a real CaneCreme photo.
-- [ ] **Razorpay live mode** — currently on test key. See section 10A.
 
 ---
 
@@ -284,6 +303,7 @@ Inferred from code — verify in Supabase dashboard before modifying.
   Assets/beet-bites-2.jpg
   Assets/beet-bites-3.jpg
   ```
+- **Delivery Zone** — `<select id="p-delivery-type">` with options `pan_india` / `delhi_only`. Added in Session 8. Reads/writes `delivery_type` field in Supabase. Defaults to `pan_india` on new product. ⚠️ Column must be added in Supabase first (see Pending Tasks).
 
 ## 10C. Product Image Workflow (for next agent)
 How to add product images correctly:
@@ -329,6 +349,8 @@ How to add product images correctly:
 - **Font change rule:** Fonts are Lexend + Lobster + DM Sans. Do NOT revert to Cormorant Garamond.
 - **Hero is full-bleed** — CSS `background-image` on `.hero`, NOT an `<img>` tag. The `.hero-overlay` div provides the dark tint.
 - **⚠️ IMPORTANT — Preview before push rule:** User instructed on 2026-05-08: ALWAYS make changes locally first, let user preview by opening `canecreme-main/index.html` in their browser, then push to GitHub only after user says "looks good" or "push it".
+- **CTA Banner text** changed from "Nature's Sweetness" → **"Healthy Cravings"** (Session 8).
+- **Colour palette** changed from Earthy Organic → **Lime & Orange** (#BAD50D + #F7AD4E) in Session 8. This is the 8th palette — always present numbered options before changing again.
 - **Worktree workflow:** Always edit files in `canecreme-main/` (main folder). Do NOT edit worktree copies.
 - **Preview server:** Python not fully installed. Use browser file:// directly for preview (`file:///C:/Users/kritika kashyap/Desktop/cane creme website/canecreme-main/index.html`)
 
@@ -344,3 +366,4 @@ How to add product images correctly:
 | Session 5 | 2026-05-06 | Explained Razorpay setup step by step for non-technical owner. Saved requirement to share only Live Key ID, never Key Secret. Added production warning that secure server-side Razorpay payment verification is needed before real payments. |
 | Session 6 | 2026-05-07 | Category names updated (Healthy Bites / Power Cookies / Nutritious Makhana). Product image ratio fixed to square (1/1, object-fit: contain). Multi-image carousel added (sliding track + dots). Admin Edit button fixed (data-id + fresh fetch). Images field changed to textarea (multiple URLs). Popup logo fixed (white pill). Popup text updated ("Cane Creme goodness"). Products added: Beet Bites (4 images), Broccoli Bites (1 image). All images pushed to GitHub. Browser cache issue identified — images visible in Incognito. |
 | Session 7 | 2026-05-08 | Product cards equal height fixed (flexbox). Footer logo fixed (filter: invert(1)). Footer text updated to "Cane Creme goodness". Product images pushed: broccoli-bites 2-4, soya-bites 1-4, atta-cookies 1-4, powerbite 1-4, chocochip 1-4, galeto 1-6. All 6 products confirmed in Supabase with 4 images each. NEW: product.html detail page with image gallery + quantity stepper. Product cards now clickable → product.html. Cart sidebar upgraded: "You May Also Like" suggestions + order note textarea. Zomato & Swiggy strip added above footer. Gallery collage (horizontal scroll) added on homepage. Split section updated locally to use canecreme-banner.jpeg (NOT pushed — pending user approval). ⚠️ NEW RULE: always preview locally before pushing to GitHub. |
+| Session 8 | 2026-05-09 | CTA banner text changed: "Nature's Sweetness" → "Healthy Cravings". Product carousel hover auto-slide added (900ms interval, resets on mouseleave). Pin code delivery checker added to product.html. Admin panel now has Delivery Zone dropdown (Pan India / Delhi Only) — reads/writes `delivery_type` Supabase field. ⚠️ `delivery_type` column not yet added in Supabase — pending user action. All 6 products confirmed pan_india by user. Colour palette changed to Lime & Orange (#BAD50D + #F7AD4E + #FAFEF0) — 8th palette. Footer bg updated to #1C2400. Razorpay theme updated to #BAD50D. Changes are LOCAL ONLY — not pushed to GitHub yet. |
