@@ -178,6 +178,63 @@
       border: 1px solid var(--border);
     }
 
+    /* Pin code checker */
+    .pincode-wrap {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      background: var(--cream-dark);
+    }
+    .pincode-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--dark);
+      margin-bottom: 0.55rem;
+    }
+    .pincode-row {
+      display: flex;
+      gap: 0.6rem;
+    }
+    .pincode-input {
+      flex: 1;
+      padding: 0.6rem 0.9rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      background: #fff;
+      color: var(--dark);
+      outline: none;
+      letter-spacing: 0.05em;
+    }
+    .pincode-input:focus { border-color: var(--green); }
+    .pincode-btn {
+      padding: 0.6rem 1.1rem;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .pincode-btn:hover { background: var(--green-light); }
+    .pincode-result {
+      margin-top: 0.6rem;
+      font-size: 0.84rem;
+      font-weight: 500;
+      display: none;
+    }
+    .pincode-result.ok  { color: #16a34a; }
+    .pincode-result.err { color: #dc2626; }
+    .pincode-zone {
+      font-size: 0.78rem;
+      color: var(--gray);
+      margin-top: 0.3rem;
+    }
+
     @media (max-width: 768px) {
       .product-detail-wrap {
         grid-template-columns: 1fr;
@@ -204,7 +261,18 @@
         <img src="Assets/logo.png" alt="CaneCreme" class="logo-img" />
       </a>
       <div class="nav-links" id="nav-links">
-        <a href="shop.html">Shop</a>
+        <div class="nav-dropdown">
+          <a href="shop.html">Shop</a>
+          <div class="dropdown-menu">
+            <a href="shop.html">All Products</a>
+            <a href="shop.html?category=bites">Bites</a>
+            <a href="shop.html?category=brownie">Brownie</a>
+            <a href="shop.html?category=cheesecake">Cheesecake</a>
+            <a href="shop.html?category=cookies">Cookies</a>
+            <a href="shop.html?category=makhana">Makhana</a>
+            <a href="shop.html?category=teacake">Tea Cake</a>
+          </div>
+        </div>
         <a href="about.html">About</a>
         <a href="#" id="cart-icon" class="cart-link">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
@@ -349,6 +417,11 @@
       // Info
       const inStock = p.stock === undefined || p.stock > 0;
       const hasSale = p.compare_at_price && parseFloat(p.compare_at_price) > parseFloat(p.price);
+      const deliveryType = p.delivery_type || 'pan_india';
+      const deliveryLabel = deliveryType === 'delhi_only' ? 'Delhi Delivery Only' : 'Pan-India Delivery';
+      const deliveryZoneNote = deliveryType === 'delhi_only'
+        ? 'This product is currently delivered within Delhi only.'
+        : 'This product is delivered across India.';
       const saving  = hasSale ? Math.round(parseFloat(p.compare_at_price) - parseFloat(p.price)) : 0;
       const rating  = Math.round(parseFloat(p.rating) || 5);
       const stars   = Array.from({length:5}, (_,i) =>
@@ -371,7 +444,16 @@
         <div class="pd-badges">
           <span class="pd-badge">🌿 100% Natural</span>
           <span class="pd-badge">✓ No Preservatives</span>
-          <span class="pd-badge">🚚 Pan-India Delivery</span>
+          <span class="pd-badge">🚚 ${deliveryLabel}</span>
+        </div>
+        <div class="pincode-wrap">
+          <div class="pincode-label">📍 Check Delivery Availability</div>
+          <div class="pincode-row">
+            <input class="pincode-input" id="pincode-input" type="text" inputmode="numeric" maxlength="6" placeholder="Enter 6-digit pin code" />
+            <button class="pincode-btn" onclick="checkPincode('${deliveryType}')">Check</button>
+          </div>
+          <div class="pincode-result" id="pincode-result"></div>
+          <div class="pincode-zone">${deliveryZoneNote}</div>
         </div>
         <div>
           <div class="pd-qty-label">Quantity</div>
@@ -403,6 +485,40 @@
     }
 
     loadProduct();
+
+    function checkPincode(deliveryType) {
+      const pin = document.getElementById('pincode-input').value.trim();
+      const resultEl = document.getElementById('pincode-result');
+      resultEl.style.display = 'block';
+      resultEl.className = 'pincode-result';
+
+      if (!/^\d{6}$/.test(pin)) {
+        resultEl.classList.add('err');
+        resultEl.textContent = '✗ Please enter a valid 6-digit pin code.';
+        return;
+      }
+
+      if (deliveryType === 'delhi_only') {
+        if (pin.startsWith('110')) {
+          resultEl.classList.add('ok');
+          resultEl.textContent = '✓ Delivery available to your pin code!';
+        } else {
+          resultEl.classList.add('err');
+          resultEl.textContent = '✗ Sorry, this product is only delivered within Delhi (pin codes starting with 110).';
+        }
+      } else {
+        resultEl.classList.add('ok');
+        resultEl.textContent = '✓ Delivery available to your pin code!';
+      }
+    }
+
+    document.addEventListener('keydown', function(e) {
+      const input = document.getElementById('pincode-input');
+      if (input && e.key === 'Enter' && document.activeElement === input) {
+        const btn = input.closest('.pincode-wrap').querySelector('.pincode-btn');
+        btn && btn.click();
+      }
+    });
   </script>
 </body>
 </html>

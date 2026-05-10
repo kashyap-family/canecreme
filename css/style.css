@@ -124,6 +124,50 @@ img { display: block; max-width: 100%; }
   position: relative;
 }
 
+/* ===== SHOP DROPDOWN ===== */
+.nav-dropdown {
+  position: relative;
+}
+.nav-dropdown > a {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.nav-dropdown > a::after {
+  content: '▾';
+  font-size: 0.7rem;
+  margin-top: 1px;
+}
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 1rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  min-width: 180px;
+  padding: 0.6rem 0;
+  z-index: 200;
+}
+.nav-dropdown:hover .dropdown-menu { display: block; }
+.dropdown-menu a {
+  display: block;
+  padding: 0.6rem 1.25rem;
+  font-size: 0.85rem;
+  color: #000;
+  font-weight: 400;
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition);
+}
+.dropdown-menu a:hover {
+  background: var(--green);
+  color: #000;
+}
+.dropdown-menu a::after { display: none !important; }
+
 .nav-links a::after {
   content: '';
   position: absolute;
@@ -541,6 +585,36 @@ img { display: block; max-width: 100%; }
 @keyframes marquee2 {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+
+/* ===== SHOP FILTERS ===== */
+.shop-filters {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+.filter-btn {
+  padding: 0.5rem 1.3rem;
+  border-radius: 100px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: #000;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.filter-btn:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+.filter-btn.active {
+  background: var(--green);
+  border-color: var(--green);
+  color: #000;
+  font-weight: 600;
 }
 
 /* ===== SECTIONS ===== */

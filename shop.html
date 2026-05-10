@@ -3,7 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Shop — CaneCreme</title>
+  <title>Shop — Cane Creme | Healthy Snacks, Cookies & Gelato</title>
+  <meta name="description" content="Shop Cane Creme's full range — beet bites, broccoli bites, oatmeal cookies, brownies, cheesecakes and gelato. Made with raw cane sugar. Pan-India delivery." />
+  <meta name="keywords" content="buy healthy snacks online, cane creme shop, beet bites, oatmeal cookies, raw cane sugar, Delhi snacks" />
+  <link rel="canonical" href="https://www.canecreme.co/shop.html" />
+  <meta property="og:title" content="Shop — Cane Creme" />
+  <meta property="og:description" content="Shop healthy snacks, cookies, brownies and gelato made with raw cane sugar." />
+  <meta property="og:url" content="https://www.canecreme.co/shop.html" />
+  <meta property="og:type" content="website" />
   <link rel="stylesheet" href="css/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Lexend:wght@300;400;500;600;700&family=Lobster&display=swap" rel="stylesheet"/>
 </head>
@@ -22,7 +29,18 @@
         <img src="Assets/logo.png" alt="CaneCreme" class="logo-img" />
       </a>
       <div class="nav-links" id="nav-links">
-        <a href="shop.html" class="active">Shop</a>
+        <div class="nav-dropdown">
+          <a href="shop.html" class="active">Shop</a>
+          <div class="dropdown-menu">
+            <a href="shop.html">All Products</a>
+            <a href="shop.html?category=bites">Bites</a>
+            <a href="shop.html?category=brownie">Brownie</a>
+            <a href="shop.html?category=cheesecake">Cheesecake</a>
+            <a href="shop.html?category=cookies">Cookies</a>
+            <a href="shop.html?category=makhana">Makhana</a>
+            <a href="shop.html?category=teacake">Tea Cake</a>
+          </div>
+        </div>
         <a href="about.html">About</a>
         <a href="#" id="cart-icon" class="cart-link">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
@@ -42,6 +60,15 @@
   </div>
 
   <section class="section">
+    <div class="shop-filters">
+      <button class="filter-btn active" data-category="all">All</button>
+      <button class="filter-btn" data-category="bites">Bites</button>
+      <button class="filter-btn" data-category="brownie">Brownie</button>
+      <button class="filter-btn" data-category="cheesecake">Cheesecake</button>
+      <button class="filter-btn" data-category="cookies">Cookies</button>
+      <button class="filter-btn" data-category="makhana">Makhana</button>
+      <button class="filter-btn" data-category="teacake">Tea Cake</button>
+    </div>
     <p id="product-count" style="font-size:0.85rem;color:var(--gray-light);margin-bottom:2rem;"></p>
     <div class="products-grid" id="all-products">
       <div class="product-skeleton"></div>
@@ -125,6 +152,63 @@
   <script src="js/cart.js"></script>
   <script src="js/products.js"></script>
   <script src="js/main.js"></script>
-  <script>loadFeaturedProducts('all-products', 100);</script>
+  <script>
+    const categoryKeywords = {
+      bites:   ['beet bites', 'broccoli bites', 'soya bites'],
+      cookies: ['cookie', 'cookies'],
+      brownie: ['brownie', 'brownies'],
+      teacake: ['tea cake', 'teacake', 'tea-cake'],
+      makhana:    ['makhana'],
+      cheesecake: ['cheesecake']
+    };
+
+    let allProducts = [];
+
+    async function initShop() {
+      allProducts = await fetchProducts(100);
+      renderFiltered('all');
+    }
+
+    function renderFiltered(category) {
+      const container = document.getElementById('all-products');
+      const countEl   = document.getElementById('product-count');
+
+      const filtered = category === 'all'
+        ? allProducts
+        : allProducts.filter(p => {
+            const name = (p.name || '').toLowerCase();
+            const cat  = (p.category || '').toLowerCase();
+            const keys = categoryKeywords[category] || [category];
+            return keys.some(k => name.includes(k) || cat.includes(k));
+          });
+
+      container.innerHTML = filtered.length
+        ? filtered.map(renderProductCard).join('')
+        : `<div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--gray);">No products in this category yet.</div>`;
+
+      if (countEl) countEl.textContent = `${filtered.length} product${filtered.length !== 1 ? 's' : ''}`;
+      initCarouselHover();
+    }
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderFiltered(btn.dataset.category);
+      });
+    });
+
+    initShop().then(() => {
+      const urlCategory = new URLSearchParams(window.location.search).get('category');
+      if (urlCategory) {
+        const btn = document.querySelector(`.filter-btn[data-category="${urlCategory}"]`);
+        if (btn) {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          renderFiltered(urlCategory);
+        }
+      }
+    });
+  </script>
 </body>
 </html>
