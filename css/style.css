@@ -1489,6 +1489,111 @@ img { display: block; max-width: 100%; }
   .gallery-item.gallery-tall { height: 260px; width: 200px; margin-top: 0; }
 }
 
+/* ===== SOCIAL SECTION ===== */
+.social-section {
+  padding: 2.5rem 2rem;
+  background: var(--cream-dark);
+}
+.social-inner {
+  max-width: 680px;
+  margin: 0 auto;
+}
+.social-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.social-header .section-title {
+  font-size: 1.4rem;
+}
+.social-sub {
+  color: var(--gray);
+  font-size: 0.85rem;
+  margin-top: 0.3rem;
+}
+.social-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.social-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.2rem 1.4rem;
+  border-radius: 14px;
+  text-decoration: none;
+  color: #fff;
+  transition: transform var(--transition), box-shadow var(--transition);
+  cursor: pointer;
+}
+.social-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+.social-card--ig {
+  background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+}
+.social-card--fb {
+  background: #1877F2;
+}
+.social-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.social-platform-icon {
+  background: rgba(255,255,255,0.2);
+  border-radius: 8px;
+  padding: 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.social-platform-icon svg { width: 22px; height: 22px; }
+.social-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.social-handle {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #fff;
+}
+.social-platform-name {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.75);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.social-card-desc {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.88);
+  line-height: 1.5;
+}
+.social-card-cta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.78rem;
+  color: #fff;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50px;
+  padding: 0.4rem 0.9rem;
+  width: fit-content;
+  transition: background var(--transition);
+}
+.social-card:hover .social-card-cta {
+  background: rgba(255,255,255,0.35);
+}
+@media (max-width: 500px) {
+  .social-cards { grid-template-columns: 1fr; }
+}
+
 /* ===== PLATFORMS STRIP ===== */
 .platforms-strip {
   background: var(--cream-dark);
