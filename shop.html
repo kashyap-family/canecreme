@@ -184,7 +184,7 @@
 
       container.innerHTML = filtered.length
         ? filtered.map(renderProductCard).join('')
-        : `<div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--gray);">No products in this category yet.</div>`;
+        : `<div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--gray);">Under construction....delicious things coming soon!</div>`;
 
       if (countEl) countEl.textContent = `${filtered.length} product${filtered.length !== 1 ? 's' : ''}`;
       initCarouselHover();

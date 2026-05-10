@@ -141,7 +141,7 @@ img { display: block; max-width: 100%; }
 .dropdown-menu {
   display: none;
   position: absolute;
-  top: calc(100% + 1rem);
+  top: calc(100% + 0.5rem);
   left: 50%;
   transform: translateX(-50%);
   background: #fff;
@@ -150,9 +150,11 @@ img { display: block; max-width: 100%; }
   box-shadow: 0 8px 32px rgba(0,0,0,0.12);
   min-width: 180px;
   padding: 0.6rem 0;
-  z-index: 200;
+  z-index: 9999;
+  pointer-events: auto;
 }
 .nav-dropdown:hover .dropdown-menu { display: block; }
+.nav-dropdown { position: relative; z-index: 9999; }
 .dropdown-menu a {
   display: block;
   padding: 0.6rem 1.25rem;
