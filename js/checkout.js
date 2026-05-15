@@ -29,7 +29,7 @@ function renderOrderSummary() {
 }
 
 async function createOrderInDB(customerData) {
-  const orderRes = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
     method: 'POST',
     headers: {
       'apikey': SUPABASE_ANON_KEY,
@@ -38,37 +38,40 @@ async function createOrderInDB(customerData) {
       'Prefer': 'return=representation'
     },
     body: JSON.stringify({
-      customer_name: customerData.name,
-      customer_email: customerData.email,
-      customer_phone: customerData.phone,
+      customer_name:    customerData.name,
+      customer_email:   customerData.email,
+      customer_phone:   customerData.phone,
       shipping_address: {
-        line1: customerData.address1,
-        line2: customerData.address2,
-        city: customerData.city,
-        state: customerData.state,
-        pin: customerData.pin,
+        line1:   customerData.address1,
+        line2:   customerData.address2,
+        city:    customerData.city,
+        state:   customerData.state,
+        pin:     customerData.pin,
         country: customerData.country
       },
-      total_amount: getCartTotal(),
+      total_amount:   getCartTotal(),
       payment_status: 'pending',
-      order_status: 'new'
+      order_status:   'new'
     })
   });
 
-  if (!orderRes.ok) throw new Error('Failed to create order');
-  const orders = await orderRes.json();
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Supabase order error (${res.status}): ${errText}`);
+  }
+  const orders = await res.json();
   return orders[0];
 }
 
 async function saveOrderItems(orderId) {
   const items = cart.map(item => ({
-    order_id: orderId,
+    order_id:   orderId,
     product_id: item.id,
-    quantity: item.quantity,
-    price: item.price
+    quantity:   item.quantity,
+    price:      item.price
   }));
 
-  await fetch(`${SUPABASE_URL}/rest/v1/order_items`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/order_items`, {
     method: 'POST',
     headers: {
       'apikey': SUPABASE_ANON_KEY,
@@ -77,6 +80,12 @@ async function saveOrderItems(orderId) {
     },
     body: JSON.stringify(items)
   });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    console.warn('order_items save failed:', errText);
+    // Non-fatal — don't block payment
+  }
 }
 
 async function updatePaymentStatus(orderId, paymentId) {
@@ -88,27 +97,27 @@ async function updatePaymentStatus(orderId, paymentId) {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      payment_id: paymentId,
+      payment_id:     paymentId,
       payment_status: 'paid',
-      order_status: 'processing'
+      order_status:   'processing'
     })
   });
 }
 
 document.getElementById('pay-btn').addEventListener('click', async () => {
-  const btn = document.getElementById('pay-btn');
+  const btn     = document.getElementById('pay-btn');
   const errorEl = document.getElementById('checkout-error');
   errorEl.style.display = 'none';
 
   // Validate form
-  const name = document.getElementById('c-name').value.trim();
-  const email = document.getElementById('c-email').value.trim();
-  const phone = document.getElementById('c-phone').value.trim();
+  const name     = document.getElementById('c-name').value.trim();
+  const email    = document.getElementById('c-email').value.trim();
+  const phone    = document.getElementById('c-phone').value.trim();
   const address1 = document.getElementById('c-address1').value.trim();
-  const city = document.getElementById('c-city').value.trim();
-  const state = document.getElementById('c-state').value.trim();
-  const pin = document.getElementById('c-pin').value.trim();
-  const country = document.getElementById('c-country').value.trim();
+  const city     = document.getElementById('c-city').value.trim();
+  const state    = document.getElementById('c-state').value.trim();
+  const pin      = document.getElementById('c-pin').value.trim();
+  const country  = document.getElementById('c-country').value.trim();
   const address2 = document.getElementById('c-address2').value.trim();
 
   if (!name || !email || !phone || !address1 || !city || !state || !pin) {
@@ -123,51 +132,71 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     return;
   }
 
+  const total = getCartTotal();
+  if (total < 1) {
+    errorEl.textContent = 'Order total must be at least ₹1.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
   btn.textContent = 'Processing...';
   btn.disabled = true;
 
+  // Step 1: Try to save order to Supabase (non-blocking on failure)
   try {
-    // Create order in DB
     const order = await createOrderInDB({ name, email, phone, address1, address2, city, state, pin, country });
     currentOrderId = order.id;
-
-    // Save order items
     await saveOrderItems(currentOrderId);
+  } catch (dbErr) {
+    console.warn('DB save skipped:', dbErr.message);
+    // Continue to payment even if DB fails
+  }
 
-    // Launch Razorpay
+  // Step 2: Open Razorpay
+  try {
     const options = {
-      key: RAZORPAY_KEY_ID,
-      amount: Math.round(getCartTotal() * 100), // paise
-      currency: STORE_CURRENCY,
-      name: STORE_NAME,
-      description: 'Order #' + currentOrderId.slice(0, 8),
+      key:         RAZORPAY_KEY_ID,
+      amount:      Math.round(total * 100), // paise
+      currency:    STORE_CURRENCY,
+      name:        STORE_NAME,
+      description: currentOrderId ? 'Order #' + currentOrderId.slice(0, 8) : 'CaneCreme Order',
       prefill: {
-        name: name,
-        email: email,
+        name:    name,
+        email:   email,
         contact: phone
       },
-      theme: { color: '#283618' },
+      theme: { color: '#BAD50D' },
       handler: async function(response) {
-        await updatePaymentStatus(currentOrderId, response.razorpay_payment_id);
+        if (currentOrderId) {
+          await updatePaymentStatus(currentOrderId, response.razorpay_payment_id);
+        }
         localStorage.removeItem('canecreme_cart');
         window.location.href = 'success.html';
       },
       modal: {
         ondismiss: function() {
-          btn.textContent = 'Pay Now';
+          btn.textContent = 'Pay Securely →';
           btn.disabled = false;
         }
       }
     };
 
     const rzp = new Razorpay(options);
+
+    rzp.on('payment.failed', function(response) {
+      errorEl.textContent = 'Payment failed: ' + (response.error.description || 'Please try again.');
+      errorEl.style.display = 'block';
+      btn.textContent = 'Pay Securely →';
+      btn.disabled = false;
+    });
+
     rzp.open();
 
-  } catch (err) {
-    console.error(err);
-    errorEl.textContent = 'Something went wrong. Please try again.';
+  } catch (rzpErr) {
+    console.error('Razorpay error:', rzpErr);
+    errorEl.textContent = 'Payment gateway error: ' + rzpErr.message;
     errorEl.style.display = 'block';
-    btn.textContent = 'Pay Now';
+    btn.textContent = 'Pay Securely →';
     btn.disabled = false;
   }
 });
