@@ -1071,7 +1071,7 @@ img { display: block; max-width: 100%; }
   font-family: var(--font-display);
   font-size: 2.5rem;
   font-weight: 300;
-  color: rgba(120,53,15,0.25);
+  color: rgba(255,255,255,0.4);
   line-height: 1;
   margin-bottom: 0.5rem;
 }
