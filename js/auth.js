@@ -11,6 +11,12 @@ function setAuthMessage(message, isError = false) {
   el.classList.toggle('err', isError);
 }
 
+function getCheckoutRedirectUrl() {
+  const liveHost = window.location.hostname.replace(/^www\./, '');
+  if (liveHost === 'canecreme.co') return 'https://www.canecreme.co/checkout.html';
+  return `${window.location.origin}/checkout.html`;
+}
+
 function normalizeIndiaPhone(phone) {
   const digits = (phone || '').replace(/\D/g, '');
   if (digits.length === 10) return `+91${digits}`;
@@ -62,11 +68,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   googleBtn && googleBtn.addEventListener('click', async () => {
     setAuthMessage('');
-    const { error } = await authClient.auth.signInWithOAuth({
+    googleBtn.disabled = true;
+    googleBtn.textContent = 'Opening Google...';
+
+    const { data, error } = await authClient.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/checkout.html` }
+      options: {
+        redirectTo: getCheckoutRedirectUrl(),
+        queryParams: { prompt: 'select_account' },
+      }
     });
-    if (error) setAuthMessage(error.message, true);
+
+    if (error) {
+      googleBtn.disabled = false;
+      googleBtn.innerHTML = '<span class="auth-google-mark">G</span>Continue with Google';
+      setAuthMessage('Google login is not enabled yet. You can continue checkout as guest.', true);
+      return;
+    }
+
+    if (data && data.url) window.location.href = data.url;
   });
 
   phoneBtn && phoneBtn.addEventListener('click', async () => {
@@ -76,12 +96,26 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    phoneBtn.disabled = true;
+    phoneBtn.textContent = 'Sending...';
+
     const { error } = await authClient.auth.signInWithOtp({ phone });
     if (error) {
-      setAuthMessage(error.message, true);
+      phoneBtn.disabled = false;
+      phoneBtn.textContent = 'Send OTP';
+
+      if (/unsupported phone provider/i.test(error.message)) {
+        fillIfEmpty('c-phone', phone.replace(/^\+91/, ''));
+        setAuthMessage('Phone OTP is not enabled yet. We added this mobile number to Delivery Details, so you can continue as guest.');
+        return;
+      }
+
+      setAuthMessage('Phone OTP could not be sent. Please continue as guest.', true);
       return;
     }
 
+    phoneBtn.disabled = false;
+    phoneBtn.textContent = 'Send OTP';
     document.getElementById('auth-otp-row').style.display = 'flex';
     setAuthMessage('OTP sent.');
   });
