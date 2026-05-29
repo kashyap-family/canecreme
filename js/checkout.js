@@ -92,7 +92,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
   const address2 = document.getElementById('c-address2').value.trim();
 
   if (!name || !email || !phone || !address1 || !city || !state || !pin) {
-    errorEl.textContent = 'Please fill in all required fields.';
+    errorEl.textContent = 'Please fill in name, mobile, email, address, PIN, city and state.';
     errorEl.style.display = 'block';
     return;
   }

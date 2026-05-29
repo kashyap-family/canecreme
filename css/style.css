@@ -1737,6 +1737,12 @@ img { display: block; max-width: 100%; }
   color: var(--dark);
 }
 
+.checkout-help {
+  color: var(--gray);
+  font-size: 0.95rem;
+  margin: -0.85rem 0 1.5rem;
+}
+
 .form-group { margin-bottom: 1.25rem; }
 
 .form-group label {
@@ -1752,11 +1758,11 @@ img { display: block; max-width: 100%; }
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 0.8rem 1rem;
+  padding: 0.95rem 1rem;
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
   font-family: var(--font-body);
-  font-size: 0.92rem;
+  font-size: 1rem;
   background: var(--white);
   transition: border-color var(--transition), box-shadow var(--transition);
   color: var(--dark);
@@ -1773,6 +1779,13 @@ img { display: block; max-width: 100%; }
 .form-group small { font-size: 0.78rem; color: var(--gray-light); margin-top: 0.3rem; display: block; }
 .form-group small a { color: var(--green); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+.checkout-secure-note {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--gray-light);
+  margin-top: 0.85rem;
+}
 
 .order-summary {
   background: var(--white);
