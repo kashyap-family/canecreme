@@ -51,6 +51,27 @@
   <div class="checkout-layout">
     <!-- LEFT: SHIPPING FORM -->
     <div class="checkout-form-wrap fade-section">
+      <div class="checkout-auth">
+        <div class="checkout-auth-head">
+          <h2>Quick Login</h2>
+          <button type="button" class="auth-link" id="auth-logout" style="display:none;">Logout</button>
+        </div>
+        <div id="auth-status" class="auth-status">Continue as guest, or login for faster checkout.</div>
+        <button type="button" class="auth-google-btn" id="google-login-btn">
+          <span class="auth-google-mark">G</span>
+          Continue with Google
+        </button>
+        <div class="auth-phone-row">
+          <input type="tel" id="auth-phone" placeholder="Mobile number" inputmode="tel" autocomplete="tel" />
+          <button type="button" id="phone-otp-btn">Send OTP</button>
+        </div>
+        <div class="auth-phone-row auth-otp-row" id="auth-otp-row" style="display:none;">
+          <input type="text" id="auth-otp" placeholder="Enter OTP" inputmode="numeric" maxlength="6" />
+          <button type="button" id="verify-otp-btn">Verify</button>
+        </div>
+        <div id="auth-message" class="auth-message" aria-live="polite"></div>
+      </div>
+
       <h2>Delivery Details</h2>
       <p class="checkout-help">Enter the address where you want your CaneCreme order delivered.</p>
 
@@ -125,7 +146,9 @@
   </footer>
 
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=3"></script>
+  <script src="js/auth.js?v=1"></script>
   <script src="js/cart.js?v=3"></script>
   <script src="js/checkout.js?v=6"></script>
   <script src="js/main.js?v=3"></script>

@@ -1743,6 +1743,105 @@ img { display: block; max-width: 100%; }
   margin: -0.85rem 0 1.5rem;
 }
 
+.checkout-auth {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--cream-dark);
+  padding: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.checkout-auth-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.checkout-auth-head h2 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.auth-status,
+.auth-message {
+  color: var(--gray);
+  font-size: 0.84rem;
+  margin-bottom: 0.75rem;
+}
+
+.auth-message {
+  margin: 0.65rem 0 0;
+}
+
+.auth-message.err {
+  color: #dc2626;
+}
+
+.auth-google-btn,
+.auth-phone-row button,
+.auth-link {
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--dark);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-google-btn {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  margin-bottom: 0.8rem;
+}
+
+.auth-google-mark {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #4285f4;
+  background: #fff;
+  border: 1px solid var(--border);
+  font-weight: 700;
+}
+
+.auth-phone-row {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.auth-phone-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.95rem;
+}
+
+.auth-phone-row button {
+  padding: 0.85rem 1rem;
+  white-space: nowrap;
+}
+
+.auth-otp-row {
+  margin-top: 0.65rem;
+}
+
+.auth-link {
+  padding: 0.45rem 0.75rem;
+  font-size: 0.8rem;
+}
+
 .form-group { margin-bottom: 1.25rem; }
 
 .form-group label {
@@ -2305,6 +2404,7 @@ img { display: block; max-width: 100%; }
   .cta-banner { padding: 5rem 1.5rem; }
 
   .form-row { grid-template-columns: 1fr; }
+  .auth-phone-row { flex-direction: column; }
 }
 
 @media (max-width: 480px) {
