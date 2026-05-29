@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 9 (2026-05-29)
+> Last updated: Session 15 (2026-05-29)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -379,3 +379,4 @@ How to add product images correctly:
 | Session 12 | 2026-05-29 | User created Shiprocket API user `canecremeorders@gmail.com` and saved password privately. Pickup profile is verified in Shiprocket with pickup nickname `Kshitiz`; keep exact pickup address in Shiprocket/Supabase secrets, not public website code. Added local Supabase Edge Function scaffold `create-shiprocket-order` to create Shiprocket prepaid orders securely server-side after paid Supabase order lookup. Function not deployed yet; Supabase CLI not installed locally. |
 | Session 13 | 2026-05-29 | User installed Supabase CLI via Scoop and logged in successfully. Deployed Edge Function `create-shiprocket-order` to Supabase project `qfphvsyidbyhbyeyigrh`. Deploy command succeeded; CLI warned Docker is not running, but remote function uploaded successfully. Website checkout is not yet calling the function automatically. |
 | Session 14 | 2026-05-29 | Checkout wired locally to call deployed Supabase Edge Function `create-shiprocket-order` after Razorpay handler updates order payment status to `paid`. Function call is non-blocking for customer redirect: if Shiprocket creation fails, error is logged and customer still reaches success page. checkout.html cache-busted `js/checkout.js?v=5`. |
+| Session 15 | 2026-05-29 | Debugged real test payment issue: Razorpay captured payment but no Supabase/Shiprocket order because direct browser insert into `orders` returned 401 and old checkout continued to payment anyway. Added and deployed Edge Functions `create-checkout-order` and `confirm-paid-order`, set function JWT verification false in `supabase/config.toml` for static-site calls, rewrote checkout.js to create Supabase order through Edge Function before opening Razorpay, and block payment if order save fails. `confirm-paid-order` marks order paid and triggers Shiprocket after Razorpay success. Test call to `create-checkout-order` succeeded and created pending fake order `90f3f251-f964-4a67-b50a-4f1881e684db` named `Codex Test`; delete this test order from Supabase dashboard. checkout.html cache-busted `js/checkout.js?v=6`. |

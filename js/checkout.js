@@ -13,15 +13,15 @@ function renderOrderSummary() {
   if (!summaryItems) return;
 
   if (cart.length === 0) {
-    summaryItems.innerHTML = '<p style="color:#6b6b6b;font-size:0.9rem;">Your cart is empty. <a href="shop.html">Go shopping →</a></p>';
+    summaryItems.innerHTML = '<p style="color:#6b6b6b;font-size:0.9rem;">Your cart is empty. <a href="shop.html">Go shopping &rarr;</a></p>';
     return;
   }
 
   summaryItems.innerHTML = cart.map(item => `
     <div class="summary-item">
       <span class="summary-item-name">${item.name}</span>
-      <span class="summary-item-qty">× ${item.quantity}</span>
-      <span>₹${(item.price * item.quantity).toFixed(2)}</span>
+      <span class="summary-item-qty">x ${item.quantity}</span>
+      <span>Rs. ${(item.price * item.quantity).toFixed(2)}</span>
     </div>
   `).join('');
 
@@ -29,114 +29,66 @@ function renderOrderSummary() {
 }
 
 async function createOrderInDB(customerData) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout-order`, {
     method: 'POST',
     headers: {
       'apikey': SUPABASE_ANON_KEY,
       'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      customer_name:    customerData.name,
-      customer_email:   customerData.email,
-      customer_phone:   customerData.phone,
-      shipping_address: {
-        line1:   customerData.address1,
-        line2:   customerData.address2,
-        city:    customerData.city,
-        state:   customerData.state,
-        pin:     customerData.pin,
-        country: customerData.country
-      },
-      total_amount:   getCartTotal(),
-      payment_status: 'pending',
-      order_status:   'new'
+      customer: customerData,
+      items: cart
     })
   });
 
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(`Supabase order error (${res.status}): ${errText}`);
+    throw new Error(`Order save error (${res.status}): ${errText}`);
   }
-  const orders = await res.json();
-  return orders[0];
+
+  const data = await res.json();
+  return data.order;
 }
 
 async function saveOrderItems(orderId) {
-  const items = cart.map(item => ({
-    order_id:   orderId,
-    product_id: item.id,
-    quantity:   item.quantity,
-    price:      item.price
-  }));
-
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/order_items`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(items)
-  });
-
-  if (!res.ok) {
-    const errText = await res.text();
-    console.warn('order_items save failed:', errText);
-    // Non-fatal — don't block payment
-  }
+  // Order items are saved by the create-checkout-order Edge Function.
+  return orderId;
 }
 
 async function updatePaymentStatus(orderId, paymentId) {
-  await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`, {
-    method: 'PATCH',
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/confirm-paid-order`, {
+    method: 'POST',
     headers: {
       'apikey': SUPABASE_ANON_KEY,
       'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      payment_id:     paymentId,
-      payment_status: 'paid',
-      order_status:   'processing'
+      order_id: orderId,
+      payment_id: paymentId
     })
   });
-}
 
-async function createShiprocketOrder(orderId) {
-  if (!orderId) return;
-
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/create-shiprocket-order`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ order_id: orderId })
-  });
-
-  if (!res.ok) {
+  if (!res.ok && res.status !== 207) {
     const errText = await res.text();
-    throw new Error(`Shiprocket order error (${res.status}): ${errText}`);
+    throw new Error(`Payment update error (${res.status}): ${errText}`);
   }
 }
 
 document.getElementById('pay-btn').addEventListener('click', async () => {
-  const btn     = document.getElementById('pay-btn');
+  const btn = document.getElementById('pay-btn');
   const errorEl = document.getElementById('checkout-error');
   errorEl.style.display = 'none';
 
-  // Validate form
-  const name     = document.getElementById('c-name').value.trim();
-  const email    = document.getElementById('c-email').value.trim();
-  const phone    = document.getElementById('c-phone').value.trim();
+  const name = document.getElementById('c-name').value.trim();
+  const email = document.getElementById('c-email').value.trim();
+  const phone = document.getElementById('c-phone').value.trim();
   const address1 = document.getElementById('c-address1').value.trim();
-  const city     = document.getElementById('c-city').value.trim();
-  const state    = document.getElementById('c-state').value.trim();
-  const pin      = document.getElementById('c-pin').value.trim();
-  const country  = document.getElementById('c-country').value.trim();
+  const city = document.getElementById('c-city').value.trim();
+  const state = document.getElementById('c-state').value.trim();
+  const pin = document.getElementById('c-pin').value.trim();
+  const country = document.getElementById('c-country').value.trim();
   const address2 = document.getElementById('c-address2').value.trim();
 
   if (!name || !email || !phone || !address1 || !city || !state || !pin) {
@@ -159,7 +111,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
 
   const total = getCartTotal();
   if (total < 1) {
-    errorEl.textContent = 'Order total must be at least ₹1.';
+    errorEl.textContent = 'Order total must be at least Rs. 1.';
     errorEl.style.display = 'block';
     return;
   }
@@ -167,53 +119,54 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
   btn.textContent = 'Processing...';
   btn.disabled = true;
 
-  // Step 1: Try to save order to Supabase (non-blocking on failure)
   try {
     const order = await createOrderInDB({ name, email, phone, address1, address2, city, state, pin, country });
     currentOrderId = order.id;
     await saveOrderItems(currentOrderId);
   } catch (dbErr) {
-    console.warn('DB save skipped:', dbErr.message);
-    // Continue to payment even if DB fails
+    console.error('Order save failed:', dbErr);
+    errorEl.textContent = 'Could not save your order before payment. Please try again or contact support.';
+    errorEl.style.display = 'block';
+    btn.textContent = 'Pay Securely ->';
+    btn.disabled = false;
+    return;
   }
 
-  // Step 2: Open Razorpay
   try {
     const options = {
-      key:         RAZORPAY_KEY_ID,
-      amount:      Math.round(total * 100), // paise
-      currency:    STORE_CURRENCY,
-      name:        STORE_NAME,
-      description: currentOrderId ? 'Order #' + currentOrderId.slice(0, 8) : 'CaneCreme Order',
+      key: RAZORPAY_KEY_ID,
+      amount: Math.round(total * 100),
+      currency: STORE_CURRENCY,
+      name: STORE_NAME,
+      description: 'Order #' + currentOrderId.slice(0, 8),
       notes: {
-        order_id:       currentOrderId || 'not_saved',
-        customer_name:  name,
+        order_id: currentOrderId,
+        customer_name: name,
         customer_email: email,
         customer_phone: phone,
-        shipping_pin:   pin,
-        support_phone:  typeof STORE_PHONE !== 'undefined' ? STORE_PHONE : '9891239312'
+        shipping_pin: pin,
+        support_phone: typeof STORE_PHONE !== 'undefined' ? STORE_PHONE : '9891239312'
       },
       prefill: {
-        name:    name,
-        email:   email,
+        name: name,
+        email: email,
         contact: phone
       },
       theme: { color: '#BAD50D' },
       handler: async function(response) {
         if (currentOrderId) {
-          await updatePaymentStatus(currentOrderId, response.razorpay_payment_id);
           try {
-            await createShiprocketOrder(currentOrderId);
-          } catch (shipErr) {
-            console.warn('Shiprocket order creation failed:', shipErr.message);
+            await updatePaymentStatus(currentOrderId, response.razorpay_payment_id);
+          } catch (confirmErr) {
+            console.warn('Payment confirmation/Shiprocket failed:', confirmErr.message);
           }
         }
         localStorage.removeItem('canecreme_cart');
-        window.location.href = currentOrderId ? `success.html?order=${encodeURIComponent(currentOrderId)}` : 'success.html';
+        window.location.href = `success.html?order=${encodeURIComponent(currentOrderId)}`;
       },
       modal: {
         ondismiss: function() {
-          btn.textContent = 'Pay Securely →';
+          btn.textContent = 'Pay Securely ->';
           btn.disabled = false;
         }
       }
@@ -224,17 +177,16 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     rzp.on('payment.failed', function(response) {
       errorEl.textContent = 'Payment failed: ' + (response.error.description || 'Please try again.');
       errorEl.style.display = 'block';
-      btn.textContent = 'Pay Securely →';
+      btn.textContent = 'Pay Securely ->';
       btn.disabled = false;
     });
 
     rzp.open();
-
   } catch (rzpErr) {
     console.error('Razorpay error:', rzpErr);
     errorEl.textContent = 'Payment gateway error: ' + rzpErr.message;
     errorEl.style.display = 'block';
-    btn.textContent = 'Pay Securely →';
+    btn.textContent = 'Pay Securely ->';
     btn.disabled = false;
   }
 });
