@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 18 (2026-05-30)
+> Last updated: Session 19 (2026-05-30)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -383,3 +383,4 @@ How to add product images correctly:
 | Session 16 | 2026-05-30 | Simplified checkout form labels/placeholders for customers: Delivery Details heading, mobile before email, clearer address fields, PIN before city, secure note. Added `checkout.htm` redirect to `checkout.html?v=6` to prevent old mobile/cached `.htm` links from using stale checkout. Updated checkout validation message. |
 | Session 17 | 2026-05-30 | Added optional checkout auth UI and `js/auth.js`: Google OAuth button via Supabase `signInWithOAuth({ provider: 'google' })`, phone OTP send/verify via Supabase Auth, session prefill for name/email/phone, logout button. Normal guest checkout still works. Requires Supabase dashboard setup: enable Google provider and add redirect URL `https://www.canecreme.co/checkout.html`; phone OTP requires Supabase Phone Auth/SMS provider configuration. |
 | Session 18 | 2026-05-30 | Updated success page to remove the customer support phone from the confirmation page and show dynamic order summary: customer order ID, total bill, delivery address, and estimated delivery window. Added Supabase Edge Function `get-order-summary` with JWT verification disabled for static-site access; it reads orders securely with `SERVICE_ROLE_KEY`. |
+| Session 19 | 2026-05-30 | Restored missing local tracked image paths so future pushes do not delete live assets: `Assets/logo/zomato-hd.png`, `Assets/logo/swiggy-hd.png`, `Assets/beet-bites-1.jpg`, `Assets/beet-bite-website1.jpg`, and `Assets/logo.svg`. Pushed admin delivery-zone UI changes in `admin.html` and `js/admin.js`. |

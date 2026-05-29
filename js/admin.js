@@ -89,6 +89,7 @@ async function openProductModal(productId) {
   document.getElementById('p-compare-price').value = '';
   document.getElementById('p-stock').value = '';
   document.getElementById('p-image').value = '';
+  document.getElementById('p-delivery-type').value = 'pan_india';
   document.getElementById('p-active').checked = true;
   overlay.style.display = 'flex';
 
@@ -108,6 +109,7 @@ async function openProductModal(productId) {
   document.getElementById('p-compare-price').value = product.compare_at_price || '';
   document.getElementById('p-stock').value = product.stock;
   document.getElementById('p-image').value = (product.images || []).join('\n');
+  document.getElementById('p-delivery-type').value = product.delivery_type || 'pan_india';
   document.getElementById('p-active').checked = product.is_active;
 }
 
@@ -137,6 +139,7 @@ async function saveProduct() {
     compare_at_price: document.getElementById('p-compare-price').value ? parseFloat(document.getElementById('p-compare-price').value) : null,
     stock: parseInt(stock),
     images,
+    delivery_type: document.getElementById('p-delivery-type').value,
     is_active: document.getElementById('p-active').checked
   };
 
