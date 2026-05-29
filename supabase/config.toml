@@ -1,0 +1,4 @@
+project_id = "qfphvsyidbyhbyeyigrh"
+
+[functions.create-shiprocket-order]
+verify_jwt = true
