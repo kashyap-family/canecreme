@@ -160,6 +160,14 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
       currency:    STORE_CURRENCY,
       name:        STORE_NAME,
       description: currentOrderId ? 'Order #' + currentOrderId.slice(0, 8) : 'CaneCreme Order',
+      notes: {
+        order_id:       currentOrderId || 'not_saved',
+        customer_name:  name,
+        customer_email: email,
+        customer_phone: phone,
+        shipping_pin:   pin,
+        support_phone:  typeof STORE_PHONE !== 'undefined' ? STORE_PHONE : '9891239312'
+      },
       prefill: {
         name:    name,
         email:   email,
@@ -171,7 +179,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
           await updatePaymentStatus(currentOrderId, response.razorpay_payment_id);
         }
         localStorage.removeItem('canecreme_cart');
-        window.location.href = 'success.html';
+        window.location.href = currentOrderId ? `success.html?order=${encodeURIComponent(currentOrderId)}` : 'success.html';
       },
       modal: {
         ondismiss: function() {

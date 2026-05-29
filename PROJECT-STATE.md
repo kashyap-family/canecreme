@@ -52,11 +52,12 @@ git push origin main
 |-----|-------|
 | Supabase URL | `https://qfphvsyidbyhbyeyigrh.supabase.co` |
 | Supabase Anon Key | `sb_publishable_usfZZ8OEQjJKYP0dGLqImg_pbAyUrL6` |
-| Razorpay Key | `rzp_test_SjNBmQxDuMl0Oo` ⚠️ TEST MODE — not live yet |
+| Razorpay Key | `rzp_live_SvBwWNQkqzmora` ✅ LIVE MODE Key ID |
 | Admin Password | `canecreme2026` |
+| Support Phone | `9891239312` |
 | Store Currency | `INR` |
 
-⚠️ **Razorpay is still in TEST mode.** Real transactions will fail. User must activate live mode and replace key.
+✅ **Razorpay Key ID is now Live Mode.** Do not store or ask for Razorpay Key Secret in this static repo/chat.
 
 ---
 
@@ -245,6 +246,7 @@ Razorpay theme colour: `#BAD50D`
 - Validates: name, email, phone, address1, city, state, pin
 - Flow: create order in DB → save order_items → open Razorpay modal → on payment success → update payment_status to 'paid' → redirect to `success.html`
 - Razorpay theme colour is `#BAD50D` (current brand lime green)
+- Razorpay Checkout now sends `notes` with order ID, customer name/email/phone, shipping PIN, and support phone `9891239312`, so these details can be seen against the payment in Razorpay Dashboard. Success redirect includes `?order=ORDER_ID` when available.
 
 ### product.html — Pin Code Delivery Checker
 - UI: box with text input (6-digit pin) + Check button. Appears on every product detail page.
@@ -267,7 +269,7 @@ Razorpay theme colour: `#BAD50D`
 - [ ] **Push canecreme-banner.jpeg split section** — index.html split section updated locally to use `Assets/canecreme-banner.jpeg` instead of the old collage grid. ⚠️ NOT pushed yet — user must approve local preview first, then push.
 - [ ] **Push canecreme-banner.jpeg asset** — file exists in Assets/ locally but not committed to GitHub yet.
 - [ ] **Category filtering** — user wants products categorised. All 6 current products = "Healthy Bites". User was in process of adding `category` text column to Supabase `products` table. Once column added: update admin.html to include category field, update shop.html to show filter tabs.
-- [ ] **Razorpay live mode** — currently on test key `rzp_test_SjNBmQxDuMl0Oo`. User must activate Razorpay, complete KYC, verify website `https://www.canecreme.co`, generate a Live Mode API key, and provide ONLY the Live Key ID (`rzp_live_...`) for `js/config.js`. Do NOT ask for or store the Key Secret in this repo/chat.
+- [x] **Razorpay live mode** — Live Key ID `rzp_live_SvBwWNQkqzmora` added to `js/config.js` on 2026-05-29. User initially shared a Key Secret in chat, was told to regenerate it, then provided only the regenerated Live Key ID. Do NOT ask for or store the Key Secret in this repo/chat.
 - [ ] **Secure payment verification** — before accepting real payments, add server-side Razorpay payment verification (recommended: Supabase Edge Function or another backend). Current static checkout updates payment status client-side after Razorpay handler, which is not enough for production-grade verification.
 - [ ] **Order note in checkout** — order note is saved to `localStorage` key `canecreme_order_note` but checkout.js does NOT yet read/send it to Supabase. Add to orders table and wire up in checkout.js.
 - [ ] **Policy pages** — draft pages exist, but owner should review final shipping fees, courier timelines, refund eligibility, GST/business details, and legal wording before launch.
@@ -369,3 +371,4 @@ How to add product images correctly:
 | Session 7 | 2026-05-08 | Product cards equal height fixed (flexbox). Footer logo fixed (filter: invert(1)). Footer text updated to "Cane Creme goodness". Product images pushed: broccoli-bites 2-4, soya-bites 1-4, atta-cookies 1-4, powerbite 1-4, chocochip 1-4, galeto 1-6. All 6 products confirmed in Supabase with 4 images each. NEW: product.html detail page with image gallery + quantity stepper. Product cards now clickable → product.html. Cart sidebar upgraded: "You May Also Like" suggestions + order note textarea. Zomato & Swiggy strip added above footer. Gallery collage (horizontal scroll) added on homepage. Split section updated locally to use canecreme-banner.jpeg (NOT pushed — pending user approval). ⚠️ NEW RULE: always preview locally before pushing to GitHub. |
 | Session 8 | 2026-05-09 | CTA banner text changed: "Nature's Sweetness" → "Healthy Cravings". Product carousel hover auto-slide added (900ms interval, resets on mouseleave). Pin code delivery checker added to product.html. Admin panel now has Delivery Zone dropdown (Pan India / Delhi Only) — reads/writes `delivery_type` Supabase field. ⚠️ `delivery_type` column not yet added in Supabase — pending user action. All 6 products confirmed pan_india by user. Colour palette changed to Lime & Orange (#BAD50D + #F7AD4E + #FAFEF0) — 8th palette. Footer bg updated to #1C2400. Razorpay theme updated to #BAD50D. Changes are LOCAL ONLY — not pushed to GitHub yet. |
 | Session 9 | 2026-05-29 | Zomato and Swiggy platform strip icons updated locally. Created transparent HD PNG cutouts: `Assets/logo/zomato-hd.png` (1200x820) and `Assets/logo/swiggy-hd.png` (1520x780). Updated index.html, shop.html, and about.html to use new logo files. Updated `.platform-badge` CSS to remove white pill background/border and display logos directly. Browser file preview was blocked by in-app browser file:// policy; user must preview locally in Chrome before push. Changes are LOCAL ONLY — not pushed to GitHub yet. |
+| Session 10 | 2026-05-29 | Added `STORE_PHONE = 9891239312` in js/config.js. Razorpay checkout now sends payment notes containing order ID, customer contact details, shipping PIN, and support phone. Success redirect now includes `?order=ORDER_ID` when Supabase order creation succeeds. Replaced test Razorpay key with regenerated Live Key ID `rzp_live_SvBwWNQkqzmora`. Key Secret was not stored. Dashboard notification settings may still need user confirmation. |
