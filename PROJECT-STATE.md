@@ -247,12 +247,14 @@ Razorpay theme colour: `#BAD50D`
 - Flow: create order in DB → save order_items → open Razorpay modal → on payment success → update payment_status to 'paid' → redirect to `success.html`
 - Razorpay theme colour is `#BAD50D` (current brand lime green)
 - Razorpay Checkout now sends `notes` with order ID, customer name/email/phone, shipping PIN, and support phone `9891239312`, so these details can be seen against the payment in Razorpay Dashboard. Success redirect includes `?order=ORDER_ID` when available.
+- Checkout blocks invalid Indian PIN formats before payment using `/^[1-9][0-9]{5}$/`, so values like `000000`, short PINs, or letters cannot proceed.
 
 ### product.html — Pin Code Delivery Checker
 - UI: box with text input (6-digit pin) + Check button. Appears on every product detail page.
 - Logic in `checkPincode(deliveryType)` function (inline script in product.html):
   - `deliveryType` comes from `p.delivery_type` Supabase field (default: `'pan_india'` if null)
-  - `pan_india`: any valid 6-digit pin → ✓ available
+  - PIN must match Indian PIN format `/^[1-9][0-9]{5}$/`; invalid formats are rejected
+  - `pan_india`: any valid Indian 6-digit PIN format → ✓ available
   - `delhi_only`: only pins starting with `'110'` → ✓ available; others → ✗ not available
   - Delhi pin codes all start with `110` (110001–110096)
   - Enter key on input also triggers check
@@ -372,3 +374,4 @@ How to add product images correctly:
 | Session 8 | 2026-05-09 | CTA banner text changed: "Nature's Sweetness" → "Healthy Cravings". Product carousel hover auto-slide added (900ms interval, resets on mouseleave). Pin code delivery checker added to product.html. Admin panel now has Delivery Zone dropdown (Pan India / Delhi Only) — reads/writes `delivery_type` Supabase field. ⚠️ `delivery_type` column not yet added in Supabase — pending user action. All 6 products confirmed pan_india by user. Colour palette changed to Lime & Orange (#BAD50D + #F7AD4E + #FAFEF0) — 8th palette. Footer bg updated to #1C2400. Razorpay theme updated to #BAD50D. Changes are LOCAL ONLY — not pushed to GitHub yet. |
 | Session 9 | 2026-05-29 | Zomato and Swiggy platform strip icons updated locally. Created transparent HD PNG cutouts: `Assets/logo/zomato-hd.png` (1200x820) and `Assets/logo/swiggy-hd.png` (1520x780). Updated index.html, shop.html, and about.html to use new logo files. Updated `.platform-badge` CSS to remove white pill background/border and display logos directly. Browser file preview was blocked by in-app browser file:// policy; user must preview locally in Chrome before push. Changes are LOCAL ONLY — not pushed to GitHub yet. |
 | Session 10 | 2026-05-29 | Added `STORE_PHONE = 9891239312` in js/config.js. Razorpay checkout now sends payment notes containing order ID, customer contact details, shipping PIN, and support phone. Success redirect now includes `?order=ORDER_ID` when Supabase order creation succeeds. Replaced test Razorpay key with regenerated Live Key ID `rzp_live_SvBwWNQkqzmora`. Key Secret was not stored. Dashboard notification settings may still need user confirmation. |
+| Session 11 | 2026-05-29 | Tightened PIN validation locally. checkout.html and product.html PIN inputs now include pattern `[1-9][0-9]{5}`. checkout.js blocks payment before Razorpay if PIN does not match `/^[1-9][0-9]{5}$/`. product.html delivery checker rejects invalid Indian PIN formats before showing delivery availability. |

@@ -126,6 +126,12 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     return;
   }
 
+  if (!/^[1-9][0-9]{5}$/.test(pin)) {
+    errorEl.textContent = 'Please enter a valid Indian 6-digit PIN code.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
   if (cart.length === 0) {
     errorEl.textContent = 'Your cart is empty.';
     errorEl.style.display = 'block';

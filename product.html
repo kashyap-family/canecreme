@@ -449,7 +449,7 @@
         <div class="pincode-wrap">
           <div class="pincode-label">📍 Check Delivery Availability</div>
           <div class="pincode-row">
-            <input class="pincode-input" id="pincode-input" type="text" inputmode="numeric" maxlength="6" placeholder="Enter 6-digit pin code" />
+            <input class="pincode-input" id="pincode-input" type="text" inputmode="numeric" maxlength="6" pattern="[1-9][0-9]{5}" placeholder="Enter 6-digit pin code" />
             <button class="pincode-btn" onclick="checkPincode('${deliveryType}')">Check</button>
           </div>
           <div class="pincode-result" id="pincode-result"></div>
@@ -492,9 +492,9 @@
       resultEl.style.display = 'block';
       resultEl.className = 'pincode-result';
 
-      if (!/^\d{6}$/.test(pin)) {
+      if (!/^[1-9][0-9]{5}$/.test(pin)) {
         resultEl.classList.add('err');
-        resultEl.textContent = '✗ Please enter a valid 6-digit pin code.';
+        resultEl.textContent = '✗ Please enter a valid Indian 6-digit PIN code.';
         return;
       }
 
