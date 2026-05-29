@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 8 (2026-05-09)
+> Last updated: Session 9 (2026-05-29)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -197,7 +197,7 @@ Razorpay theme colour: `#BAD50D`
 8. **Process Steps** — orange `#F7AD4E` bg: Sourced → Crafted → Packed → Delivered
 9. **Gallery Collage** — horizontal scroll strip with 12 photos (6 gelato + 6 product shots). Drag to scroll. CSS class `.gallery-collage`. ✅ LIVE
 10. **CTA Banner** — lime `#BAD50D` bg ("Healthy Cravings, Delivered." — "Delivered." in Lobster orange)
-11. **Zomato & Swiggy strip** — above footer, light bg, red Zomato badge + orange Swiggy badge. ✅ LIVE
+11. **Zomato & Swiggy strip** — above footer, light bg, transparent HD PNG logos with no white badge background. ✅ LOCAL ONLY
 12. Footer (dark olive `#1C2400` bg, 4-col: brand + Shop + Company + Help). Footer text: "Cane Creme goodness, crafted with love from India."
 13. Cart sidebar (slide-in from right) — now includes "You May Also Like" suggestions + "Add Order Note" textarea
 14. Entry popup (green top panel + logo in white pill + form bottom, orange submit button)
@@ -336,6 +336,7 @@ How to add product images correctly:
 - galeto-4.jpg, galeto-5.jpg, galeto-6.jpg (JPG format)
 - canecreme-banner.jpeg ← ⚠️ LOCAL ONLY, not pushed to GitHub yet
 - logo.png, logo.svg (logo.svg unused)
+- Assets/logo/zomato-hd.png and Assets/logo/swiggy-hd.png — transparent HD platform logo cutouts created from user-provided WhatsApp image on 2026-05-29. Referenced by index.html, shop.html, and about.html. LOCAL ONLY, not pushed yet.
 
 ## 11. Known Decisions & Rules
 - User is **non-technical** — always explain before doing, ask one question at a time
@@ -367,3 +368,4 @@ How to add product images correctly:
 | Session 6 | 2026-05-07 | Category names updated (Healthy Bites / Power Cookies / Nutritious Makhana). Product image ratio fixed to square (1/1, object-fit: contain). Multi-image carousel added (sliding track + dots). Admin Edit button fixed (data-id + fresh fetch). Images field changed to textarea (multiple URLs). Popup logo fixed (white pill). Popup text updated ("Cane Creme goodness"). Products added: Beet Bites (4 images), Broccoli Bites (1 image). All images pushed to GitHub. Browser cache issue identified — images visible in Incognito. |
 | Session 7 | 2026-05-08 | Product cards equal height fixed (flexbox). Footer logo fixed (filter: invert(1)). Footer text updated to "Cane Creme goodness". Product images pushed: broccoli-bites 2-4, soya-bites 1-4, atta-cookies 1-4, powerbite 1-4, chocochip 1-4, galeto 1-6. All 6 products confirmed in Supabase with 4 images each. NEW: product.html detail page with image gallery + quantity stepper. Product cards now clickable → product.html. Cart sidebar upgraded: "You May Also Like" suggestions + order note textarea. Zomato & Swiggy strip added above footer. Gallery collage (horizontal scroll) added on homepage. Split section updated locally to use canecreme-banner.jpeg (NOT pushed — pending user approval). ⚠️ NEW RULE: always preview locally before pushing to GitHub. |
 | Session 8 | 2026-05-09 | CTA banner text changed: "Nature's Sweetness" → "Healthy Cravings". Product carousel hover auto-slide added (900ms interval, resets on mouseleave). Pin code delivery checker added to product.html. Admin panel now has Delivery Zone dropdown (Pan India / Delhi Only) — reads/writes `delivery_type` Supabase field. ⚠️ `delivery_type` column not yet added in Supabase — pending user action. All 6 products confirmed pan_india by user. Colour palette changed to Lime & Orange (#BAD50D + #F7AD4E + #FAFEF0) — 8th palette. Footer bg updated to #1C2400. Razorpay theme updated to #BAD50D. Changes are LOCAL ONLY — not pushed to GitHub yet. |
+| Session 9 | 2026-05-29 | Zomato and Swiggy platform strip icons updated locally. Created transparent HD PNG cutouts: `Assets/logo/zomato-hd.png` (1200x820) and `Assets/logo/swiggy-hd.png` (1520x780). Updated index.html, shop.html, and about.html to use new logo files. Updated `.platform-badge` CSS to remove white pill background/border and display logos directly. Browser file preview was blocked by in-app browser file:// policy; user must preview locally in Chrome before push. Changes are LOCAL ONLY — not pushed to GitHub yet. |
