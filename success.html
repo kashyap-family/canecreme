@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Order Confirmed — CaneCreme</title>
+  <title>Order Confirmed - CaneCreme</title>
   <link rel="stylesheet" href="css/style.css" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Lexend:wght@300;400;500;600;700&family=Lobster&display=swap" rel="stylesheet"/>
 </head>
@@ -11,8 +11,8 @@
 
   <div class="announcement-bar">
     <div class="marquee-track">
-      <span>🌿 Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp; Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp;</span>
-      <span aria-hidden="true">🌿 Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp; Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp;</span>
+      <span>Free shipping above Rs.499 &nbsp;&nbsp;-&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;-&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;-&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;-&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;-&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;-&nbsp;&nbsp;</span>
+      <span aria-hidden="true">Free shipping above Rs.499 &nbsp;&nbsp;-&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;-&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;-&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;-&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;-&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;-&nbsp;&nbsp;</span>
     </div>
   </div>
 
@@ -32,16 +32,13 @@
   </nav>
 
   <div class="success-page">
-    <div class="success-icon">✓</div>
+    <div class="success-icon">&#10003;</div>
     <h1>Order Confirmed!</h1>
     <p>Thank you for your order. We've received your payment and will begin processing right away.</p>
-    <p id="order-id-display" style="font-size:0.85rem;color:var(--gray-light);margin-top:0.25rem;"></p>
+    <p id="order-id-display" class="success-order-id"></p>
 
-    <div style="margin:2rem 0;padding:1.5rem;background:var(--green-pale);border-radius:var(--radius-lg);text-align:left;">
-      <p style="font-size:0.88rem;color:var(--green);font-weight:500;margin-bottom:0.75rem;">What happens next?</p>
-      <p style="font-size:0.84rem;color:var(--gray);margin-bottom:0.5rem;">📦 &nbsp;Packed within 1–2 business days</p>
-      <p style="font-size:0.84rem;color:var(--gray);margin-bottom:0.5rem;">🚚 &nbsp;Delivered pan-India within 3–5 business days</p>
-      <p style="font-size:0.84rem;color:var(--gray);">📧 &nbsp;Questions? <a href="mailto:canecreme@gmail.com" style="color:var(--green);font-weight:500;">canecreme@gmail.com</a> or <a href="tel:+919891239312" style="color:var(--green);font-weight:500;">9891239312</a></p>
+    <div class="success-summary" id="success-summary">
+      <p class="success-loading">Loading your order details...</p>
     </div>
 
     <a href="shop.html" class="btn-primary">Continue Shopping</a>
@@ -49,18 +46,103 @@
 
   <footer class="footer">
     <div class="footer-bottom" style="border-top:none;max-width:100%;padding:1.5rem 2rem;">
-      <p>© 2026 CaneCreme. All rights reserved.</p>
-      <p><a href="tel:+919891239312">9891239312</a> · <a href="shipping-policy.html">Shipping</a> · <a href="return-policy.html">Returns</a></p>
+      <p>&copy; 2026 CaneCreme. All rights reserved.</p>
+      <p><a href="shipping-policy.html">Shipping</a> &middot; <a href="return-policy.html">Returns</a></p>
     </div>
   </footer>
 
-  <script src="js/config.js"></script>
+  <script src="js/config.js?v=3"></script>
   <script src="js/main.js"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get('order');
+    const orderDisplay = document.getElementById('order-id-display');
+    const summaryBox = document.getElementById('success-summary');
+
     if (orderId) {
-      document.getElementById('order-id-display').textContent = `Order ID: ${orderId}`;
+      orderDisplay.textContent = `Order ID: ${orderId}`;
+      loadOrderSummary(orderId);
+    } else {
+      renderFallback();
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function formatMoney(value) {
+      const amount = Number(value || 0);
+      return `Rs. ${amount.toFixed(2)}`;
+    }
+
+    async function loadOrderSummary(id) {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/get-order-summary`, {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ order_id: id }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not load order details');
+        renderOrderSummary(data);
+      } catch (error) {
+        console.error('Order summary failed:', error);
+        renderFallback(id);
+      }
+    }
+
+    function renderOrderSummary(order) {
+      orderDisplay.textContent = `Order ID: #${order.short_id}`;
+      const addressHtml = escapeHtml(order.address).replaceAll('\n', '<br>');
+
+      summaryBox.innerHTML = `
+        <p class="success-summary-title">Your order details</p>
+        <div class="success-detail-grid">
+          <div>
+            <span>Customer Order ID</span>
+            <strong>#${escapeHtml(order.short_id)}</strong>
+          </div>
+          <div>
+            <span>Total Bill</span>
+            <strong>${formatMoney(order.total_amount)}</strong>
+          </div>
+          <div class="success-detail-full">
+            <span>Delivery Address</span>
+            <strong class="success-address">${addressHtml || 'Address saved with your order'}</strong>
+          </div>
+          <div class="success-detail-full">
+            <span>Estimated Delivery</span>
+            <strong>${escapeHtml(order.eta_text || '3-5 business days')}</strong>
+          </div>
+        </div>
+        <div class="success-next">
+          <p>Packed within 1-2 business days</p>
+          <p>Delivery updates will be shared by email.</p>
+          <p>Questions? <a href="mailto:canecreme@gmail.com">canecreme@gmail.com</a></p>
+        </div>
+      `;
+    }
+
+    function renderFallback(id = '') {
+      if (id) orderDisplay.textContent = `Order ID: ${id}`;
+      summaryBox.innerHTML = `
+        <p class="success-summary-title">Your order details</p>
+        <div class="success-next">
+          <p>Your payment is received and your order details will update shortly.</p>
+          <p>Estimated delivery: 3-5 business days.</p>
+          <p>Questions? <a href="mailto:canecreme@gmail.com">canecreme@gmail.com</a></p>
+        </div>
+      `;
     }
   </script>
 </body>
