@@ -104,6 +104,25 @@ async function updatePaymentStatus(orderId, paymentId) {
   });
 }
 
+async function createShiprocketOrder(orderId) {
+  if (!orderId) return;
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/create-shiprocket-order`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ order_id: orderId })
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Shiprocket order error (${res.status}): ${errText}`);
+  }
+}
+
 document.getElementById('pay-btn').addEventListener('click', async () => {
   const btn     = document.getElementById('pay-btn');
   const errorEl = document.getElementById('checkout-error');
@@ -183,6 +202,11 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
       handler: async function(response) {
         if (currentOrderId) {
           await updatePaymentStatus(currentOrderId, response.razorpay_payment_id);
+          try {
+            await createShiprocketOrder(currentOrderId);
+          } catch (shipErr) {
+            console.warn('Shiprocket order creation failed:', shipErr.message);
+          }
         }
         localStorage.removeItem('canecreme_cart');
         window.location.href = currentOrderId ? `success.html?order=${encodeURIComponent(currentOrderId)}` : 'success.html';
