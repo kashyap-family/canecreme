@@ -383,6 +383,7 @@ All deployed to project `qfphvsyidbyhbyeyigrh`:
   Assets/beet-bites-3.jpg
   ```
 - **Delivery Zone** — `<select id="p-delivery-type">` with options `pan_india` / `delhi_only`. Added in Session 8. Reads/writes `delivery_type` field in Supabase. Defaults to `pan_india` on new product. ⚠️ Column must be added in Supabase first (see Pending Tasks).
+- **Product save fallback** — `js/admin.js?v=2` retries saving without `delivery_type` if Supabase rejects that field because the optional column is missing/not in schema cache. This lets price/stock/name edits work before the `delivery_type` column is added.
 
 ## 10C. Product Image Workflow (for next agent)
 How to add product images correctly:
@@ -514,3 +515,4 @@ How to add product images correctly:
 | Session 37 | 2026-06-02 | Adjusted mobile Zomato/Swiggy platform strip so the label sits above and both platform logos stay on one row in mobile view. Changes are LOCAL ONLY pending preview/push approval. |
 | Session 38 | 2026-06-02 | Added reference-style post-order transition page `order-placed.html`. After Razorpay success, `js/checkout.js` now redirects to `order-placed.html?order=ORDER_ID`, showing a thank-you message, green check, no-refresh warning, and Powered By Shiprocket footer, then auto-redirects to `success.html?order=ORDER_ID`. Cache-busted checkout script to `js/checkout.js?v=8`. Changes are LOCAL ONLY pending preview/push approval. |
 | Session 39 | 2026-06-02 | Redesigned final `success.html` confirmation page to match user reference: order summary/amount, order number and thank-you heading, map embed for shipping address, confirmed status copy, order details card with contact information, shipping address, shipping method, payment method, billing address, need-help contact, and policy footer links. Extended and redeployed `get-order-summary` so it returns customer contact, address lines, payment/shipping method, map query, ETA, and item summaries. Test call with fake order `90f3f251-f964-4a67-b50a-4f1881e684db` succeeded. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 40 | 2026-06-02 | Fixed admin product save error when editing price. Cause likely missing `delivery_type` column in Supabase while admin save payload included `delivery_type`. `js/admin.js` now retries product save without `delivery_type` if Supabase reports a schema/column error and shows the real error message in the modal. Cache-busted admin script to `js/admin.js?v=2`. |

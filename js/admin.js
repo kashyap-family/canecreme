@@ -147,7 +147,7 @@ async function saveProduct() {
     ? `${SUPABASE_URL}/rest/v1/products?id=eq.${id}`
     : `${SUPABASE_URL}/rest/v1/products`;
 
-  const res = await fetch(url, {
+  const saveWithPayload = (bodyPayload) => fetch(url, {
     method: id ? 'PATCH' : 'POST',
     headers: {
       'apikey': SUPABASE_ANON_KEY,
@@ -155,14 +155,35 @@ async function saveProduct() {
       'Content-Type': 'application/json',
       'Prefer': 'return=representation'
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(bodyPayload)
   });
+
+  let res = await saveWithPayload(payload);
+  let errorDetails = null;
+
+  if (!res.ok) {
+    errorDetails = await res.json().catch(async () => ({ message: await res.text() }));
+    const schemaMessage = `${errorDetails.message || ''} ${errorDetails.details || ''} ${errorDetails.hint || ''}`;
+    if (/delivery_type|schema cache|column/i.test(schemaMessage)) {
+      const fallbackPayload = { ...payload };
+      delete fallbackPayload.delivery_type;
+      res = await saveWithPayload(fallbackPayload);
+      if (!res.ok) {
+        errorDetails = await res.json().catch(async () => ({ message: await res.text() }));
+      } else {
+        errorDetails = null;
+      }
+    }
+  }
 
   if (res.ok) {
     closeProductModal();
     loadProducts();
   } else {
-    errorEl.textContent = 'Error saving product. Please try again.';
+    console.error('Product save failed:', errorDetails);
+    errorEl.textContent = errorDetails?.message
+      ? `Error saving product: ${errorDetails.message}`
+      : 'Error saving product. Please try again.';
     errorEl.style.display = 'block';
   }
 }
