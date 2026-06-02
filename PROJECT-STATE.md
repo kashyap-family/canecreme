@@ -166,20 +166,21 @@ Inferred from code — verify in Supabase dashboard before modifying.
 
 ## 7. Current Design System
 
-### Active Colour Palette: Lime & Orange
+### Active Colour Palette: Lime & Orange (DEFAULT)
 ```css
---cream:        #FAFEF0;   /* light lime-white — main background */
---cream-dark:   #EEF9B0;   /* light green tint */
---green:        #BAD50D;   /* lime green — primary buttons, strips, CTA */
---green-mid:    #1C2400;   /* deep dark olive — dark section backgrounds */
+--cream:        #ffffff;   /* white base */
+--cream-dark:   #f5f5f5;   /* light gray for subtle section backgrounds */
+--green:        #BAD50D;   /* default lime green — primary accent */
+--green-mid:    #111111;   /* near-black — dark sections */
 --green-light:  #8FA309;   /* darker lime — hover states */
---green-pale:   #EEF9B0;   /* very light lime tint — card backgrounds */
---gold:         #F7AD4E;   /* orange — accent, badges, tagline */
---gold-light:   #FBCF8A;   /* lighter orange */
---dark:         #1C2400;   /* deep dark olive — all body text */
---border:       #DFF09A;   /* light lime border */
+--green-pale:   #f2f9d0;   /* very light lime tint */
+--gold:         #FF8000;   /* default vibrant orange — accent */
+--gold-light:   #FFA040;   /* lighter vibrant orange */
+--dark:         #000000;   /* pure black — primary text */
+--border:       #e0e0e0;   /* neutral light border */
 ```
-Footer hardcoded: `background: #1C2400`
+This is the default CaneCreme palette unless the user explicitly picks a new palette.
+Footer/dark sections use near-black `#111111`.
 Razorpay theme colour: `#BAD50D`
 
 ### Colour Palette History (most recent = active)
@@ -190,7 +191,11 @@ Razorpay theme colour: `#BAD50D`
 5. Mango Fiesta (orange #F97316 + teal #14B8A6)
 6. Rich Chocolate & Gold (#92400E + #F59E0B)
 7. Earthy Organic (#283618 + #FEFAE0 + #DDA15E)
-8. **Lime & Orange (#BAD50D + #F7AD4E + #FAFEF0) ← CURRENT**
+8. Lime & Orange (#BAD50D + #F7AD4E + #FAFEF0)
+9. **Lime & Orange Default (#BAD50D + #FF8000 + #ffffff + #111111) ← CURRENT DEFAULT**
+10. Soft Lime & Orange (#CBEA1B + #FF8F24 + #ffffff + #111111)
+11. Fresh Lime & Orange (#D6F13A + #FFA040 + #ffffff + #111111)
+   - On lime sections, headline/category writing uses dark text `#000000` for better contrast.
 
 ### Typography
 - Display font: `Lexend` (headings, product names)
@@ -207,18 +212,18 @@ Razorpay theme colour: `#BAD50D`
 ## 8. Page Layout & Sections
 
 ### index.html (Homepage)
-1. Announcement bar (marquee — dark olive bg `#1C2400` + orange text)
-2. Sticky nav (light lime-white `#FAFEF0` bg, logo, Shop / About links + cart icon)
+1. Announcement bar (marquee — near-black bg `#111111` + orange text)
+2. Sticky nav (white bg, logo, Shop / About links + cart icon)
 3. **Hero** — FULL-BLEED `beet-bite-website1.jpg` as CSS background-image, dark overlay, centered content: Lobster tagline "No More Guilt Indulgence" (orange), eyebrow pill, Lexend bold title, lime CTA button
 4. Lime marquee strip (`#BAD50D` bg, dark text, ✦ separators)
-5. **Product Categories** — lime `#BAD50D` section with 4 real product photo circles and names: Savoury (`Assets/savoury-category.jpeg`) · Treats (`Assets/treats-category.jpeg`) · Energize (`Assets/soya-bites-1.jpg`) · All Products (`Assets/broccoli-bites-1.jpg`). Mobile displays a 2x2 grid.
+5. **Product Categories** — lime `#BAD50D` section with 4 real product photo circles and names: Savoury (`Assets/savoury-category.jpeg`) · Treats (`Assets/treats-category.jpeg`) · Energize (`Assets/energize-category.webp`) · All Products (`Assets/all-products-category.jpeg`). Mobile displays a 2x2 grid.
 6. **Bestsellers** — 3 featured products loaded from Supabase (`id="featured-products"`)
 7. **Story Split** — LEFT: `canecreme-banner.jpeg` (⚠️ LOCAL ONLY — NOT pushed to GitHub yet, pending user approval). Dark panel right ("From the Farm, With Intention")
-8. **Process Steps** — orange `#F7AD4E` bg: Sourced → Crafted → Packed → Delivered
+8. **Process Steps** — orange `#FF8000` bg: Sourced → Crafted → Packed → Delivered
 9. **Gallery Collage** — horizontal scroll strip with 12 photos (6 gelato + 6 product shots). Drag to scroll. CSS class `.gallery-collage`. ✅ LIVE
 10. **CTA Banner** — lime `#BAD50D` bg ("Healthy Cravings, Delivered." — "Delivered." in Lobster orange)
 11. **Zomato & Swiggy strip** — above footer, light bg, transparent HD PNG logos with no white badge background. ✅ LOCAL ONLY
-12. Footer (dark olive `#1C2400` bg, 4-col: brand + Shop + Company + Help). Footer text: "Cane Creme goodness, crafted with love from India."
+12. Footer (near-black `#111111` bg, 4-col: brand + Shop + Company + Help). Footer text: "Cane Creme goodness, crafted with love from India."
 13. Cart sidebar (slide-in from right) — now includes "You May Also Like" suggestions + "Add Order Note" textarea
 14. Entry popup (green top panel + logo in white pill + form bottom, orange submit button)
 15. Social proof toast (bottom-left, lime left border)
@@ -396,6 +401,8 @@ How to add product images correctly:
 - canecreme-banner.jpeg
 - savoury-category.jpeg — user-provided bowl photo for homepage Savoury category circle
 - treats-category.jpeg — user-provided brownie/cookie photo for homepage Treats category circle; replaced with newer user image on 2026-05-30
+- energize-category.webp — user-provided makhana situational photo for homepage Energize category circle; added 2026-06-02
+- all-products-category.jpeg — user-provided product group photo for homepage All Products category circle; added 2026-06-02
 - logo.png, logo.svg (logo.svg unused)
 - Assets/logo/zomato-hd.png and Assets/logo/swiggy-hd.png — transparent HD platform logo cutouts created from user-provided WhatsApp image on 2026-05-29. Referenced by index.html, shop.html, and about.html. Local and live paths verified `200 OK` on 2026-05-30.
 - Duplicate root image files exist locally but are untracked and not referenced by the website: `Assets/zomato-hd.png`, `Assets/swiggy-hd.png`, `Assets/zomato.png`, `Assets/swiggy.png`. Do not commit them unless intentionally changing paths.
@@ -485,3 +492,7 @@ How to add product images correctly:
 | Session 30 | 2026-06-02 | User asked to remove customer fill-up form and use mobile number to show history/verify before payment. Implemented mobile-first checkout: only mobile is shown first, Continue calls Edge Function `get-customer-history`, safe previous-order summaries are displayed, Delivery Details reveal after mobile check, and Pay is blocked if mobile is not checked/current. Added `supabase/functions/get-customer-history/index.ts`, config entry, and cache-busted checkout script to `js/checkout.js?v=7`. Real phone ownership verification still requires SMS/OTP provider setup; history does not expose full address. Edge Function deployed on 2026-06-02 before pushing live. |
 | Session 31 | 2026-06-02 | Fixed Shop dropdown clickability. CSS now keeps dropdown open across hover/focus with an invisible bridge, supports `.nav-dropdown.open`, and provides mobile static dropdown layout. `js/main.js` opens Shop dropdown on mobile/touch tap and closes after option click. Cache-busted `js/main.js?v=4` across HTML pages. Changes are LOCAL ONLY pending preview/push approval. |
 | Session 32 | 2026-06-02 | Added reference-style product-page PIN delivery checker. `product.html` now shows "Estimated Delivery", PIN input/check, checked state with delivery date, "Change pincode", and "Powered by Shiprocket". Added Supabase Edge Function `estimate-delivery`, which authenticates with Shiprocket and calls courier serviceability using pickup postcode + delivery postcode + package dimensions/weight. Added config entry with `verify_jwt = false` and deployed the function to project `qfphvsyidbyhbyeyigrh`. Initial live test returned missing pickup pincode, then function was updated/deployed to fetch Shiprocket pickup locations and use pickup location `Kshitiz` when no pincode secret exists. Live test for PIN `831006` succeeded: Xpressbees Surface, ETA `07 Jun 2026`. |
+| Session 33 | 2026-06-02 | Replaced homepage Energize category image with user-provided makhana photo. Copied `Downloads/4._Makhana_situational_1000x.webp` to `Assets/energize-category.webp` and updated `index.html` category circle to use it. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 34 | 2026-06-02 | Replaced homepage All Products category image with user-provided product group photo. Copied `Downloads/WhatsApp Image 2026-06-02 at 15.57.57.jpeg` to `Assets/all-products-category.jpeg` and updated `index.html` category circle to use it. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 35 | 2026-06-02 | User selected lighter Option 1 colour palette, then changed to Option 2. Updated default palette to Fresh Lime & Orange: primary lime `#D6F13A`, hover lime `#B7D421`, pale lime `#F7FCDC`, orange `#FFA040`, while keeping white `#ffffff` and near-black `#111111`. After preview, darkened writing on lime areas: Product Categories title, category labels, and CTA headline now use dark text for stronger contrast. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 36 | 2026-06-02 | User asked to make the colour palette like before. Restored default Lime & Orange palette: primary lime `#BAD50D`, hover lime `#8FA309`, pale lime `#f2f9d0`, orange `#FF8000`, with white `#ffffff` and near-black `#111111`. Changes are LOCAL ONLY pending preview/push approval. |
