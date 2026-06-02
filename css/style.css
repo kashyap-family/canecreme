@@ -2618,22 +2618,25 @@ img { display: block; max-width: 100%; }
   .cta-banner { padding: 5rem 1.5rem; }
 
   .platforms-strip {
-    gap: 1rem;
-    padding: 2.25rem 1.25rem;
+    flex-wrap: nowrap;
+    gap: 0.8rem;
+    padding: 2rem 1rem;
   }
   .platforms-label {
-    flex: 0 0 100%;
-    text-align: center;
+    flex: 0 1 auto;
+    text-align: left;
+    white-space: nowrap;
+    font-size: 1.05rem;
   }
   .platform-badge {
-    flex: 0 1 auto;
-    padding: 0.15rem 0.2rem;
+    flex: 0 0 auto;
+    padding: 0.1rem;
   }
   .platform-logo {
-    height: 48px;
+    height: 38px;
   }
   .platform-badge.swiggy .platform-logo {
-    height: 52px;
+    height: 40px;
   }
 
   .form-row { grid-template-columns: 1fr; }
