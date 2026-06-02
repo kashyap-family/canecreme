@@ -3,6 +3,20 @@
 let currentOrderId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+  const phoneInput = document.getElementById('c-phone');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', () => {
+      phoneInput.value = phoneInput.value.replace(/\D/g, '').slice(0, 10);
+    });
+  }
+
+  const pinInput = document.getElementById('c-pin');
+  if (pinInput) {
+    pinInput.addEventListener('input', () => {
+      pinInput.value = pinInput.value.replace(/\D/g, '').slice(0, 6);
+    });
+  }
+
   renderOrderSummary();
 });
 
@@ -82,7 +96,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
   errorEl.style.display = 'none';
 
   const name = document.getElementById('c-name').value.trim();
-  const email = document.getElementById('c-email').value.trim();
+  const emailInput = document.getElementById('c-email').value.trim();
   const phone = document.getElementById('c-phone').value.trim();
   const address1 = document.getElementById('c-address1').value.trim();
   const city = document.getElementById('c-city').value.trim();
@@ -90,9 +104,22 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
   const pin = document.getElementById('c-pin').value.trim();
   const country = document.getElementById('c-country').value.trim();
   const address2 = document.getElementById('c-address2').value.trim();
+  const email = emailInput || `customer-${phone}@canecreme.co`;
 
-  if (!name || !email || !phone || !address1 || !city || !state || !pin) {
-    errorEl.textContent = 'Please fill in name, mobile, email, address, PIN, city and state.';
+  if (!name || !phone || !address1 || !city || !state || !pin) {
+    errorEl.textContent = 'Please fill in mobile, name, address, PIN, city and state.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  if (!/^[6-9][0-9]{9}$/.test(phone)) {
+    errorEl.textContent = 'Please enter a valid 10-digit mobile number.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  if (emailInput && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)) {
+    errorEl.textContent = 'Please enter a valid email, or leave it blank.';
     errorEl.style.display = 'block';
     return;
   }
@@ -142,14 +169,14 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
       notes: {
         order_id: currentOrderId,
         customer_name: name,
-        customer_email: email,
+        customer_email: emailInput || '',
         customer_phone: phone,
         shipping_pin: pin,
         support_phone: typeof STORE_PHONE !== 'undefined' ? STORE_PHONE : '9891239312'
       },
       prefill: {
         name: name,
-        email: email,
+        email: emailInput || '',
         contact: phone
       },
       theme: { color: '#BAD50D' },

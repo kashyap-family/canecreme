@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 21 handoff (2026-05-30)
+> Last updated: Session 29 handoff (2026-05-30)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -210,7 +210,7 @@ Razorpay theme colour: `#BAD50D`
 2. Sticky nav (light lime-white `#FAFEF0` bg, logo, Shop / About links + cart icon)
 3. **Hero** — FULL-BLEED `beet-bite-website1.jpg` as CSS background-image, dark overlay, centered content: Lobster tagline "No More Guilt Indulgence" (orange), eyebrow pill, Lexend bold title, lime CTA button
 4. Lime marquee strip (`#BAD50D` bg, dark text, ✦ separators)
-5. **Product Categories** — dark olive `#1C2400` section, 4 emoji circles: 🥗 Healthy Bites · 🍪 Power Cookies · 🌾 Nutritious Makhana · 🌿 All Products
+5. **Product Categories** — lime `#BAD50D` section with 4 real product photo circles and names: Savoury (`Assets/savoury-category.jpeg`) · Treats (`Assets/treats-category.jpeg`) · Energize (`Assets/soya-bites-1.jpg`) · All Products (`Assets/broccoli-bites-1.jpg`). Mobile displays a 2x2 grid.
 6. **Bestsellers** — 3 featured products loaded from Supabase (`id="featured-products"`)
 7. **Story Split** — LEFT: `canecreme-banner.jpeg` (⚠️ LOCAL ONLY — NOT pushed to GitHub yet, pending user approval). Dark panel right ("From the Farm, With Intention")
 8. **Process Steps** — orange `#F7AD4E` bg: Sourced → Crafted → Packed → Delivered
@@ -266,13 +266,18 @@ Razorpay theme colour: `#BAD50D`
 - Razorpay theme colour is `#BAD50D` (current brand lime green)
 - Razorpay Checkout now sends `notes` with order ID, customer name/email/phone, shipping PIN, and support phone `9891239312`, so these details can be seen against the payment in Razorpay Dashboard. Success redirect includes `?order=ORDER_ID` when available.
 - Checkout blocks invalid Indian PIN formats before payment using `/^[1-9][0-9]{5}$/`, so values like `000000`, short PINs, or letters cannot proceed.
-- Current cache-busted scripts: `js/auth.js?v=2`, `js/cart.js?v=3`, `js/checkout.js?v=6`, `js/main.js?v=3`.
+- Current cache-busted scripts: `js/cart.js?v=3`, `js/checkout.js?v=6`, `js/main.js?v=3`. `checkout.html` no longer loads `js/auth.js`.
 
 ### auth.js
-- Optional checkout login only; guest checkout must keep working.
-- Google OAuth code is deployed and redirects to `https://www.canecreme.co/checkout.html` on live domain.
-- Google still requires dashboard setup: enable Supabase Google provider, add Google OAuth Client ID/Secret, add allowed redirect URL `https://www.canecreme.co/checkout.html`, and configure the Supabase callback URL in Google Console.
-- Phone OTP code exists but Supabase returned "Unsupported phone provider"; real SMS needs Supabase Phone Auth/SMS provider setup. Current behaviour copies the mobile number into Delivery Details and lets customer continue as guest.
+- Checkout no longer uses Google login, phone OTP, or a separate quick mobile confirmation panel.
+- User said the login process still felt slow/lengthy, so checkout now goes straight to Delivery Details.
+- Fast checkout form now uses fewer visible fields:
+  - Row 1: Mobile Number with visible `+91` prefix + Full Name
+  - Row 2: one Delivery Address textarea
+  - Row 3: PIN Code + City + State
+  - Email is optional and moved below the required fields
+- `js/checkout.js` filters mobile to digits/max 10 characters and PIN to digits/max 6 characters. If email is blank, checkout sends an internal placeholder email to the existing Edge Function because `create-checkout-order` still requires `customer.email`.
+- `js/auth.js` remains as a no-op compatibility file only, so cached old checkout pages do not 404 if they request it. New `checkout.html` does not load it.
 
 ### success.html
 - Dynamic success summary calls Edge Function `get-order-summary`.
@@ -314,8 +319,7 @@ All deployed to project `qfphvsyidbyhbyeyigrh`:
 - [x] **Deploy Shiprocket Edge Function** — `supabase/functions/create-shiprocket-order/index.ts` deployed to Supabase project `qfphvsyidbyhbyeyigrh` on 2026-05-29. Secrets saved by user in Supabase: `SHIPROCKET_EMAIL`, `SHIPROCKET_PASSWORD`, `SHIPROCKET_PICKUP_LOCATION`, package dimensions/weight, and `SERVICE_ROLE_KEY`.
 - [ ] **Verify a fresh real order end-to-end** — Use hard refresh/incognito. Correct Razorpay notes should show a UUID order ID, not `not_saved`. Supabase should show paid/processing, and Shiprocket should show the shipment.
 - [ ] **Delete fake Supabase test order** — fake order: `90f3f251-f964-4a67-b50a-4f1881e684db` named `Codex Test`, total `1.00`, status `pending/new`. Delete `order_items` first, then `orders`.
-- [ ] **Configure Supabase Google Auth** — code is deployed, but provider/dashboard setup is still required.
-- [ ] **Configure Supabase Phone Auth/SMS provider or remove phone OTP UI** — phone OTP currently falls back to guest checkout because Supabase returned "Unsupported phone provider".
+- [ ] **Optional future auth** — Google login and phone OTP UI were removed from checkout on 2026-05-30 because they were not working. If auth is needed later, configure Supabase Google provider and/or Phone Auth/SMS provider first, then reintroduce UI.
 - [ ] **Policy pages** — draft pages exist, but owner should review final shipping fees, courier timelines, refund eligibility, GST/business details, and legal wording before launch.
 - [x] **Hero image** — `Assets/beet-bite-website1.jpg` exists locally after restore on 2026-05-30; live path returned `200 OK`.
 
@@ -381,6 +385,8 @@ How to add product images correctly:
 - galeto-1.jpeg, galeto-2.jpeg, galeto-3.jpeg (JPEG format)
 - galeto-4.jpg, galeto-5.jpg, galeto-6.jpg (JPG format)
 - canecreme-banner.jpeg
+- savoury-category.jpeg — user-provided bowl photo for homepage Savoury category circle
+- treats-category.jpeg — user-provided brownie/cookie photo for homepage Treats category circle; replaced with newer user image on 2026-05-30
 - logo.png, logo.svg (logo.svg unused)
 - Assets/logo/zomato-hd.png and Assets/logo/swiggy-hd.png — transparent HD platform logo cutouts created from user-provided WhatsApp image on 2026-05-29. Referenced by index.html, shop.html, and about.html. Local and live paths verified `200 OK` on 2026-05-30.
 - Duplicate root image files exist locally but are untracked and not referenced by the website: `Assets/zomato-hd.png`, `Assets/swiggy-hd.png`, `Assets/zomato.png`, `Assets/swiggy.png`. Do not commit them unless intentionally changing paths.
@@ -399,13 +405,14 @@ How to add product images correctly:
 - Live deploy is GitHub Pages from `main`; wait about 2 minutes after push.
 - Uncommitted local files as of this handoff:
   - Modified: `.claude/launch.json` (local preview config only; leave out unless requested)
+  - Modified locally pending user preview/push approval: `checkout.html`, `css/style.css`, `js/auth.js`, `js/checkout.js`, `PROJECT-STATE.md`
   - Untracked: `.claude/settings.local.json`, `.claude/worktrees/`, `supabase/.temp/`
   - Untracked duplicate assets: `Assets/swiggy-hd.png`, `Assets/swiggy.png`, `Assets/zomato-hd.png`, `Assets/zomato.png`
 - Next agent must not stage these by accident. Use exact `git add` paths.
 
 ## 10G. Real Payment / Order Testing Notes
 - One real Razorpay payment for Rs.149 was captured from an older cached checkout flow. Razorpay notes showed `order_id: not_saved`; it did not create a matching Supabase or Shiprocket order. This happened before the current Edge Function checkout fix.
-- Current correct flow requires browser hard refresh/incognito so it loads `checkout.html` with `js/checkout.js?v=6` and `js/auth.js?v=2`.
+- Current correct flow requires browser hard refresh/incognito so it loads `checkout.html` with `js/checkout.js?v=6`. `checkout.html` no longer loads `js/auth.js`.
 - If a new paid order still does not appear in Supabase:
   1. Check browser console/network for `create-checkout-order` response.
   2. Check Supabase Edge Function logs for `create-checkout-order` and `confirm-paid-order`.
@@ -458,3 +465,11 @@ How to add product images correctly:
 | Session 19 | 2026-05-30 | Restored missing local tracked image paths so future pushes do not delete live assets: `Assets/logo/zomato-hd.png`, `Assets/logo/swiggy-hd.png`, `Assets/beet-bites-1.jpg`, `Assets/beet-bite-website1.jpg`, and `Assets/logo.svg`. Pushed admin delivery-zone UI changes in `admin.html` and `js/admin.js`. |
 | Session 20 | 2026-05-30 | Improved checkout quick login handling. Google login now uses an explicit redirect URL and manual redirect fallback. Phone OTP now handles Supabase "Unsupported phone provider" gracefully by copying the mobile number into Delivery Details and allowing guest checkout instead of blocking the customer. Phone OTP still requires Supabase Auth phone provider/SMS setup before real OTP delivery works. |
 | Session 21 | 2026-05-30 | Handoff update only: refreshed `PROJECT-STATE.md` with current Git state, deployed Edge Functions, Supabase/Shiprocket/Auth setup status, pending dashboard tasks, fake test order ID, stale real-payment warning, image path status, and dirty worktree files to avoid staging. |
+| Session 22 | 2026-05-30 | Replaced broken checkout Google login + mobile OTP UI with a simple reference-inspired mobile confirmation panel. `checkout.html` now shows Quick Mobile Checkout with `+91` mobile input, `Continue With Mobile Number`, and `Use Another Mobile Number`. `js/auth.js?v=3` no longer calls Supabase Auth; it only validates/copies the 10-digit mobile number into Delivery Details. Updated related CSS. Changes are LOCAL ONLY pending preview. |
+| Session 23 | 2026-05-30 | User said checkout was still slow/lengthy after preview. Removed the separate Quick Mobile Checkout panel entirely. `checkout.html` now starts directly with Delivery Details and a single mobile-number field with `+91` prefix. Removed the `js/auth.js` script tag from checkout, kept `js/auth.js` as a no-op compatibility file, removed old auth CSS, and added phone digit filtering in `js/checkout.js`. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 24 | 2026-05-30 | User clarified the checkout process itself still felt like the old lengthy process. Compressed checkout into a faster form: Mobile + Name in first row, single Delivery Address textarea, PIN + City + State row, Email optional below. `js/checkout.js` now validates mobile/PIN, allows blank email with backend placeholder, and keeps Razorpay prefill email blank when customer leaves it blank. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 25 | 2026-05-30 | Updated homepage Product Categories to match user reference screenshot: real product pack photos inside white circular frames, full uncropped `object-fit: contain`, bolder category names underneath, 2x2 mobile layout, and category links for bites/cookies/makhana. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 26 | 2026-05-30 | Renamed homepage category labels per user: Healthy Bites -> Savoury, Power Cookies -> Treats, Nutritious Makhana -> Energize. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 27 | 2026-05-30 | Replaced homepage Savoury category photo with user-provided bowl image. Copied source from Downloads WhatsApp image to `Assets/savoury-category.jpeg` and updated `index.html` to use it. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 28 | 2026-05-30 | Replaced homepage Treats category photo with user-provided brownie image. Copied source from Downloads WhatsApp image to `Assets/treats-category.jpeg` and updated `index.html` to use it. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 29 | 2026-05-30 | Replaced `Assets/treats-category.jpeg` again with newer user-provided Treats image (`WhatsApp Image 2026-05-30 at 13.11.44 (1).jpeg`). `index.html` already points to same filename. Changes are LOCAL ONLY pending preview/push approval. |
