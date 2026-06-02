@@ -316,6 +316,7 @@ All deployed to project `qfphvsyidbyhbyeyigrh`:
 - `get-order-summary` — reads saved order for success page.
 - `get-customer-history` — deployed 2026-06-02 to return safe mobile-based past order summaries.
 - `estimate-delivery` — deployed 2026-06-02 to call Shiprocket courier serviceability and return estimated delivery date by PIN code. It uses pickup pincode secret if present; otherwise it fetches Shiprocket pickup locations and uses pickup location `Kshitiz`.
+- `admin-orders` — deployed 2026-06-02 so admin Orders tab can list/view/update orders using `SERVICE_ROLE_KEY` server-side instead of blocked browser REST reads.
 - `supabase/config.toml` has `verify_jwt = false` for all six functions so the static GitHub Pages site can call them.
 
 ### product.html — Pin Code Delivery Checker
@@ -384,6 +385,7 @@ All deployed to project `qfphvsyidbyhbyeyigrh`:
   ```
 - **Delivery Zone** — `<select id="p-delivery-type">` with options `pan_india` / `delhi_only`. Added in Session 8. Reads/writes `delivery_type` field in Supabase. Defaults to `pan_india` on new product. ⚠️ Column must be added in Supabase first (see Pending Tasks).
 - **Product save fallback** — `js/admin.js?v=2` retries saving without `delivery_type` if Supabase rejects that field because the optional column is missing/not in schema cache. This lets price/stock/name edits work before the `delivery_type` column is added.
+- **Orders tab** — `js/admin.js?v=3` calls Edge Function `admin-orders` for list/detail/update status. This avoids RLS/public REST restrictions that made the admin Orders tab show "No orders yet" even when orders existed.
 
 ## 10C. Product Image Workflow (for next agent)
 How to add product images correctly:
@@ -516,3 +518,4 @@ How to add product images correctly:
 | Session 38 | 2026-06-02 | Added reference-style post-order transition page `order-placed.html`. After Razorpay success, `js/checkout.js` now redirects to `order-placed.html?order=ORDER_ID`, showing a thank-you message, green check, no-refresh warning, and Powered By Shiprocket footer, then auto-redirects to `success.html?order=ORDER_ID`. Cache-busted checkout script to `js/checkout.js?v=8`. Changes are LOCAL ONLY pending preview/push approval. |
 | Session 39 | 2026-06-02 | Redesigned final `success.html` confirmation page to match user reference: order summary/amount, order number and thank-you heading, map embed for shipping address, confirmed status copy, order details card with contact information, shipping address, shipping method, payment method, billing address, need-help contact, and policy footer links. Extended and redeployed `get-order-summary` so it returns customer contact, address lines, payment/shipping method, map query, ETA, and item summaries. Test call with fake order `90f3f251-f964-4a67-b50a-4f1881e684db` succeeded. Changes are LOCAL ONLY pending preview/push approval. |
 | Session 40 | 2026-06-02 | Fixed admin product save error when editing price. Cause likely missing `delivery_type` column in Supabase while admin save payload included `delivery_type`. `js/admin.js` now retries product save without `delivery_type` if Supabase reports a schema/column error and shows the real error message in the modal. Cache-busted admin script to `js/admin.js?v=2`. |
+| Session 41 | 2026-06-02 | Fixed admin Orders tab showing "No orders yet" despite existing orders. Cause was browser-side REST/RLS restrictions on `orders`. Added and deployed Supabase Edge Function `admin-orders` with password check and service-role reads for list/detail/update status. Updated `js/admin.js` Orders tab to use the function and cache-busted admin script to `js/admin.js?v=3`. Test call returned `count: 2`. |

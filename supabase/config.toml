@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.estimate-delivery]
 verify_jwt = false
+
+[functions.admin-orders]
+verify_jwt = false

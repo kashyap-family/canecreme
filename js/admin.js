@@ -2,6 +2,25 @@
 
 let currentOrderId = null;
 
+async function callAdminOrders(action, extra = {}) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-orders`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      admin_password: ADMIN_PASSWORD,
+      action,
+      ...extra
+    })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Admin orders request failed');
+  return data;
+}
+
 // ===== AUTH =====
 function adminLogin() {
   const pwd = document.getElementById('admin-password').value;
@@ -204,10 +223,14 @@ async function loadOrders() {
   const tbody = document.getElementById('orders-table-body');
   tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;">Loading...</td></tr>';
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/orders?order=created_at.desc`, {
-    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-  });
-  const orders = await res.json();
+  let orders = [];
+  try {
+    const data = await callAdminOrders('list');
+    orders = Array.isArray(data.orders) ? data.orders : [];
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:#dc2626;">${error.message}</td></tr>`;
+    return;
+  }
 
   if (orders.length === 0) {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#6b6b6b;">No orders yet.</td></tr>';
@@ -231,17 +254,13 @@ async function loadOrders() {
 async function openOrderModal(orderId) {
   currentOrderId = orderId;
 
-  const [orderRes, itemsRes] = await Promise.all([
-    fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`, {
-      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-    }),
-    fetch(`${SUPABASE_URL}/rest/v1/order_items?order_id=eq.${orderId}&select=*,products(name,price)`, {
-      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
-    })
-  ]);
-
-  const [orders, items] = await Promise.all([orderRes.json(), itemsRes.json()]);
-  const order = orders[0];
+  const data = await callAdminOrders('detail', { order_id: orderId });
+  const order = data.order;
+  const items = Array.isArray(data.items) ? data.items : [];
+  if (!order) {
+    alert('Order not found.');
+    return;
+  }
   const addr = order.shipping_address;
 
   document.getElementById('order-status-select').value = order.order_status;
@@ -290,15 +309,7 @@ function closeOrderModal() {
 
 async function updateOrderStatus() {
   const status = document.getElementById('order-status-select').value;
-  await fetch(`${SUPABASE_URL}/rest/v1/orders?id=eq.${currentOrderId}`, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ order_status: status })
-  });
+  await callAdminOrders('update_status', { order_id: currentOrderId, order_status: status });
   closeOrderModal();
   loadOrders();
 }
