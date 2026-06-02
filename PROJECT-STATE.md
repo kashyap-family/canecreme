@@ -87,6 +87,7 @@ canecreme-main/
 ├── shop.html           ← All products grid
 ├── about.html          ← Brand story page
 ├── checkout.html       ← Checkout (Razorpay)
+├── order-placed.html   ← Post-payment thank-you transition screen before success page
 ├── success.html        ← Order confirmed page
 ├── admin.html          ← Admin panel (password: canecreme2026)
 ├── shipping-policy.html ← Draft shipping policy page
@@ -273,7 +274,7 @@ Razorpay theme colour: `#BAD50D`
 - Razorpay theme colour is `#BAD50D` (current brand lime green)
 - Razorpay Checkout now sends `notes` with order ID, customer name/email/phone, shipping PIN, and support phone `9891239312`, so these details can be seen against the payment in Razorpay Dashboard. Success redirect includes `?order=ORDER_ID` when available.
 - Checkout blocks invalid Indian PIN formats before payment using `/^[1-9][0-9]{5}$/`, so values like `000000`, short PINs, or letters cannot proceed.
-- Current cache-busted scripts: `js/cart.js?v=3`, `js/checkout.js?v=7`, `js/main.js?v=4`. `checkout.html` no longer loads `js/auth.js`.
+- Current cache-busted scripts: `js/cart.js?v=3`, `js/checkout.js?v=8`, `js/main.js?v=4`. `checkout.html` no longer loads `js/auth.js`.
 
 ### auth.js
 - Checkout no longer uses Google login or phone OTP.
@@ -288,9 +289,23 @@ Razorpay theme colour: `#BAD50D`
 - Real phone ownership verification before payment still requires configuring an SMS/OTP provider. Do not claim phone ownership is verified until that provider is enabled.
 - `js/auth.js` remains as a no-op compatibility file only, so cached old checkout pages do not 404 if they request it. New `checkout.html` does not load it.
 
+### order-placed.html
+- New post-payment transition screen added 2026-06-02.
+- Checkout redirects here after Razorpay success and `confirm-paid-order`.
+- Shows reference-style message: "Thank you", "Your order has been placed successfully.", green check icon, and "Please don't refresh. You'll be redirected to the order confirmation page."
+- Footer shows `T&C | Privacy Policy | short order ID` and `Powered By Shiprocket`.
+- Auto redirects to `success.html?order=ORDER_ID` after ~2.6 seconds.
+
 ### success.html
 - Dynamic success summary calls Edge Function `get-order-summary`.
-- Shows customer order ID, total bill, delivery address, and estimated delivery window.
+- Shows reference-style full order confirmation after the thank-you transition page:
+  - Order summary toggle and total amount
+  - Order number and customer thank-you heading
+  - Shipping-address map embed
+  - "Your order is confirmed" status copy
+  - Order details card with contact information, shipping address, shipping method, payment method, billing address
+  - Need help/contact link and policy footer links
+- `get-order-summary` now returns customer name/email/phone, total, payment method, shipping/billing address lines, map query, ETA, and item summaries where available. Function redeployed on 2026-06-02.
 - Support phone was removed from success details/footer; success page shows email support only.
 
 ### Supabase Edge Functions
@@ -496,3 +511,6 @@ How to add product images correctly:
 | Session 34 | 2026-06-02 | Replaced homepage All Products category image with user-provided product group photo. Copied `Downloads/WhatsApp Image 2026-06-02 at 15.57.57.jpeg` to `Assets/all-products-category.jpeg` and updated `index.html` category circle to use it. Changes are LOCAL ONLY pending preview/push approval. |
 | Session 35 | 2026-06-02 | User selected lighter Option 1 colour palette, then changed to Option 2. Updated default palette to Fresh Lime & Orange: primary lime `#D6F13A`, hover lime `#B7D421`, pale lime `#F7FCDC`, orange `#FFA040`, while keeping white `#ffffff` and near-black `#111111`. After preview, darkened writing on lime areas: Product Categories title, category labels, and CTA headline now use dark text for stronger contrast. Changes are LOCAL ONLY pending preview/push approval. |
 | Session 36 | 2026-06-02 | User asked to make the colour palette like before. Restored default Lime & Orange palette: primary lime `#BAD50D`, hover lime `#8FA309`, pale lime `#f2f9d0`, orange `#FF8000`, with white `#ffffff` and near-black `#111111`. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 37 | 2026-06-02 | Adjusted mobile Zomato/Swiggy platform strip so the label sits above and both platform logos stay on one row in mobile view. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 38 | 2026-06-02 | Added reference-style post-order transition page `order-placed.html`. After Razorpay success, `js/checkout.js` now redirects to `order-placed.html?order=ORDER_ID`, showing a thank-you message, green check, no-refresh warning, and Powered By Shiprocket footer, then auto-redirects to `success.html?order=ORDER_ID`. Cache-busted checkout script to `js/checkout.js?v=8`. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 39 | 2026-06-02 | Redesigned final `success.html` confirmation page to match user reference: order summary/amount, order number and thank-you heading, map embed for shipping address, confirmed status copy, order details card with contact information, shipping address, shipping method, payment method, billing address, need-help contact, and policy footer links. Extended and redeployed `get-order-summary` so it returns customer contact, address lines, payment/shipping method, map query, ETA, and item summaries. Test call with fake order `90f3f251-f964-4a67-b50a-4f1881e684db` succeeded. Changes are LOCAL ONLY pending preview/push approval. |

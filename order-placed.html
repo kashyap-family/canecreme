@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Placed — CaneCreme</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --dark: #000000;
+      --gray: #686868;
+      --success: #1fd36b;
+      --footer-bg: #f4f5fb;
+      --footer-text: #545766;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--dark);
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .placed-main {
+      flex: 1;
+      min-height: calc(100vh - 72px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 1.5rem 6rem;
+      text-align: center;
+    }
+
+    .placed-content {
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .placed-content h1 {
+      font-family: 'Lexend', sans-serif;
+      font-size: clamp(2.25rem, 8vw, 3.5rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1.2rem;
+    }
+
+    .placed-subtitle {
+      font-size: clamp(1.1rem, 4vw, 1.65rem);
+      color: var(--gray);
+      line-height: 1.45;
+      margin-bottom: 6rem;
+    }
+
+    .placed-check {
+      width: 104px;
+      height: 104px;
+      border-radius: 50%;
+      background: var(--success);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 6rem;
+    }
+
+    .placed-note {
+      max-width: 560px;
+      color: var(--gray);
+      font-size: clamp(1rem, 3.6vw, 1.45rem);
+      line-height: 1.45;
+    }
+
+    .placed-footer {
+      min-height: 72px;
+      padding: 1rem 1.5rem;
+      background: var(--footer-bg);
+      color: var(--footer-text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      font-size: 0.95rem;
+      letter-spacing: 0.01em;
+    }
+
+    .placed-footer a {
+      color: inherit;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .shiprocket-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+    }
+
+    .shiprocket-icon {
+      width: 22px;
+      height: 22px;
+      border: 2px solid #7b3ff2;
+      border-radius: 5px;
+      transform: rotate(30deg);
+      display: inline-block;
+      position: relative;
+    }
+
+    .shiprocket-icon::after {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border-top: 2px solid #26c6da;
+      border-right: 2px solid #26c6da;
+    }
+
+    .shiprocket-word {
+      color: #1d1f2b;
+      font-weight: 700;
+    }
+
+    @media (max-width: 560px) {
+      .placed-main {
+        align-items: flex-start;
+        padding-top: 28vh;
+      }
+      .placed-subtitle { margin-bottom: 5.5rem; }
+      .placed-check {
+        width: 92px;
+        height: 92px;
+        font-size: 3.4rem;
+        margin-bottom: 5.5rem;
+      }
+      .placed-footer {
+        font-size: 0.78rem;
+        padding: 0.9rem 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="placed-main">
+    <section class="placed-content" aria-live="polite">
+      <h1>Thank you</h1>
+      <p class="placed-subtitle">Your order has been placed successfully.</p>
+      <div class="placed-check" aria-hidden="true">✓</div>
+      <p class="placed-note">Please don't refresh. You'll be redirected to the order confirmation page.</p>
+    </section>
+  </main>
+
+  <footer class="placed-footer">
+    <span><a href="terms.html">T&amp;C</a> | <a href="privacy-policy.html">Privacy Policy</a> | <span id="placed-short-id">order</span></span>
+    <span class="shiprocket-mark">Powered By <span class="shiprocket-icon" aria-hidden="true"></span><span class="shiprocket-word">Shiprocket</span></span>
+  </footer>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get('order') || '';
+    const shortId = orderId ? orderId.slice(0, 8) : 'order';
+    document.getElementById('placed-short-id').textContent = shortId;
+
+    window.setTimeout(() => {
+      const target = orderId ? `success.html?order=${encodeURIComponent(orderId)}` : 'success.html';
+      window.location.replace(target);
+    }, 2600);
+  </script>
+</body>
+</html>

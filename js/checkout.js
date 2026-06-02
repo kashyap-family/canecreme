@@ -299,7 +299,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
           }
         }
         localStorage.removeItem('canecreme_cart');
-        window.location.href = `success.html?order=${encodeURIComponent(currentOrderId)}`;
+        window.location.href = `order-placed.html?order=${encodeURIComponent(currentOrderId)}`;
       },
       modal: {
         ondismiss: function() {
