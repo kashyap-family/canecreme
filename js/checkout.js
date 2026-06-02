@@ -1,12 +1,21 @@
 // ===== CHECKOUT with Razorpay =====
 
 let currentOrderId = null;
+let checkedMobile = '';
 
 document.addEventListener('DOMContentLoaded', () => {
   const phoneInput = document.getElementById('c-phone');
   if (phoneInput) {
     phoneInput.addEventListener('input', () => {
       phoneInput.value = phoneInput.value.replace(/\D/g, '').slice(0, 10);
+      if (checkedMobile && phoneInput.value !== checkedMobile) {
+        checkedMobile = '';
+        setMobileMessage('');
+        document.getElementById('customer-history').style.display = 'none';
+        document.getElementById('delivery-details-panel').style.display = 'none';
+        const payBtn = document.getElementById('pay-btn');
+        payBtn.textContent = 'Check Mobile First';
+      }
     });
   }
 
@@ -18,7 +27,102 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   renderOrderSummary();
+
+  const mobileCheckBtn = document.getElementById('mobile-check-btn');
+  if (mobileCheckBtn) mobileCheckBtn.addEventListener('click', checkMobileHistory);
 });
+
+function setMobileMessage(message, isError = false) {
+  const el = document.getElementById('mobile-check-message');
+  if (!el) return;
+  el.textContent = message || '';
+  el.classList.toggle('err', isError);
+}
+
+function renderCustomerHistory(history) {
+  const panel = document.getElementById('customer-history');
+  if (!panel) return;
+
+  const orders = Array.isArray(history && history.orders) ? history.orders : [];
+  if (orders.length === 0) {
+    panel.innerHTML = '<h3>New customer</h3><p class="mobile-check-message">No past orders found for this mobile number. Add delivery details once to continue.</p>';
+    panel.style.display = 'block';
+    return;
+  }
+
+  panel.innerHTML = `
+    <h3>Past orders found</h3>
+    <div class="history-order-list">
+      ${orders.map(order => `
+        <div class="history-order">
+          <div>
+            <strong>Order ${order.short_id}</strong><br>
+            <span>${order.status || 'Order saved'}</span>
+          </div>
+          <div>
+            <strong>Rs. ${Number(order.total || 0).toFixed(2)}</strong><br>
+            <span>${order.pin ? `PIN ${order.pin}` : ''}</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <p class="mobile-check-message">For privacy, address details are not shown until real OTP verification is connected.</p>
+  `;
+  panel.style.display = 'block';
+}
+
+async function fetchCustomerHistory(phone) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/get-customer-history`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ phone })
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`History lookup error (${res.status}): ${errText}`);
+  }
+
+  return await res.json();
+}
+
+async function checkMobileHistory() {
+  const phone = document.getElementById('c-phone').value.trim();
+  const btn = document.getElementById('mobile-check-btn');
+  const payBtn = document.getElementById('pay-btn');
+
+  if (!/^[6-9][0-9]{9}$/.test(phone)) {
+    setMobileMessage('Enter a valid 10-digit mobile number.', true);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Checking...';
+  setMobileMessage('');
+
+  try {
+    const history = await fetchCustomerHistory(phone);
+    checkedMobile = phone;
+    renderCustomerHistory(history);
+    document.getElementById('delivery-details-panel').style.display = 'block';
+    payBtn.textContent = 'Pay Securely ->';
+    setMobileMessage('Mobile number checked. Complete delivery details to pay.');
+  } catch (err) {
+    console.warn('Customer history lookup failed:', err);
+    checkedMobile = phone;
+    document.getElementById('customer-history').style.display = 'none';
+    document.getElementById('delivery-details-panel').style.display = 'block';
+    payBtn.textContent = 'Pay Securely ->';
+    setMobileMessage('Could not load past orders right now. Continue with delivery details.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Continue';
+  }
+}
 
 function renderOrderSummary() {
   const summaryItems = document.getElementById('summary-items');
@@ -105,6 +209,12 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
   const country = document.getElementById('c-country').value.trim();
   const address2 = document.getElementById('c-address2').value.trim();
   const email = emailInput || `customer-${phone}@canecreme.co`;
+
+  if (phone !== checkedMobile) {
+    errorEl.textContent = 'Please check your mobile number before payment.';
+    errorEl.style.display = 'block';
+    return;
+  }
 
   if (!name || !phone || !address1 || !city || !state || !pin) {
     errorEl.textContent = 'Please fill in mobile, name, address, PIN, city and state.';

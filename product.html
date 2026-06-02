@@ -180,49 +180,72 @@
 
     /* Pin code checker */
     .pincode-wrap {
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 1rem 1.1rem;
-      background: var(--cream-dark);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 8px 18px rgba(28, 36, 0, 0.08);
+      overflow: hidden;
+      border: 1px solid rgba(28, 36, 0, 0.08);
+    }
+    .pincode-offer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.8rem;
+      padding: 0.55rem 0.8rem;
+      background: #050505;
+      color: #fff;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 0.88rem;
+      line-height: 1;
+    }
+    .pincode-offer span {
+      opacity: 0.9;
     }
     .pincode-label {
-      font-size: 0.82rem;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 1.05rem;
       font-weight: 600;
       color: var(--dark);
-      margin-bottom: 0.55rem;
+      margin: 0 0 0.8rem;
+    }
+    .pincode-card {
+      padding: 1rem 1.05rem 0.9rem;
     }
     .pincode-row {
-      display: flex;
-      gap: 0.6rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid rgba(28, 36, 0, 0.85);
+      padding-bottom: 0.35rem;
     }
     .pincode-input {
-      flex: 1;
-      padding: 0.6rem 0.9rem;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
+      width: 100%;
+      border: 0;
       font-family: var(--font-body);
       font-size: 0.95rem;
-      background: #fff;
+      background: transparent;
       color: var(--dark);
       outline: none;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.03em;
     }
-    .pincode-input:focus { border-color: var(--green); }
     .pincode-btn {
-      padding: 0.6rem 1.1rem;
-      background: var(--green);
-      color: #fff;
+      padding: 0.2rem 0;
+      background: transparent;
+      color: var(--dark);
       border: none;
-      border-radius: 8px;
-      font-family: var(--font-display);
+      font-family: Georgia, 'Times New Roman', serif;
       font-size: 0.88rem;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       white-space: nowrap;
     }
-    .pincode-btn:hover { background: var(--green-light); }
+    .pincode-btn:disabled {
+      color: var(--gray-light);
+      cursor: wait;
+    }
     .pincode-result {
-      margin-top: 0.6rem;
+      margin-top: 0.7rem;
       font-size: 0.84rem;
       font-weight: 500;
       display: none;
@@ -230,9 +253,60 @@
     .pincode-result.ok  { color: #16a34a; }
     .pincode-result.err { color: #dc2626; }
     .pincode-zone {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 0.35rem;
       font-size: 0.78rem;
       color: var(--gray);
-      margin-top: 0.3rem;
+      margin-top: 0.85rem;
+    }
+    .pincode-zone strong {
+      color: var(--dark);
+      font-weight: 700;
+    }
+    .pincode-estimate {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+      border-bottom: 1px solid rgba(28, 36, 0, 0.85);
+      padding-bottom: 0.45rem;
+    }
+    .pincode-estimate-item {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      min-width: 0;
+      font-family: Georgia, 'Times New Roman', serif;
+      color: var(--gray);
+      font-size: 0.95rem;
+    }
+    .pincode-estimate-icon {
+      width: 26px;
+      height: 26px;
+      border: 1px solid rgba(28, 36, 0, 0.12);
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray);
+      flex: 0 0 auto;
+    }
+    .pincode-change {
+      margin-top: 0.55rem;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      font-family: Georgia, 'Times New Roman', serif;
+      color: var(--dark);
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .pincode-helper {
+      margin-top: 0.45rem;
+      font-size: 0.78rem;
+      color: var(--gray);
     }
 
     @media (max-width: 768px) {
@@ -243,6 +317,8 @@
       }
       .pd-name { font-size: 1.5rem; }
       .pd-thumb { width: 56px; height: 56px; }
+      .pincode-estimate { gap: 0.55rem; }
+      .pincode-estimate-item { font-size: 0.9rem; }
     }
   </style>
 </head>
@@ -367,7 +443,7 @@
 
   <script src="js/config.js"></script>
   <script src="js/cart.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/main.js?v=4"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
     const productId = params.get('id');
@@ -446,14 +522,24 @@
           <span class="pd-badge">✓ No Preservatives</span>
           <span class="pd-badge">🚚 ${deliveryLabel}</span>
         </div>
-        <div class="pincode-wrap">
-          <div class="pincode-label">📍 Check Delivery Availability</div>
-          <div class="pincode-row">
-            <input class="pincode-input" id="pincode-input" type="text" inputmode="numeric" maxlength="6" pattern="[1-9][0-9]{5}" placeholder="Enter 6-digit pin code" />
-            <button class="pincode-btn" onclick="checkPincode('${deliveryType}')">Check</button>
+        <div class="pincode-wrap" data-delivery-type="${deliveryType}">
+          <div class="pincode-offer">
+            <span>‹</span>
+            <strong>Free Shipping on all Order above ₹499</strong>
+            <span>›</span>
           </div>
-          <div class="pincode-result" id="pincode-result"></div>
-          <div class="pincode-zone">${deliveryZoneNote}</div>
+          <div class="pincode-card" id="pincode-card">
+            <div class="pincode-label">Estimated Delivery</div>
+            <div id="pincode-check-state">
+              <div class="pincode-row">
+                <input class="pincode-input" id="pincode-input" type="text" inputmode="numeric" maxlength="6" pattern="[1-9][0-9]{5}" placeholder="Enter pincode" />
+                <button class="pincode-btn" id="pincode-btn" onclick="checkPincode('${deliveryType}')">Check</button>
+              </div>
+              <div class="pincode-result" id="pincode-result"></div>
+              <div class="pincode-helper">${deliveryZoneNote}</div>
+            </div>
+            <div class="pincode-zone">Powered by <strong>Shiprocket</strong></div>
+          </div>
         </div>
         <div>
           <div class="pd-qty-label">Quantity</div>
@@ -486,30 +572,85 @@
 
     loadProduct();
 
-    function checkPincode(deliveryType) {
+    function escapeHTML(value) {
+      return String(value || '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[char]));
+    }
+
+    async function checkPincode(deliveryType) {
       const pin = document.getElementById('pincode-input').value.trim();
       const resultEl = document.getElementById('pincode-result');
+      const btn = document.getElementById('pincode-btn');
       resultEl.style.display = 'block';
       resultEl.className = 'pincode-result';
 
       if (!/^[1-9][0-9]{5}$/.test(pin)) {
         resultEl.classList.add('err');
-        resultEl.textContent = '✗ Please enter a valid Indian 6-digit PIN code.';
+        resultEl.textContent = 'Please enter a valid Indian 6-digit PIN code.';
         return;
       }
 
-      if (deliveryType === 'delhi_only') {
-        if (pin.startsWith('110')) {
-          resultEl.classList.add('ok');
-          resultEl.textContent = '✓ Delivery available to your pin code!';
-        } else {
-          resultEl.classList.add('err');
-          resultEl.textContent = '✗ Sorry, this product is only delivered within Delhi (pin codes starting with 110).';
+      btn.disabled = true;
+      btn.textContent = 'Checking';
+      resultEl.textContent = 'Checking Shiprocket serviceability...';
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/estimate-delivery`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify({ pin, delivery_type: deliveryType })
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || !data.available) {
+          throw new Error(data.error || data.message || 'Delivery estimate is not available for this PIN code.');
         }
-      } else {
-        resultEl.classList.add('ok');
-        resultEl.textContent = '✓ Delivery available to your pin code!';
+
+        const stateEl = document.getElementById('pincode-check-state');
+        stateEl.innerHTML = `
+          <div class="pincode-estimate">
+            <div class="pincode-estimate-item">
+              <span class="pincode-estimate-icon">⌖</span>
+              <span>${escapeHTML(data.pin)}</span>
+            </div>
+            <div class="pincode-estimate-item">
+              <span class="pincode-estimate-icon">▣</span>
+              <span>${escapeHTML(data.estimated_date)}</span>
+            </div>
+          </div>
+          <button class="pincode-change" onclick="changePincode('${deliveryType}')">Change pincode</button>
+          <div class="pincode-result ok" style="display:block;">Estimated delivery in ${escapeHTML(data.estimated_days)} day${Number(data.estimated_days) === 1 ? '' : 's'} via ${escapeHTML(data.courier)}.</div>
+        `;
+      } catch (error) {
+        resultEl.classList.add('err');
+        resultEl.textContent = error.message || 'Unable to check delivery right now. Please try again.';
+      } finally {
+        if (document.getElementById('pincode-btn')) {
+          btn.disabled = false;
+          btn.textContent = 'Check';
+        }
       }
+    }
+
+    function changePincode(deliveryType) {
+      const stateEl = document.getElementById('pincode-check-state');
+      stateEl.innerHTML = `
+        <div class="pincode-row">
+          <input class="pincode-input" id="pincode-input" type="text" inputmode="numeric" maxlength="6" pattern="[1-9][0-9]{5}" placeholder="Enter pincode" />
+          <button class="pincode-btn" id="pincode-btn" onclick="checkPincode('${deliveryType}')">Check</button>
+        </div>
+        <div class="pincode-result" id="pincode-result"></div>
+      `;
+      document.getElementById('pincode-input').focus();
     }
 
     document.addEventListener('keydown', function(e) {

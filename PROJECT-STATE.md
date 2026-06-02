@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 29 handoff (2026-05-30)
+> Last updated: Session 32 handoff (2026-06-02)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -68,6 +68,7 @@ Never use `git add .` here without checking `git status --short` first. This rep
   - `SHIPROCKET_EMAIL`
   - `SHIPROCKET_PASSWORD`
   - `SHIPROCKET_PICKUP_LOCATION` = `Kshitiz`
+  - `SHIPROCKET_PICKUP_PINCODE` / `SHIPROCKET_PICKUP_POSTCODE` / `SHIPROCKET_PICKUP_PIN` — optional for delivery estimate function. If not configured, `estimate-delivery` fetches Shiprocket pickup locations and uses pickup location `Kshitiz`.
   - `SHIPROCKET_PACKAGE_LENGTH_CM`
   - `SHIPROCKET_PACKAGE_BREADTH_CM`
   - `SHIPROCKET_PACKAGE_HEIGHT_CM`
@@ -259,6 +260,7 @@ Razorpay theme colour: `#BAD50D`
 - Social proof toast: fires at 9s, then every 22s. 5 fake entries (Priya/Rahul/Anjali/Vikram/Sneha)
 - IntersectionObserver scroll fade: `.fade-section` and `.fade-up` classes
 - Hamburger menu: `#hamburger` toggles `#nav-links` open class
+- Shop dropdown supports hover/focus on desktop and tap-open on mobile through `.nav-dropdown.open`. Dropdown option clicks close mobile nav.
 
 ### checkout.js
 - Validates: name, email, phone, address1, city, state, pin
@@ -266,17 +268,19 @@ Razorpay theme colour: `#BAD50D`
 - Razorpay theme colour is `#BAD50D` (current brand lime green)
 - Razorpay Checkout now sends `notes` with order ID, customer name/email/phone, shipping PIN, and support phone `9891239312`, so these details can be seen against the payment in Razorpay Dashboard. Success redirect includes `?order=ORDER_ID` when available.
 - Checkout blocks invalid Indian PIN formats before payment using `/^[1-9][0-9]{5}$/`, so values like `000000`, short PINs, or letters cannot proceed.
-- Current cache-busted scripts: `js/cart.js?v=3`, `js/checkout.js?v=6`, `js/main.js?v=3`. `checkout.html` no longer loads `js/auth.js`.
+- Current cache-busted scripts: `js/cart.js?v=3`, `js/checkout.js?v=7`, `js/main.js?v=4`. `checkout.html` no longer loads `js/auth.js`.
 
 ### auth.js
-- Checkout no longer uses Google login, phone OTP, or a separate quick mobile confirmation panel.
-- User said the login process still felt slow/lengthy, so checkout now goes straight to Delivery Details.
-- Fast checkout form now uses fewer visible fields:
-  - Row 1: Mobile Number with visible `+91` prefix + Full Name
-  - Row 2: one Delivery Address textarea
-  - Row 3: PIN Code + City + State
-  - Email is optional and moved below the required fields
-- `js/checkout.js` filters mobile to digits/max 10 characters and PIN to digits/max 6 characters. If email is blank, checkout sends an internal placeholder email to the existing Edge Function because `create-checkout-order` still requires `customer.email`.
+- Checkout no longer uses Google login or phone OTP.
+- Checkout is now mobile-first:
+  - Customer enters mobile number first and clicks Continue.
+  - `js/checkout.js?v=7` calls Edge Function `get-customer-history` to check previous orders before payment.
+  - Delivery Details remain hidden until mobile number is checked.
+  - Payment is blocked if the mobile number has not been checked or if the customer changes it after checking.
+  - Previous order history is shown only as safe summaries: short order ID, status, total, and PIN. Full address is NOT exposed without real OTP verification.
+  - Delivery details collect Full Name, optional Email, one Delivery Address textarea, PIN, City, State.
+  - `js/checkout.js` filters mobile to digits/max 10 characters and PIN to digits/max 6 characters. If email is blank, checkout sends an internal placeholder email to the existing Edge Function because `create-checkout-order` still requires `customer.email`.
+- Real phone ownership verification before payment still requires configuring an SMS/OTP provider. Do not claim phone ownership is verified until that provider is enabled.
 - `js/auth.js` remains as a no-op compatibility file only, so cached old checkout pages do not 404 if they request it. New `checkout.html` does not load it.
 
 ### success.html
@@ -290,17 +294,20 @@ All deployed to project `qfphvsyidbyhbyeyigrh`:
 - `confirm-paid-order` — marks order paid/processing after Razorpay success and triggers Shiprocket creation.
 - `create-shiprocket-order` — creates prepaid Shiprocket order from saved Supabase order.
 - `get-order-summary` — reads saved order for success page.
-- `supabase/config.toml` has `verify_jwt = false` for all four functions so the static GitHub Pages site can call them.
+- `get-customer-history` — deployed 2026-06-02 to return safe mobile-based past order summaries.
+- `estimate-delivery` — deployed 2026-06-02 to call Shiprocket courier serviceability and return estimated delivery date by PIN code. It uses pickup pincode secret if present; otherwise it fetches Shiprocket pickup locations and uses pickup location `Kshitiz`.
+- `supabase/config.toml` has `verify_jwt = false` for all six functions so the static GitHub Pages site can call them.
 
 ### product.html — Pin Code Delivery Checker
-- UI: box with text input (6-digit pin) + Check button. Appears on every product detail page.
+- UI: reference-inspired "Estimated Delivery" widget with black free-shipping strip, underline PIN input + Check button, checked state showing PIN + estimated delivery date, "Change pincode", and "Powered by Shiprocket".
 - Logic in `checkPincode(deliveryType)` function (inline script in product.html):
   - `deliveryType` comes from `p.delivery_type` Supabase field (default: `'pan_india'` if null)
   - PIN must match Indian PIN format `/^[1-9][0-9]{5}$/`; invalid formats are rejected
-  - `pan_india`: any valid Indian 6-digit PIN format → ✓ available
-  - `delhi_only`: only pins starting with `'110'` → ✓ available; others → ✗ not available
-  - Delhi pin codes all start with `110` (110001–110096)
+  - Calls Supabase Edge Function `/functions/v1/estimate-delivery`
+  - `estimate-delivery` logs into Shiprocket using private Supabase secrets, calls `GET https://apiv2.shiprocket.in/v1/external/courier/serviceability/` with pickup postcode, delivery postcode, prepaid `cod=0`, package weight/dimensions, and returns the best available courier estimate
+  - Function enforces `delhi_only` products by rejecting non-`110` PINs
   - Enter key on input also triggers check
+- Live test on 2026-06-02 for PIN `831006` returned available via `Xpressbees Surface`, estimated date `07 Jun 2026`.
 - Badge on product page shows "Delhi Delivery Only" or "Pan-India Delivery" based on `delivery_type`
 - ⚠️ `delivery_type` column does NOT exist in Supabase yet — user needs to add it manually:
   - Table Editor → products → Add column → Name: `delivery_type` | Type: `text` | Default: `pan_india`
@@ -311,6 +318,8 @@ All deployed to project `qfphvsyidbyhbyeyigrh`:
 
 ## 10. Pending Tasks
 - [ ] **Add `delivery_type` column in Supabase** — column does not exist yet. User must: Table Editor → products → Add column → `delivery_type` (text, default: `pan_india`). Then run bulk PATCH to set all 6 products to `pan_india`. Code is ready and waiting.
+- [x] **Deploy Shiprocket PIN estimate function** — deployed to Supabase project `qfphvsyidbyhbyeyigrh` on 2026-06-02.
+- [x] **Shiprocket pickup pincode fallback** — `estimate-delivery` now fetches pickup locations from Shiprocket and uses pickup location `Kshitiz` if no pickup pincode secret exists. Live test succeeded for PIN `831006`.
 - [x] **Push canecreme-banner.jpeg split section/asset** — `Assets/canecreme-banner.jpeg` exists locally and live path returned `200 OK` on 2026-05-30.
 - [ ] **Category filtering** — user wants products categorised. All 6 current products = "Healthy Bites". User was in process of adding `category` text column to Supabase `products` table. Once column added: update admin.html to include category field, update shop.html to show filter tabs.
 - [x] **Razorpay live mode** — Live Key ID `rzp_live_SvBwWNQkqzmora` added to `js/config.js` on 2026-05-29. User initially shared a Key Secret in chat, was told to regenerate it, then provided only the regenerated Live Key ID. Do NOT ask for or store the Key Secret in this repo/chat.
@@ -405,14 +414,14 @@ How to add product images correctly:
 - Live deploy is GitHub Pages from `main`; wait about 2 minutes after push.
 - Uncommitted local files as of this handoff:
   - Modified: `.claude/launch.json` (local preview config only; leave out unless requested)
-  - Modified locally pending user preview/push approval: `checkout.html`, `css/style.css`, `js/auth.js`, `js/checkout.js`, `PROJECT-STATE.md`
+  - Modified locally pending user preview/push approval: `checkout.html`, `css/style.css`, `js/checkout.js`, `js/main.js`, multiple HTML files with `js/main.js?v=4`, `product.html`, `PROJECT-STATE.md`, `supabase/config.toml`, `supabase/functions/get-customer-history/index.ts`, `supabase/functions/estimate-delivery/index.ts`
   - Untracked: `.claude/settings.local.json`, `.claude/worktrees/`, `supabase/.temp/`
   - Untracked duplicate assets: `Assets/swiggy-hd.png`, `Assets/swiggy.png`, `Assets/zomato-hd.png`, `Assets/zomato.png`
 - Next agent must not stage these by accident. Use exact `git add` paths.
 
 ## 10G. Real Payment / Order Testing Notes
 - One real Razorpay payment for Rs.149 was captured from an older cached checkout flow. Razorpay notes showed `order_id: not_saved`; it did not create a matching Supabase or Shiprocket order. This happened before the current Edge Function checkout fix.
-- Current correct flow requires browser hard refresh/incognito so it loads `checkout.html` with `js/checkout.js?v=6`. `checkout.html` no longer loads `js/auth.js`.
+- Current correct flow requires browser hard refresh/incognito so it loads `checkout.html` with `js/checkout.js?v=7`. `checkout.html` no longer loads `js/auth.js`.
 - If a new paid order still does not appear in Supabase:
   1. Check browser console/network for `create-checkout-order` response.
   2. Check Supabase Edge Function logs for `create-checkout-order` and `confirm-paid-order`.
@@ -473,3 +482,6 @@ How to add product images correctly:
 | Session 27 | 2026-05-30 | Replaced homepage Savoury category photo with user-provided bowl image. Copied source from Downloads WhatsApp image to `Assets/savoury-category.jpeg` and updated `index.html` to use it. Changes are LOCAL ONLY pending preview/push approval. |
 | Session 28 | 2026-05-30 | Replaced homepage Treats category photo with user-provided brownie image. Copied source from Downloads WhatsApp image to `Assets/treats-category.jpeg` and updated `index.html` to use it. Changes are LOCAL ONLY pending preview/push approval. |
 | Session 29 | 2026-05-30 | Replaced `Assets/treats-category.jpeg` again with newer user-provided Treats image (`WhatsApp Image 2026-05-30 at 13.11.44 (1).jpeg`). `index.html` already points to same filename. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 30 | 2026-06-02 | User asked to remove customer fill-up form and use mobile number to show history/verify before payment. Implemented mobile-first checkout: only mobile is shown first, Continue calls Edge Function `get-customer-history`, safe previous-order summaries are displayed, Delivery Details reveal after mobile check, and Pay is blocked if mobile is not checked/current. Added `supabase/functions/get-customer-history/index.ts`, config entry, and cache-busted checkout script to `js/checkout.js?v=7`. Real phone ownership verification still requires SMS/OTP provider setup; history does not expose full address. Edge Function deployed on 2026-06-02 before pushing live. |
+| Session 31 | 2026-06-02 | Fixed Shop dropdown clickability. CSS now keeps dropdown open across hover/focus with an invisible bridge, supports `.nav-dropdown.open`, and provides mobile static dropdown layout. `js/main.js` opens Shop dropdown on mobile/touch tap and closes after option click. Cache-busted `js/main.js?v=4` across HTML pages. Changes are LOCAL ONLY pending preview/push approval. |
+| Session 32 | 2026-06-02 | Added reference-style product-page PIN delivery checker. `product.html` now shows "Estimated Delivery", PIN input/check, checked state with delivery date, "Change pincode", and "Powered by Shiprocket". Added Supabase Edge Function `estimate-delivery`, which authenticates with Shiprocket and calls courier serviceability using pickup postcode + delivery postcode + package dimensions/weight. Added config entry with `verify_jwt = false` and deployed the function to project `qfphvsyidbyhbyeyigrh`. Initial live test returned missing pickup pincode, then function was updated/deployed to fetch Shiprocket pickup locations and use pickup location `Kshitiz` when no pincode secret exists. Live test for PIN `831006` succeeded: Xpressbees Surface, ETA `07 Jun 2026`. |

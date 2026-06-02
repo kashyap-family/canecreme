@@ -101,6 +101,34 @@ if (hamburger && navLinks) {
   });
 }
 
+// Shop dropdown: hover works on desktop; tap opens it on touch/mobile.
+document.querySelectorAll('.nav-dropdown').forEach(dropdown => {
+  const trigger = dropdown.querySelector(':scope > a');
+  const menu = dropdown.querySelector('.dropdown-menu');
+  if (!trigger || !menu) return;
+
+  trigger.addEventListener('click', (e) => {
+    const isTouchLayout = window.matchMedia('(max-width: 768px)').matches;
+    if (!isTouchLayout) return;
+    e.preventDefault();
+    dropdown.classList.toggle('open');
+  });
+
+  menu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      dropdown.classList.remove('open');
+      if (hamburger && navLinks) {
+        hamburger.classList.remove('open');
+        navLinks.classList.remove('open');
+      }
+    });
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!dropdown.contains(e.target)) dropdown.classList.remove('open');
+  });
+});
+
 // Scroll-fade entrance animations (Intersection Observer)
 const observer = new IntersectionObserver((entries) => {
   entries.forEach((entry, i) => {

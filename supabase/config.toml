@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.get-order-summary]
 verify_jwt = false
+
+[functions.get-customer-history]
+verify_jwt = false
+
+[functions.estimate-delivery]
+verify_jwt = false
