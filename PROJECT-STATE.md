@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 55 official website push for premium hero/nav updates (2026-06-03)
+> Last updated: Session 56 post-push handoff for premium hero/nav deploy (2026-06-03)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -432,8 +432,9 @@ How to add product images correctly:
 - Duplicate root image files exist locally but are untracked and not referenced by the website: `Assets/zomato-hd.png`, `Assets/swiggy-hd.png`, `Assets/zomato.png`, `Assets/swiggy.png`. Do not commit them unless intentionally changing paths.
 
 ## 10F. Current Git / Deployment State (handoff 2026-06-03)
-- Last pushed code commit on `main` before this handoff-state update: `641a8b6 Add WhatsApp order link in admin`.
+- Last pushed code commit on `main` before this handoff-state update: `31c906c Update premium hero and mobile nav`.
 - Recent pushed commits:
+  - `31c906c` Update premium hero and mobile nav
   - `641a8b6` Add WhatsApp order link in admin
   - `9284ec7` Connect COD checkout and Shiprocket flow
   - `b08a29b` Keep delivery platform logos inline on mobile
@@ -447,7 +448,7 @@ How to add product images correctly:
 - Current live website checkout should load `js/checkout.js?v=11` after GitHub Pages cache clears. Admin should load `js/admin.js?v=4`.
 - Uncommitted local files as of this handoff:
   - Modified: `.claude/launch.json` (local preview config only; leave out unless requested)
-  - Sessions 50-55 homepage hero redesign/refinement, mobile glass navbar, and new hero cover image were staged for official website push from `main` on 2026-06-03.
+  - Sessions 50-55 homepage hero redesign/refinement, mobile glass navbar, and new hero cover image were pushed to official website from `main` in commit `31c906c` on 2026-06-03.
   - Untracked design asset still local only: `Assets/all-products-hero-transparent.png` (transparent-background hero-only version of `Assets/all-products-category.jpeg`; no longer referenced by the current hero after Session 54)
   - Untracked: `.claude/settings.local.json`, `.claude/worktrees/`, `supabase/.temp/`
   - Untracked duplicate assets: `Assets/swiggy-hd.png`, `Assets/swiggy.png`, `Assets/zomato-hd.png`, `Assets/zomato.png`
@@ -546,3 +547,4 @@ How to add product images correctly:
 | Session 53 | 2026-06-03 | Removed the visible white picture background behind the homepage hero product image locally. Created `Assets/all-products-hero-transparent.png` from `Assets/all-products-category.jpeg` using edge flood-fill background removal so product labels stay intact while the outer white field becomes transparent. Updated `index.html` hero image to use the transparent PNG. Updated `css/style.css` hero product frame to remove the rectangular card border/shadow/background, use `object-fit: contain`, normal blend mode, and product-level drop shadow. Previewed through local server `http://127.0.0.1:3457/index.html` in the in-app browser; product now sits on the warm hero gradient with no white rectangular image background. Changes are LOCAL ONLY and not pushed yet. |
 | Session 54 | 2026-06-03 | Replaced the homepage hero visual with the user-provided cover collage image. Copied `C:\Users\kritika kashyap\Downloads\WhatsApp Image 2026-06-03 at 17.06.42.jpeg` to `Assets/hero-cover-collage.jpeg`, updated `index.html` hero image source and alt text, removed the old extra CSS ingredient decoration nodes from the hero markup, and adjusted `css/style.css` hero visual sizing for the portrait cover (`min-height: 700px`, product frame `width: min(100%, 470px)`, `aspect-ratio: 2 / 3`, `object-fit: cover`). Verified the new asset loads from local server `http://127.0.0.1:3457/Assets/hero-cover-collage.jpeg` with HTTP 200 and 241512 bytes. Changes are LOCAL ONLY and not pushed yet. |
 | Session 55 | 2026-06-03 | User approved pushing the hero/navbar updates to the official website. Prepared exact-file staging for `index.html`, `css/style.css`, `js/main.js`, public HTML cache-bust updates, `Assets/hero-cover-collage.jpeg`, and `PROJECT-STATE.md`. Left local-only `.claude/`, `supabase/.temp/`, duplicate root platform assets, and unused `Assets/all-products-hero-transparent.png` out of the deployment. |
+| Session 56 | 2026-06-03 | Pushed official website update to GitHub `main` in commit `31c906c Update premium hero and mobile nav`. This deploy includes the premium homepage hero, mobile glass navbar, public `js/main.js?v=5` cache-bust updates, and `Assets/hero-cover-collage.jpeg`. GitHub Pages should publish to `www.canecreme.co` after its normal delay. |
