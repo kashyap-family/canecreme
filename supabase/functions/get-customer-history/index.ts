@@ -42,8 +42,9 @@ Deno.serve(async (req) => {
     const supabaseUrl = requiredEnv("SUPABASE_URL");
     const serviceRoleKey = requiredEnv("SERVICE_ROLE_KEY");
     const params = new URLSearchParams({
-      select: "id,total_amount,payment_status,order_status,shipping_address",
+      select: "id,total_amount,payment_status,order_status,customer_name,customer_email,shipping_address,created_at",
       customer_phone: `eq.${phone}`,
+      order: "created_at.desc",
       limit: "5",
     });
 
@@ -68,7 +69,22 @@ Deno.serve(async (req) => {
       };
     });
 
-    return jsonResponse({ found: orders.length > 0, orders });
+    const latest = rows[0] as Record<string, unknown> | undefined;
+    const latestAddress = latest ? (latest.shipping_address || {}) as Record<string, unknown> : {};
+    const savedDetails = latest
+      ? {
+          name: latest.customer_name || "",
+          email: latest.customer_email || "",
+          address1: latestAddress.line1 || "",
+          address2: latestAddress.line2 || "",
+          city: latestAddress.city || "",
+          state: latestAddress.state || "",
+          pin: latestAddress.pin || "",
+          country: latestAddress.country || "India",
+        }
+      : null;
+
+    return jsonResponse({ found: orders.length > 0, orders, saved_details: savedDetails });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Unknown error" }, 500);
   }

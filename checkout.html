@@ -102,6 +102,26 @@
             <input type="text" id="c-state" placeholder="State" autocomplete="address-level1" />
           </div>
         </div>
+
+        <div class="payment-method-wrap">
+          <h2>Payment Method</h2>
+          <div class="payment-method-options" role="radiogroup" aria-label="Payment method">
+            <label class="payment-method-option">
+              <input type="radio" name="payment-method" value="online" checked />
+              <span>
+                <strong>Pay Online</strong>
+                <small>Razorpay cards, UPI, wallet or netbanking</small>
+              </span>
+            </label>
+            <label class="payment-method-option">
+              <input type="radio" name="payment-method" value="cod" />
+              <span>
+                <strong>Cash on Delivery</strong>
+                <small>Pay when your order reaches you</small>
+              </span>
+            </label>
+          </div>
+        </div>
       </div>
 
       <input type="hidden" id="c-address2" value="" />
@@ -112,7 +132,7 @@
       <button class="btn-primary btn-full" id="pay-btn" style="margin-top:0.5rem;padding:1rem;">
         Check Mobile First
       </button>
-      <p class="checkout-secure-note">Secured by Razorpay. Online payment only. Real OTP verification requires SMS provider setup.</p>
+      <p class="checkout-secure-note">Choose online payment or Cash on Delivery. Real OTP verification requires SMS provider setup.</p>
     </div>
 
     <!-- RIGHT: ORDER SUMMARY -->
@@ -124,7 +144,7 @@
         <span style="color:var(--green);">₹<span id="summary-total">0</span></span>
       </div>
       <div style="margin-top:1.25rem;padding:1rem;background:var(--green-pale);border-radius:var(--radius);font-size:0.82rem;color:var(--green);">
-        Pan-India delivery. Online payment only.
+        Pan-India delivery. Online payment or Cash on Delivery.
       </div>
     </div>
   </div>
@@ -140,7 +160,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=3"></script>
   <script src="js/cart.js?v=3"></script>
-  <script src="js/checkout.js?v=8"></script>
+  <script src="js/checkout.js?v=11"></script>
   <script src="js/main.js?v=4"></script>
 </body>
 </html>

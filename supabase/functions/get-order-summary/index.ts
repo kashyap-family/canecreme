@@ -118,6 +118,8 @@ Deno.serve(async (req) => {
     }
 
     const shippingAddress = order.shipping_address || null;
+    const isCodOrder = order.payment_status === "cod";
+    const deliveryCharge = Number(shippingAddress?.delivery_charge || 0);
 
     return jsonResponse({
       id: order.id,
@@ -130,8 +132,12 @@ Deno.serve(async (req) => {
       payment_status: order.payment_status,
       order_status: order.order_status,
       payment_id: order.payment_id || "",
-      payment_method: `Razorpay - ₹${Number(order.total_amount || 0).toFixed(2)}`,
-      shipping_method: "Standard (Prepaid)",
+      payment_method: isCodOrder
+        ? `Cash on Delivery - ₹${Number(order.total_amount || 0).toFixed(2)}`
+        : `Razorpay - ₹${Number(order.total_amount || 0).toFixed(2)}`,
+      shipping_method: isCodOrder
+        ? `Standard (Cash on Delivery, ₹${deliveryCharge.toFixed(2)} delivery)`
+        : "Standard (Prepaid, free delivery)",
       address: formatAddress(shippingAddress),
       shipping_address_lines: addressLines(shippingAddress, order.customer_name || "", order.customer_phone || ""),
       billing_address_lines: addressLines(shippingAddress, order.customer_name || "", order.customer_phone || ""),

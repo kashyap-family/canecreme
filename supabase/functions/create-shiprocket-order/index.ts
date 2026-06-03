@@ -50,6 +50,14 @@ const addDays = (date: Date, days: number) => {
 
 const formatDate = (date: Date) => date.toISOString().slice(0, 10);
 
+const getPickupLocation = () => {
+  const configured = (Deno.env.get("SHIPROCKET_PICKUP_LOCATION") || "").trim();
+  if (!configured || ["primary", "kshitiz"].includes(configured.toLowerCase())) {
+    return "Cane creme";
+  }
+  return configured;
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -82,8 +90,9 @@ Deno.serve(async (req) => {
     const orders = await orderRes.json() as Order[];
     const order = orders[0];
     if (!order) return jsonResponse({ error: "Order not found" }, 404);
-    if (order.payment_status !== "paid") {
-      return jsonResponse({ error: "Order is not paid yet" }, 409);
+    const isCodOrder = order.payment_status === "cod";
+    if (order.payment_status !== "paid" && !isCodOrder) {
+      return jsonResponse({ error: "Order is not ready for shipping yet" }, 409);
     }
 
     const itemsRes = await fetch(
@@ -107,6 +116,8 @@ Deno.serve(async (req) => {
     }
 
     const addr = order.shipping_address || {};
+    const deliveryCharge = Number(addr.delivery_charge || 0);
+    const productSubtotal = Math.max(0, Number(order.total_amount) - deliveryCharge);
     const orderItems = items.map((item, index) => ({
       name: item.products?.name || `CaneCreme Item ${index + 1}`,
       sku: `CC-${order.id.slice(0, 8)}-${index + 1}`,
@@ -118,9 +129,11 @@ Deno.serve(async (req) => {
     const payload = {
       order_id: order.id,
       order_date: formatDate(today),
-      pickup_location: Deno.env.get("SHIPROCKET_PICKUP_LOCATION") || "Primary",
+      pickup_location: getPickupLocation(),
       channel_id: "",
-      comment: `CaneCreme website order. Payment ID: ${order.payment_id || "N/A"}`,
+      comment: isCodOrder
+        ? "CaneCreme website COD order."
+        : `CaneCreme website order. Payment ID: ${order.payment_id || "N/A"}`,
       billing_customer_name: order.customer_name,
       billing_last_name: "",
       billing_address: addr.line1 || "",
@@ -133,12 +146,12 @@ Deno.serve(async (req) => {
       billing_phone: order.customer_phone,
       shipping_is_billing: true,
       order_items: orderItems,
-      payment_method: "Prepaid",
-      shipping_charges: 0,
+      payment_method: isCodOrder ? "COD" : "Prepaid",
+      shipping_charges: isCodOrder ? deliveryCharge : 0,
       giftwrap_charges: 0,
       transaction_charges: 0,
       total_discount: 0,
-      sub_total: Number(order.total_amount),
+      sub_total: productSubtotal,
       length: Number(Deno.env.get("SHIPROCKET_PACKAGE_LENGTH_CM") || 12),
       breadth: Number(Deno.env.get("SHIPROCKET_PACKAGE_BREADTH_CM") || 12),
       height: Number(Deno.env.get("SHIPROCKET_PACKAGE_HEIGHT_CM") || 8),

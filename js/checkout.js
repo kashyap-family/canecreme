@@ -1,4 +1,4 @@
-// ===== CHECKOUT with Razorpay =====
+// ===== CHECKOUT with Razorpay + COD =====
 
 let currentOrderId = null;
 let checkedMobile = '';
@@ -23,8 +23,14 @@ document.addEventListener('DOMContentLoaded', () => {
   if (pinInput) {
     pinInput.addEventListener('input', () => {
       pinInput.value = pinInput.value.replace(/\D/g, '').slice(0, 6);
+      renderOrderSummary();
     });
   }
+
+  ['c-city', 'c-state'].forEach(id => {
+    const field = document.getElementById(id);
+    if (field) field.addEventListener('input', renderOrderSummary);
+  });
 
   renderOrderSummary();
 
@@ -51,24 +57,33 @@ function renderCustomerHistory(history) {
   }
 
   panel.innerHTML = `
-    <h3>Past orders found</h3>
-    <div class="history-order-list">
-      ${orders.map(order => `
-        <div class="history-order">
-          <div>
-            <strong>Order ${order.short_id}</strong><br>
-            <span>${order.status || 'Order saved'}</span>
-          </div>
-          <div>
-            <strong>Rs. ${Number(order.total || 0).toFixed(2)}</strong><br>
-            <span>${order.pin ? `PIN ${order.pin}` : ''}</span>
-          </div>
-        </div>
-      `).join('')}
-    </div>
-    <p class="mobile-check-message">For privacy, address details are not shown until real OTP verification is connected.</p>
+    <h3>Saved details found</h3>
+    <p class="mobile-check-message">We filled your delivery details from your latest order. Please check them before placing this order.</p>
   `;
   panel.style.display = 'block';
+}
+
+function setFieldValue(id, value) {
+  const field = document.getElementById(id);
+  if (!field || value === undefined || value === null) return;
+  field.value = String(value);
+}
+
+function autofillSavedDetails(history) {
+  const details = history && history.saved_details;
+  if (!details) return false;
+
+  setFieldValue('c-name', details.name || '');
+  const email = details.email || '';
+  setFieldValue('c-email', email.includes('@canecreme.co') && email.startsWith('customer-') ? '' : email);
+  setFieldValue('c-address1', details.address1 || '');
+  setFieldValue('c-address2', details.address2 || '');
+  setFieldValue('c-pin', details.pin || '');
+  setFieldValue('c-city', details.city || '');
+  setFieldValue('c-state', details.state || '');
+  setFieldValue('c-country', details.country || 'India');
+
+  return Boolean(details.name || details.address1 || details.pin || details.city || details.state);
 }
 
 async function fetchCustomerHistory(phone) {
@@ -107,16 +122,20 @@ async function checkMobileHistory() {
   try {
     const history = await fetchCustomerHistory(phone);
     checkedMobile = phone;
-    renderCustomerHistory(history);
     document.getElementById('delivery-details-panel').style.display = 'block';
-    payBtn.textContent = 'Pay Securely ->';
-    setMobileMessage('Mobile number checked. Complete delivery details to pay.');
+    const filledFromHistory = autofillSavedDetails(history);
+    renderCustomerHistory(history);
+    renderOrderSummary();
+    payBtn.textContent = getCheckoutButtonText();
+    setMobileMessage(filledFromHistory
+      ? 'Mobile number checked. Saved delivery details filled.'
+      : 'Mobile number checked. Complete delivery details to continue.');
   } catch (err) {
     console.warn('Customer history lookup failed:', err);
     checkedMobile = phone;
     document.getElementById('customer-history').style.display = 'none';
     document.getElementById('delivery-details-panel').style.display = 'block';
-    payBtn.textContent = 'Pay Securely ->';
+    payBtn.textContent = getCheckoutButtonText();
     setMobileMessage('Could not load past orders right now. Continue with delivery details.');
   } finally {
     btn.disabled = false;
@@ -135,18 +154,28 @@ function renderOrderSummary() {
     return;
   }
 
+  const subtotal = getCartTotal();
+  const deliveryCharge = getDeliveryCharge();
+
   summaryItems.innerHTML = cart.map(item => `
     <div class="summary-item">
       <span class="summary-item-name">${item.name}</span>
       <span class="summary-item-qty">x ${item.quantity}</span>
       <span>Rs. ${(item.price * item.quantity).toFixed(2)}</span>
     </div>
-  `).join('');
+  `).join('') + `
+    <div class="summary-item summary-delivery-row">
+      <span class="summary-item-name">Delivery</span>
+      <span class="summary-item-qty">${getDeliveryLabel()}</span>
+      <span>${deliveryCharge > 0 ? `Rs. ${deliveryCharge.toFixed(2)}` : 'Free'}</span>
+    </div>
+  `;
 
-  if (summaryTotal) summaryTotal.textContent = getCartTotal().toFixed(2);
+  if (summaryTotal) summaryTotal.textContent = (subtotal + deliveryCharge).toFixed(2);
 }
 
 async function createOrderInDB(customerData) {
+  const paymentMethod = getSelectedPaymentMethod();
   const res = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout-order`, {
     method: 'POST',
     headers: {
@@ -156,7 +185,9 @@ async function createOrderInDB(customerData) {
     },
     body: JSON.stringify({
       customer: customerData,
-      items: cart
+      items: cart,
+      payment_method: paymentMethod,
+      delivery_charge: getDeliveryCharge()
     })
   });
 
@@ -167,6 +198,23 @@ async function createOrderInDB(customerData) {
 
   const data = await res.json();
   return data.order;
+}
+
+async function confirmCodOrder(orderId) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/confirm-cod-order`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ order_id: orderId })
+  });
+
+  if (!res.ok && res.status !== 207) {
+    const errText = await res.text();
+    throw new Error(`COD order error (${res.status}): ${errText}`);
+  }
 }
 
 async function saveOrderItems(orderId) {
@@ -194,6 +242,44 @@ async function updatePaymentStatus(orderId, paymentId) {
   }
 }
 
+function getSelectedPaymentMethod() {
+  const selected = document.querySelector('input[name="payment-method"]:checked');
+  return selected ? selected.value : 'online';
+}
+
+function isNearDelhiAddress() {
+  const pin = (document.getElementById('c-pin')?.value || '').trim();
+  const city = (document.getElementById('c-city')?.value || '').trim().toLowerCase();
+  const state = (document.getElementById('c-state')?.value || '').trim().toLowerCase();
+  const ncrCities = ['delhi', 'new delhi', 'noida', 'greater noida', 'gurgaon', 'gurugram', 'ghaziabad', 'faridabad'];
+
+  if (state.includes('delhi') || ncrCities.some(name => city.includes(name))) return true;
+  return /^(110|121|122|201)/.test(pin);
+}
+
+function getDeliveryCharge() {
+  if (getSelectedPaymentMethod() !== 'cod') return 0;
+  return isNearDelhiAddress() ? 50 : 80;
+}
+
+function getDeliveryLabel() {
+  if (getSelectedPaymentMethod() !== 'cod') return 'Prepaid';
+  return isNearDelhiAddress() ? 'COD Delhi/NCR' : 'COD Pan India';
+}
+
+function getCheckoutButtonText() {
+  if (!checkedMobile) return 'Check Mobile First';
+  return getSelectedPaymentMethod() === 'cod' ? 'Place COD Order' : 'Pay Securely ->';
+}
+
+document.addEventListener('change', (event) => {
+  if (event.target && event.target.name === 'payment-method') {
+    const payBtn = document.getElementById('pay-btn');
+    if (payBtn) payBtn.textContent = getCheckoutButtonText();
+    renderOrderSummary();
+  }
+});
+
 document.getElementById('pay-btn').addEventListener('click', async () => {
   const btn = document.getElementById('pay-btn');
   const errorEl = document.getElementById('checkout-error');
@@ -209,9 +295,10 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
   const country = document.getElementById('c-country').value.trim();
   const address2 = document.getElementById('c-address2').value.trim();
   const email = emailInput || `customer-${phone}@canecreme.co`;
+  const paymentMethod = getSelectedPaymentMethod();
 
   if (phone !== checkedMobile) {
-    errorEl.textContent = 'Please check your mobile number before payment.';
+    errorEl.textContent = 'Please check your mobile number before continuing.';
     errorEl.style.display = 'block';
     return;
   }
@@ -246,7 +333,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     return;
   }
 
-  const total = getCartTotal();
+  const total = getCartTotal() + getDeliveryCharge();
   if (total < 1) {
     errorEl.textContent = 'Order total must be at least Rs. 1.';
     errorEl.style.display = 'block';
@@ -262,11 +349,27 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     await saveOrderItems(currentOrderId);
   } catch (dbErr) {
     console.error('Order save failed:', dbErr);
-    errorEl.textContent = 'Could not save your order before payment. Please try again or contact support.';
+    errorEl.textContent = 'Could not save your order. Please try again or contact support.';
     errorEl.style.display = 'block';
-    btn.textContent = 'Pay Securely ->';
+    btn.textContent = getCheckoutButtonText();
     btn.disabled = false;
     return;
+  }
+
+  if (paymentMethod === 'cod') {
+    try {
+      await confirmCodOrder(currentOrderId);
+      localStorage.removeItem('canecreme_cart');
+      window.location.href = `order-placed.html?order=${encodeURIComponent(currentOrderId)}`;
+      return;
+    } catch (codErr) {
+      console.error('COD order confirmation failed:', codErr);
+      errorEl.textContent = 'Could not place your COD order. Please try again or contact support.';
+      errorEl.style.display = 'block';
+      btn.textContent = getCheckoutButtonText();
+      btn.disabled = false;
+      return;
+    }
   }
 
   try {
@@ -282,6 +385,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
         customer_email: emailInput || '',
         customer_phone: phone,
         shipping_pin: pin,
+        delivery_charge: String(getDeliveryCharge()),
         support_phone: typeof STORE_PHONE !== 'undefined' ? STORE_PHONE : '9891239312'
       },
       prefill: {

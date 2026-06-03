@@ -18,6 +18,18 @@ type CheckoutBody = {
     country: string;
   };
   items: CheckoutItem[];
+  payment_method?: "online" | "cod";
+  delivery_charge?: number;
+};
+
+const isNearDelhiAddress = (customer: CheckoutBody["customer"]) => {
+  const pin = String(customer.pin || "").trim();
+  const city = String(customer.city || "").trim().toLowerCase();
+  const state = String(customer.state || "").trim().toLowerCase();
+  const ncrCities = ["delhi", "new delhi", "noida", "greater noida", "gurgaon", "gurugram", "ghaziabad", "faridabad"];
+
+  if (state.includes("delhi") || ncrCities.some((name) => city.includes(name))) return true;
+  return /^(110|121|122|201)/.test(pin);
 };
 
 const corsHeaders = {
@@ -57,10 +69,16 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Cart is empty" }, 400);
     }
 
-    const total = items.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
-    if (!Number.isFinite(total) || total < 1) {
+    const subtotal = items.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
+    if (!Number.isFinite(subtotal) || subtotal < 1) {
       return jsonResponse({ error: "Invalid order total" }, 400);
     }
+    const paymentMethod = body.payment_method === "cod" ? "cod" : "online";
+    const deliveryZone = isNearDelhiAddress(customer) ? "delhi_ncr" : "pan_india";
+    const deliveryCharge = paymentMethod === "cod"
+      ? deliveryZone === "delhi_ncr" ? 50 : 80
+      : 0;
+    const total = subtotal + deliveryCharge;
 
     const supabaseUrl = requiredEnv("SUPABASE_URL");
     const serviceRoleKey = requiredEnv("SERVICE_ROLE_KEY");
@@ -85,6 +103,9 @@ Deno.serve(async (req) => {
           state: customer.state,
           pin: customer.pin,
           country: customer.country || "India",
+          payment_method: paymentMethod,
+          delivery_zone: deliveryZone,
+          delivery_charge: deliveryCharge,
         },
         total_amount: total,
         payment_status: "pending",

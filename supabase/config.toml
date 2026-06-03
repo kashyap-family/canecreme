@@ -3,10 +3,19 @@ project_id = "qfphvsyidbyhbyeyigrh"
 [functions.create-shiprocket-order]
 verify_jwt = false
 
+[functions.assign-shiprocket-courier]
+verify_jwt = false
+
 [functions.create-checkout-order]
 verify_jwt = false
 
+[functions.create-razorpay-order]
+verify_jwt = false
+
 [functions.confirm-paid-order]
+verify_jwt = false
+
+[functions.confirm-cod-order]
 verify_jwt = false
 
 [functions.get-order-summary]
