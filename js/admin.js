@@ -2,6 +2,55 @@
 
 let currentOrderId = null;
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function normalizeWhatsappPhone(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (digits.length === 10) return `91${digits}`;
+  if (digits.length === 12 && digits.startsWith('91')) return digits;
+  return digits;
+}
+
+function formatOrderItems(items) {
+  if (!items.length) return 'Products: Not available';
+  return items.map(item => {
+    const name = item.products ? item.products.name : 'Product';
+    return `${name} x ${item.quantity} - Rs. ${(item.price * item.quantity).toFixed(2)}`;
+  }).join('\n');
+}
+
+function buildWhatsappUrl(order, items) {
+  const addr = order.shipping_address || {};
+  const phone = normalizeWhatsappPhone(order.customer_phone);
+  const addressText = [
+    addr.line1,
+    addr.line2,
+    [addr.city, addr.state, addr.pin].filter(Boolean).join(' '),
+    addr.country
+  ].filter(Boolean).join(', ');
+  const message = [
+    `Hi ${order.customer_name || ''},`,
+    '',
+    `Your CaneCreme order #${String(order.id).slice(0, 8).toUpperCase()} is confirmed.`,
+    '',
+    formatOrderItems(items),
+    '',
+    `Total: Rs. ${parseFloat(order.total_amount || 0).toFixed(2)}`,
+    `Payment: ${order.payment_status || 'pending'}`,
+    `Delivery address: ${addressText}`,
+    '',
+    'Thank you for ordering from CaneCreme.'
+  ].join('\n');
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+}
+
 async function callAdminOrders(action, extra = {}) {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-orders`, {
     method: 'POST',
@@ -262,6 +311,8 @@ async function openOrderModal(orderId) {
     return;
   }
   const addr = order.shipping_address;
+  const whatsappUrl = buildWhatsappUrl(order, items);
+  const phoneText = order.customer_phone || '';
 
   document.getElementById('order-status-select').value = order.order_status;
 
@@ -269,15 +320,16 @@ async function openOrderModal(orderId) {
     <div class="order-detail-grid">
       <div class="order-detail-section">
         <h4>Customer</h4>
-        <p>${order.customer_name}<br/>${order.customer_email}<br/>${order.customer_phone || ''}</p>
+        <p>${escapeHtml(order.customer_name)}<br/>${escapeHtml(order.customer_email)}<br/>${escapeHtml(phoneText)}</p>
+        ${phoneText ? `<a class="whatsapp-order-btn" href="${whatsappUrl}" target="_blank" rel="noopener">Open WhatsApp Order</a>` : ''}
       </div>
       <div class="order-detail-section">
         <h4>Shipping Address</h4>
-        <p>${addr.line1}${addr.line2 ? ', ' + addr.line2 : ''}<br/>${addr.city}, ${addr.state} ${addr.pin}<br/>${addr.country}</p>
+        <p>${escapeHtml(addr.line1)}${addr.line2 ? ', ' + escapeHtml(addr.line2) : ''}<br/>${escapeHtml(addr.city)}, ${escapeHtml(addr.state)} ${escapeHtml(addr.pin)}<br/>${escapeHtml(addr.country)}</p>
       </div>
       <div class="order-detail-section">
         <h4>Payment</h4>
-        <p>Status: ${order.payment_status}<br/>ID: ${order.payment_id || 'N/A'}</p>
+        <p>Status: ${escapeHtml(order.payment_status)}<br/>ID: ${escapeHtml(order.payment_id || 'N/A')}</p>
       </div>
       <div class="order-detail-section">
         <h4>Order Total</h4>
@@ -290,7 +342,7 @@ async function openOrderModal(orderId) {
       <tbody>
         ${items.map(item => `
           <tr>
-            <td>${item.products ? item.products.name : 'Product'}</td>
+            <td>${escapeHtml(item.products ? item.products.name : 'Product')}</td>
             <td>${item.quantity}</td>
             <td>₹${parseFloat(item.price).toFixed(2)}</td>
             <td>₹${(item.price * item.quantity).toFixed(2)}</td>

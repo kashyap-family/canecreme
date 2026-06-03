@@ -229,6 +229,22 @@
 
 .order-detail-section p { font-size: 0.9rem; line-height: 1.7; }
 
+.whatsapp-order-btn {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 6px;
+  background: #25D366;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.whatsapp-order-btn:hover {
+  background: #1fb85a;
+}
+
 .order-items-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
 .order-items-table th, .order-items-table td {
   padding: 0.6rem 0.75rem;
