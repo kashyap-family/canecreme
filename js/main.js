@@ -79,25 +79,63 @@
 // Sticky nav border on scroll
 const nav = document.getElementById('nav');
 if (nav) {
-  window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 10);
-  }, { passive: true });
+  const updateNavState = () => {
+    nav.classList.toggle('scrolled', window.scrollY > 12);
+  };
+  updateNavState();
+  window.addEventListener('scroll', updateNavState, { passive: true });
 }
 
 // Hamburger menu
 const hamburger = document.getElementById('hamburger');
 const navLinks  = document.getElementById('nav-links');
 if (hamburger && navLinks) {
+  hamburger.setAttribute('aria-expanded', 'false');
+
+  function closeMobileNav() {
+    hamburger.classList.remove('open');
+    navLinks.classList.remove('open');
+    hamburger.setAttribute('aria-expanded', 'false');
+  }
+
   hamburger.addEventListener('click', () => {
-    hamburger.classList.toggle('open');
-    navLinks.classList.toggle('open');
+    const isOpening = !navLinks.classList.contains('open');
+    hamburger.classList.toggle('open', isOpening);
+    navLinks.classList.toggle('open', isOpening);
+    hamburger.setAttribute('aria-expanded', String(isOpening));
   });
+
+  navLinks.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      if (!link.closest('.nav-dropdown')) closeMobileNav();
+    });
+  });
+
   // Close on outside click
   document.addEventListener('click', (e) => {
     if (!nav.contains(e.target)) {
-      hamburger.classList.remove('open');
-      navLinks.classList.remove('open');
+      closeMobileNav();
     }
+  });
+}
+
+// Subtle hero product parallax for premium depth on desktop.
+const hero = document.querySelector('.hero');
+const heroVisual = document.querySelector('.hero-visual');
+const allowHeroMotion = window.matchMedia('(prefers-reduced-motion: no-preference)');
+const isDesktopPointer = window.matchMedia('(min-width: 769px) and (pointer: fine)');
+if (hero && heroVisual && allowHeroMotion.matches && isDesktopPointer.matches) {
+  hero.addEventListener('mousemove', (event) => {
+    const bounds = hero.getBoundingClientRect();
+    const x = ((event.clientX - bounds.left) / bounds.width - 0.5) * 14;
+    const y = ((event.clientY - bounds.top) / bounds.height - 0.5) * 10;
+    heroVisual.style.setProperty('--hero-parallax-x', `${x.toFixed(2)}px`);
+    heroVisual.style.setProperty('--hero-parallax-y', `${y.toFixed(2)}px`);
+  }, { passive: true });
+
+  hero.addEventListener('mouseleave', () => {
+    heroVisual.style.setProperty('--hero-parallax-x', '0px');
+    heroVisual.style.setProperty('--hero-parallax-y', '0px');
   });
 }
 
