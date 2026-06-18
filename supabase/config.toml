@@ -1,11 +1,5 @@
 project_id = "qfphvsyidbyhbyeyigrh"
 
-[functions.create-shiprocket-order]
-verify_jwt = false
-
-[functions.assign-shiprocket-courier]
-verify_jwt = false
-
 [functions.create-checkout-order]
 verify_jwt = false
 
@@ -22,9 +16,6 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.get-customer-history]
-verify_jwt = false
-
-[functions.estimate-delivery]
 verify_jwt = false
 
 [functions.admin-orders]

@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 56 post-push handoff for premium hero/nav deploy (2026-06-03)
+> Last updated: Session 57 local Shiprocket removal (2026-06-18)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -62,22 +62,13 @@ Never use `git add .` here without checking `git status --short` first. This rep
 
 ✅ **Razorpay Key ID is now Live Mode.** Do not store or ask for Razorpay Key Secret in this static repo/chat. The next step is for the owner to add `RAZORPAY_KEY_SECRET` inside Supabase Edge Function Secrets, not in Git and not in chat.
 
-### Supabase / Shiprocket Secrets
+### Supabase Secrets
 - Supabase project ref: `qfphvsyidbyhbyeyigrh`
 - Edge Function secrets were entered by user in Supabase dashboard, not committed:
-  - `SHIPROCKET_EMAIL`
-  - `SHIPROCKET_PASSWORD`
-  - `SHIPROCKET_PICKUP_LOCATION` = `Kshitiz`
-  - `SHIPROCKET_PICKUP_PINCODE` / `SHIPROCKET_PICKUP_POSTCODE` / `SHIPROCKET_PICKUP_PIN` — optional for delivery estimate function. If not configured, `estimate-delivery` fetches Shiprocket pickup locations and uses pickup location `Kshitiz`.
-  - `SHIPROCKET_PACKAGE_LENGTH_CM`
-  - `SHIPROCKET_PACKAGE_BREADTH_CM`
-  - `SHIPROCKET_PACKAGE_HEIGHT_CM`
-  - `SHIPROCKET_PACKAGE_WEIGHT_KG`
   - `SERVICE_ROLE_KEY`
 - Missing as of 2026-06-02 handoff: `RAZORPAY_KEY_SECRET`. Test call to deployed `create-razorpay-order` returned `{"error":"Missing RAZORPAY_KEY_SECRET"}`. Do not push checkout frontend changes that depend on `create-razorpay-order` until this secret is added and a test returns a `razorpay_order_id`.
 - Supabase rejects custom secret names beginning with `SUPABASE_`; use `SERVICE_ROLE_KEY`, not `SUPABASE_SERVICE_ROLE_KEY`.
-- Shiprocket API user: `canecremeorders@gmail.com`. Password is private and should remain only in Shiprocket/Supabase secrets.
-- Shiprocket pickup profile is verified. Pickup nickname: `Kshitiz`. Warehouse SPOC: Kshitiz Kashyap / 7428906045.
+- Shiprocket was removed from active website code locally on 2026-06-18. Do not re-add Shiprocket secrets, functions, branding, or API calls unless the owner explicitly asks.
 
 ---
 
@@ -271,11 +262,11 @@ Razorpay theme colour: `#BAD50D`
 
 ### checkout.js
 - Validates: name, email, phone, address1, city, state, pin
-- Flow: call Supabase Edge Function `create-checkout-order` → open Razorpay modal only after Supabase order is saved → on Razorpay success call Edge Function `confirm-paid-order` → `confirm-paid-order` marks order paid and triggers `create-shiprocket-order` → redirect to `success.html?order=ORDER_ID`
+- Flow: call Supabase Edge Function `create-checkout-order` → open Razorpay modal only after Supabase order is saved → on Razorpay success call Edge Function `confirm-paid-order` → `confirm-paid-order` marks order paid/processing → redirect to `order-placed.html?order=ORDER_ID` → auto redirect to `success.html?order=ORDER_ID`
 - Razorpay theme colour is `#BAD50D` (current brand lime green)
 - Razorpay Checkout now sends `notes` with order ID, customer name/email/phone, shipping PIN, and support phone `9891239312`, so these details can be seen against the payment in Razorpay Dashboard. Success redirect includes `?order=ORDER_ID` when available.
 - Checkout blocks invalid Indian PIN formats before payment using `/^[1-9][0-9]{5}$/`, so values like `000000`, short PINs, or letters cannot proceed.
-- Current cache-busted scripts: `js/cart.js?v=3`, `js/checkout.js?v=11`, `js/main.js?v=4`. `checkout.html` no longer loads `js/auth.js`.
+- Current cache-busted scripts: `js/cart.js?v=3`, `js/checkout.js?v=12`, `js/main.js?v=4`. `checkout.html` no longer loads `js/auth.js`.
 - Delivery charges: prepaid/online orders have free delivery. COD orders add delivery charge: ₹50 for Delhi/NCR (`Delhi`, `New Delhi`, `Noida`, `Greater Noida`, `Gurgaon/Gurugram`, `Ghaziabad`, `Faridabad`, or PIN prefixes `110`, `121`, `122`, `201`) and ₹80 for the rest of India. Checkout summary updates when payment method, PIN, city, or state changes.
 
 ### auth.js
@@ -295,7 +286,7 @@ Razorpay theme colour: `#BAD50D`
 - New post-payment transition screen added 2026-06-02.
 - Checkout redirects here after Razorpay success and `confirm-paid-order`.
 - Shows reference-style message: "Thank you", "Your order has been placed successfully.", green check icon, and "Please don't refresh. You'll be redirected to the order confirmation page."
-- Footer shows `T&C | Privacy Policy | short order ID` and `Powered By Shiprocket`.
+- Footer shows `T&C | Privacy Policy | short order ID` and `CaneCreme`.
 - Auto redirects to `success.html?order=ORDER_ID` after ~2.6 seconds.
 
 ### success.html
@@ -314,26 +305,22 @@ Razorpay theme colour: `#BAD50D`
 Functions in repo/project `qfphvsyidbyhbyeyigrh`:
 - `create-checkout-order` — creates `orders` and `order_items` before payment opens. Redeployed 2026-06-03 to add COD delivery charge into `total_amount` and save delivery metadata in `shipping_address`.
 - `create-razorpay-order` — deployed 2026-06-02. Creates a Razorpay Order object from a saved Supabase order using `RAZORPAY_KEY_SECRET`. Current deployed test failed only because `RAZORPAY_KEY_SECRET` is missing in Supabase secrets. Frontend is NOT wired to this live yet.
-- `confirm-paid-order` — marks order paid/processing after Razorpay success and triggers Shiprocket creation. Deployed version supports optional Razorpay signature verification when `razorpay_order_id` + `razorpay_signature` are provided; kept backward-compatible so the current live checkout is not broken while `RAZORPAY_KEY_SECRET` is missing.
-- `confirm-cod-order` — deployed 2026-06-03. Marks saved order as Cash on Delivery (`payment_status: "cod"`, `payment_id: "COD"`) and triggers Shiprocket creation.
-- `create-shiprocket-order` — creates prepaid or COD Shiprocket order from saved Supabase order. For COD orders, uses saved `delivery_charge` as Shiprocket `shipping_charges` and product subtotal as `sub_total`. Redeployed 2026-06-03 with pickup-location fallback: old invalid `Primary`/`Kshitiz` values resolve to active Shiprocket pickup `Cane creme`.
-- `assign-shiprocket-courier` — deployed 2026-06-03. Calls Shiprocket `/courier/assign/awb` with `shipment_id` and optional `courier_id`, using Shiprocket credentials from Supabase secrets. Trial call for shipment `1375221466` reached Shiprocket but AWB assignment was blocked by wallet balance: "Please recharge your ShipRocket wallet. The minimum required balance is Rs 100".
+- `confirm-paid-order` — marks order paid/processing after Razorpay success. Local repo version no longer calls Shiprocket as of 2026-06-18. Still supports optional Razorpay signature verification when `razorpay_order_id` + `razorpay_signature` are provided.
+- `confirm-cod-order` — marks saved order as Cash on Delivery (`payment_status: "cod"`, `payment_id: "COD"`). Local repo version no longer calls Shiprocket as of 2026-06-18.
 - `get-order-summary` — reads saved order for success page.
 - `get-customer-history` — deployed 2026-06-02, redeployed 2026-06-03. Returns mobile-based past order summaries plus latest saved delivery details for checkout autofill.
-- `estimate-delivery` — deployed 2026-06-02 to call Shiprocket courier serviceability and return estimated delivery date by PIN code. It uses pickup pincode secret if present; otherwise it fetches Shiprocket pickup locations and uses pickup location `Kshitiz`.
 - `admin-orders` — deployed 2026-06-02 so admin Orders tab can list/view/update orders using `SERVICE_ROLE_KEY` server-side instead of blocked browser REST reads.
 - `supabase/config.toml` has `verify_jwt = false` for configured functions so the static GitHub Pages site can call them.
+- Removed locally on 2026-06-18: `supabase/functions/create-shiprocket-order`, `supabase/functions/assign-shiprocket-courier`, `supabase/functions/estimate-delivery`, and their `supabase/config.toml` entries. Remote Supabase functions may still exist until explicitly deleted from the Supabase project.
 
 ### product.html — Pin Code Delivery Checker
-- UI: reference-inspired "Estimated Delivery" widget with black free-shipping strip, underline PIN input + Check button, checked state showing PIN + estimated delivery date, "Change pincode", and "Powered by Shiprocket".
+- UI: "Delivery Availability" widget with black free-shipping strip, underline PIN input + Check button, checked state showing PIN, availability, "Change pincode", and no third-party branding.
 - Logic in `checkPincode(deliveryType)` function (inline script in product.html):
   - `deliveryType` comes from `p.delivery_type` Supabase field (default: `'pan_india'` if null)
   - PIN must match Indian PIN format `/^[1-9][0-9]{5}$/`; invalid formats are rejected
-  - Calls Supabase Edge Function `/functions/v1/estimate-delivery`
-  - `estimate-delivery` logs into Shiprocket using private Supabase secrets, calls `GET https://apiv2.shiprocket.in/v1/external/courier/serviceability/` with pickup postcode, delivery postcode, prepaid `cod=0`, package weight/dimensions, and returns the best available courier estimate
-  - Function enforces `delhi_only` products by rejecting non-`110` PINs
+  - No external delivery estimate API is called as of 2026-06-18
+  - `delhi_only` products reject PINs outside Delhi/NCR prefixes `110`, `121`, `122`, and `201`
   - Enter key on input also triggers check
-- Live test on 2026-06-02 for PIN `831006` returned available via `Xpressbees Surface`, estimated date `07 Jun 2026`.
 - Badge on product page shows "Delhi Delivery Only" or "Pan-India Delivery" based on `delivery_type`
 - ⚠️ `delivery_type` column does NOT exist in Supabase yet — user needs to add it manually:
   - Table Editor → products → Add column → Name: `delivery_type` | Type: `text` | Default: `pan_india`
@@ -344,16 +331,15 @@ Functions in repo/project `qfphvsyidbyhbyeyigrh`:
 
 ## 10. Pending Tasks
 - [ ] **Add `delivery_type` column in Supabase** — column does not exist yet. User must: Table Editor → products → Add column → `delivery_type` (text, default: `pan_india`). Then run bulk PATCH to set all 6 products to `pan_india`. Code is ready and waiting.
-- [x] **Deploy Shiprocket PIN estimate function** — deployed to Supabase project `qfphvsyidbyhbyeyigrh` on 2026-06-02.
-- [x] **Shiprocket pickup pincode fallback** — `estimate-delivery` now fetches pickup locations from Shiprocket and uses pickup location `Kshitiz` if no pickup pincode secret exists. Live test succeeded for PIN `831006`.
+- [x] **Remove Shiprocket from active website code** — local changes on 2026-06-18 removed visible Shiprocket branding, product page Shiprocket serviceability calls, checkout confirmation Shiprocket creation calls, Shiprocket function config entries, and local Shiprocket function source files.
+- [x] **Deploy updated Supabase functions after Shiprocket removal** — `confirm-paid-order` and `confirm-cod-order` were redeployed to project `qfphvsyidbyhbyeyigrh` on 2026-06-18 so remote checkout confirmation no longer calls `create-shiprocket-order`. Optional cleanup remains: delete remote `create-shiprocket-order`, `assign-shiprocket-courier`, and `estimate-delivery` functions from Supabase if the platform supports deletion.
 - [x] **Push canecreme-banner.jpeg split section/asset** — `Assets/canecreme-banner.jpeg` exists locally and live path returned `200 OK` on 2026-05-30.
 - [ ] **Category filtering** — user wants products categorised. All 6 current products = "Healthy Bites". User was in process of adding `category` text column to Supabase `products` table. Once column added: update admin.html to include category field, update shop.html to show filter tabs.
 - [x] **Razorpay live mode** — Live Key ID `rzp_live_SvBwWNQkqzmora` added to `js/config.js` on 2026-05-29. User initially shared a Key Secret in chat, was told to regenerate it, then provided only the regenerated Live Key ID. Do NOT ask for or store the Key Secret in this repo/chat.
 - [ ] **Add `RAZORPAY_KEY_SECRET` in Supabase secrets** — owner must add this privately in Supabase Dashboard → Edge Functions/Secrets. Do not put it in `js/config.js`, repo files, or chat. After adding it, test `create-razorpay-order` with a pending Supabase order and expect a `razorpay_order_id`.
 - [ ] **Finish secure payment verification frontend** — backend groundwork exists locally/deployed: `create-razorpay-order` and enhanced `confirm-paid-order` signature verification. Checkout frontend changes were intentionally reverted/not pushed because `RAZORPAY_KEY_SECRET` is missing. Once the secret is added, wire `js/checkout.js` to call `create-razorpay-order`, pass `order_id` into Razorpay Checkout, then send `razorpay_payment_id`, `razorpay_order_id`, and `razorpay_signature` to `confirm-paid-order`.
 - [ ] **Order note in checkout** — order note is saved to `localStorage` key `canecreme_order_note` but checkout.js does NOT yet read/send it to Supabase. Add to orders table and wire up in checkout.js.
-- [x] **Deploy Shiprocket Edge Function** — `supabase/functions/create-shiprocket-order/index.ts` deployed to Supabase project `qfphvsyidbyhbyeyigrh` on 2026-05-29. Secrets saved by user in Supabase: `SHIPROCKET_EMAIL`, `SHIPROCKET_PASSWORD`, `SHIPROCKET_PICKUP_LOCATION`, package dimensions/weight, and `SERVICE_ROLE_KEY`.
-- [ ] **Verify a fresh real order end-to-end** — Only after `RAZORPAY_KEY_SECRET` is added and checkout frontend is wired to create a Razorpay Order object. Use hard refresh/incognito. Correct Razorpay notes should show a UUID order ID, Supabase should show paid/processing, and Shiprocket should show the shipment.
+- [ ] **Verify a fresh real order end-to-end** — Only after `RAZORPAY_KEY_SECRET` is added and checkout frontend is wired to create a Razorpay Order object. Use hard refresh/incognito. Correct Razorpay notes should show a UUID order ID, and Supabase should show paid/processing. Shipping/fulfilment is manual or through a future non-Shiprocket process.
 - [ ] **Delete fake/trial Supabase test orders** — fake order: `90f3f251-f964-4a67-b50a-4f1881e684db` named `Codex Test`, total `1.00`, status `pending/new`. Trial preview order: `29a3895b-de26-4037-a9f2-079c15029dee` named `Trial Preview Customer`, total `229`, status `pending/new`. Delete `order_items` first, then `orders`.
 - [ ] **Optional future auth** — Google login and phone OTP UI were removed from checkout on 2026-05-30 because they were not working. If auth is needed later, configure Supabase Google provider and/or Phone Auth/SMS provider first, then reintroduce UI.
 - [ ] **Policy pages** — draft pages exist, but owner should review final shipping fees, courier timelines, refund eligibility, GST/business details, and legal wording before launch.
@@ -548,3 +534,4 @@ How to add product images correctly:
 | Session 54 | 2026-06-03 | Replaced the homepage hero visual with the user-provided cover collage image. Copied `C:\Users\kritika kashyap\Downloads\WhatsApp Image 2026-06-03 at 17.06.42.jpeg` to `Assets/hero-cover-collage.jpeg`, updated `index.html` hero image source and alt text, removed the old extra CSS ingredient decoration nodes from the hero markup, and adjusted `css/style.css` hero visual sizing for the portrait cover (`min-height: 700px`, product frame `width: min(100%, 470px)`, `aspect-ratio: 2 / 3`, `object-fit: cover`). Verified the new asset loads from local server `http://127.0.0.1:3457/Assets/hero-cover-collage.jpeg` with HTTP 200 and 241512 bytes. Changes are LOCAL ONLY and not pushed yet. |
 | Session 55 | 2026-06-03 | User approved pushing the hero/navbar updates to the official website. Prepared exact-file staging for `index.html`, `css/style.css`, `js/main.js`, public HTML cache-bust updates, `Assets/hero-cover-collage.jpeg`, and `PROJECT-STATE.md`. Left local-only `.claude/`, `supabase/.temp/`, duplicate root platform assets, and unused `Assets/all-products-hero-transparent.png` out of the deployment. |
 | Session 56 | 2026-06-03 | Pushed official website update to GitHub `main` in commit `31c906c Update premium hero and mobile nav`. This deploy includes the premium homepage hero, mobile glass navbar, public `js/main.js?v=5` cache-bust updates, and `Assets/hero-cover-collage.jpeg`. GitHub Pages should publish to `www.canecreme.co` after its normal delay. |
+| Session 57 | 2026-06-18 | User asked to remove Shiprocket from the website. Local changes remove visible Shiprocket branding from `order-placed.html`, replace product-page Shiprocket delivery estimate with a simple local Delivery Availability PIN check in `product.html`, remove the checkout console warning wording from `js/checkout.js`, cache-bust checkout to `js/checkout.js?v=12`, remove Shiprocket creation calls from `supabase/functions/confirm-paid-order/index.ts` and `supabase/functions/confirm-cod-order/index.ts`, remove Shiprocket function entries from `supabase/config.toml`, delete local Shiprocket function source folders, and delete `SHIPROCKET-SETUP.md`. Deployed `confirm-paid-order` and `confirm-cod-order` to Supabase project `qfphvsyidbyhbyeyigrh` on 2026-06-18 so live backend order confirmation no longer calls Shiprocket. Remaining optional cleanup: delete remote Shiprocket functions/secrets from Supabase dashboard/CLI. |

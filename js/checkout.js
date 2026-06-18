@@ -399,7 +399,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
           try {
             await updatePaymentStatus(currentOrderId, response.razorpay_payment_id);
           } catch (confirmErr) {
-            console.warn('Payment confirmation/Shiprocket failed:', confirmErr.message);
+            console.warn('Payment confirmation failed:', confirmErr.message);
           }
         }
         localStorage.removeItem('canecreme_cart');

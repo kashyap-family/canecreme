@@ -252,19 +252,6 @@
     }
     .pincode-result.ok  { color: #16a34a; }
     .pincode-result.err { color: #dc2626; }
-    .pincode-zone {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 0.35rem;
-      font-size: 0.78rem;
-      color: var(--gray);
-      margin-top: 0.85rem;
-    }
-    .pincode-zone strong {
-      color: var(--dark);
-      font-weight: 700;
-    }
     .pincode-estimate {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -529,7 +516,7 @@
             <span>›</span>
           </div>
           <div class="pincode-card" id="pincode-card">
-            <div class="pincode-label">Estimated Delivery</div>
+            <div class="pincode-label">Delivery Availability</div>
             <div id="pincode-check-state">
               <div class="pincode-row">
                 <input class="pincode-input" id="pincode-input" type="text" inputmode="numeric" maxlength="6" pattern="[1-9][0-9]{5}" placeholder="Enter pincode" />
@@ -538,7 +525,6 @@
               <div class="pincode-result" id="pincode-result"></div>
               <div class="pincode-helper">${deliveryZoneNote}</div>
             </div>
-            <div class="pincode-zone">Powered by <strong>Shiprocket</strong></div>
           </div>
         </div>
         <div>
@@ -595,50 +581,27 @@
         return;
       }
 
-      btn.disabled = true;
-      btn.textContent = 'Checking';
-      resultEl.textContent = 'Checking Shiprocket serviceability...';
-
-      try {
-        const res = await fetch(`${SUPABASE_URL}/functions/v1/estimate-delivery`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          },
-          body: JSON.stringify({ pin, delivery_type: deliveryType })
-        });
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok || !data.available) {
-          throw new Error(data.error || data.message || 'Delivery estimate is not available for this PIN code.');
-        }
-
-        const stateEl = document.getElementById('pincode-check-state');
-        stateEl.innerHTML = `
-          <div class="pincode-estimate">
-            <div class="pincode-estimate-item">
-              <span class="pincode-estimate-icon">⌖</span>
-              <span>${escapeHTML(data.pin)}</span>
-            </div>
-            <div class="pincode-estimate-item">
-              <span class="pincode-estimate-icon">▣</span>
-              <span>${escapeHTML(data.estimated_date)}</span>
-            </div>
-          </div>
-          <button class="pincode-change" onclick="changePincode('${deliveryType}')">Change pincode</button>
-          <div class="pincode-result ok" style="display:block;">Estimated delivery in ${escapeHTML(data.estimated_days)} day${Number(data.estimated_days) === 1 ? '' : 's'} via ${escapeHTML(data.courier)}.</div>
-        `;
-      } catch (error) {
+      if (deliveryType === 'delhi_only' && !isDelhiNcrPin(pin)) {
         resultEl.classList.add('err');
-        resultEl.textContent = error.message || 'Unable to check delivery right now. Please try again.';
-      } finally {
-        if (document.getElementById('pincode-btn')) {
-          btn.disabled = false;
-          btn.textContent = 'Check';
-        }
+        resultEl.textContent = 'This product is currently available for Delhi/NCR delivery only.';
+        return;
       }
+
+      const stateEl = document.getElementById('pincode-check-state');
+      stateEl.innerHTML = `
+        <div class="pincode-estimate">
+          <div class="pincode-estimate-item">
+            <span class="pincode-estimate-icon">⌖</span>
+            <span>${escapeHTML(pin)}</span>
+          </div>
+          <div class="pincode-estimate-item">
+            <span class="pincode-estimate-icon">✓</span>
+            <span>${deliveryType === 'delhi_only' ? 'Delhi/NCR' : 'Available'}</span>
+          </div>
+        </div>
+        <button class="pincode-change" onclick="changePincode('${deliveryType}')">Change pincode</button>
+        <div class="pincode-result ok" style="display:block;">Delivery is available for this PIN code. Timelines are confirmed after order placement.</div>
+      `;
     }
 
     function changePincode(deliveryType) {
@@ -649,8 +612,13 @@
           <button class="pincode-btn" id="pincode-btn" onclick="checkPincode('${deliveryType}')">Check</button>
         </div>
         <div class="pincode-result" id="pincode-result"></div>
+        <div class="pincode-helper">${deliveryType === 'delhi_only' ? 'This product is currently delivered within Delhi/NCR only.' : 'This product is delivered across India.'}</div>
       `;
       document.getElementById('pincode-input').focus();
+    }
+
+    function isDelhiNcrPin(pin) {
+      return /^(110|121|122|201)/.test(pin);
     }
 
     document.addEventListener('keydown', function(e) {
