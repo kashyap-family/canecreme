@@ -3,6 +3,9 @@ project_id = "qfphvsyidbyhbyeyigrh"
 [functions.create-checkout-order]
 verify_jwt = false
 
+[functions.create-rapidshyp-order]
+verify_jwt = false
+
 [functions.create-razorpay-order]
 verify_jwt = false
 

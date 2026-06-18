@@ -136,8 +136,8 @@ Deno.serve(async (req) => {
         ? `Cash on Delivery - ₹${Number(order.total_amount || 0).toFixed(2)}`
         : `Razorpay - ₹${Number(order.total_amount || 0).toFixed(2)}`,
       shipping_method: isCodOrder
-        ? `Standard (Cash on Delivery, ₹${deliveryCharge.toFixed(2)} delivery)`
-        : "Standard (Prepaid, free delivery)",
+        ? `RapidShyp Standard (Cash on Delivery, ₹${deliveryCharge.toFixed(2)} delivery)`
+        : "RapidShyp Standard (Prepaid, free delivery)",
       address: formatAddress(shippingAddress),
       shipping_address_lines: addressLines(shippingAddress, order.customer_name || "", order.customer_phone || ""),
       billing_address_lines: addressLines(shippingAddress, order.customer_name || "", order.customer_phone || ""),

@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 57 local Shiprocket removal (2026-06-18)
+> Last updated: Session 58 local RapidShyp delivery partner integration (2026-06-18)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -66,9 +66,13 @@ Never use `git add .` here without checking `git status --short` first. This rep
 - Supabase project ref: `qfphvsyidbyhbyeyigrh`
 - Edge Function secrets were entered by user in Supabase dashboard, not committed:
   - `SERVICE_ROLE_KEY`
+  - `RAPIDSHYP_API_TOKEN` — required before RapidShyp shipment creation can succeed.
+  - `RAPIDSHYP_CREATE_ORDER_URL` — required before RapidShyp shipment creation can succeed. RapidShyp public API docs were not available through web search in Session 58, so use the endpoint from the owner’s RapidShyp dashboard/API docs.
+  - `RAPIDSHYP_PICKUP_LOCATION` — optional, defaults to `CaneCreme`.
+  - `RAPIDSHYP_PACKAGE_LENGTH_CM` / `RAPIDSHYP_PACKAGE_BREADTH_CM` / `RAPIDSHYP_PACKAGE_HEIGHT_CM` / `RAPIDSHYP_PACKAGE_WEIGHT_KG` — optional package defaults.
 - Missing as of 2026-06-02 handoff: `RAZORPAY_KEY_SECRET`. Test call to deployed `create-razorpay-order` returned `{"error":"Missing RAZORPAY_KEY_SECRET"}`. Do not push checkout frontend changes that depend on `create-razorpay-order` until this secret is added and a test returns a `razorpay_order_id`.
 - Supabase rejects custom secret names beginning with `SUPABASE_`; use `SERVICE_ROLE_KEY`, not `SUPABASE_SERVICE_ROLE_KEY`.
-- Shiprocket was removed from active website code locally on 2026-06-18. Do not re-add Shiprocket secrets, functions, branding, or API calls unless the owner explicitly asks.
+- Shiprocket was removed from active website code on 2026-06-18. RapidShyp is now the active delivery partner integration in local code as of Session 58.
 
 ---
 
@@ -262,7 +266,7 @@ Razorpay theme colour: `#BAD50D`
 
 ### checkout.js
 - Validates: name, email, phone, address1, city, state, pin
-- Flow: call Supabase Edge Function `create-checkout-order` → open Razorpay modal only after Supabase order is saved → on Razorpay success call Edge Function `confirm-paid-order` → `confirm-paid-order` marks order paid/processing → redirect to `order-placed.html?order=ORDER_ID` → auto redirect to `success.html?order=ORDER_ID`
+- Flow: call Supabase Edge Function `create-checkout-order` → open Razorpay modal only after Supabase order is saved → on Razorpay success call Edge Function `confirm-paid-order` → `confirm-paid-order` marks order paid/processing and calls `create-rapidshyp-order` → redirect to `order-placed.html?order=ORDER_ID` → auto redirect to `success.html?order=ORDER_ID`
 - Razorpay theme colour is `#BAD50D` (current brand lime green)
 - Razorpay Checkout now sends `notes` with order ID, customer name/email/phone, shipping PIN, and support phone `9891239312`, so these details can be seen against the payment in Razorpay Dashboard. Success redirect includes `?order=ORDER_ID` when available.
 - Checkout blocks invalid Indian PIN formats before payment using `/^[1-9][0-9]{5}$/`, so values like `000000`, short PINs, or letters cannot proceed.
@@ -286,7 +290,7 @@ Razorpay theme colour: `#BAD50D`
 - New post-payment transition screen added 2026-06-02.
 - Checkout redirects here after Razorpay success and `confirm-paid-order`.
 - Shows reference-style message: "Thank you", "Your order has been placed successfully.", green check icon, and "Please don't refresh. You'll be redirected to the order confirmation page."
-- Footer shows `T&C | Privacy Policy | short order ID` and `CaneCreme`.
+- Footer shows `T&C | Privacy Policy | short order ID` and `Delivery Partner: RapidShyp`.
 - Auto redirects to `success.html?order=ORDER_ID` after ~2.6 seconds.
 
 ### success.html
@@ -304,10 +308,11 @@ Razorpay theme colour: `#BAD50D`
 ### Supabase Edge Functions
 Functions in repo/project `qfphvsyidbyhbyeyigrh`:
 - `create-checkout-order` — creates `orders` and `order_items` before payment opens. Redeployed 2026-06-03 to add COD delivery charge into `total_amount` and save delivery metadata in `shipping_address`.
+- `create-rapidshyp-order` — added locally 2026-06-18. Reads saved Supabase order/items, builds a RapidShyp shipment payload, and posts it to `RAPIDSHYP_CREATE_ORDER_URL` with bearer token `RAPIDSHYP_API_TOKEN`. Requires owner-provided RapidShyp API endpoint/token secrets before shipment creation can succeed.
 - `create-razorpay-order` — deployed 2026-06-02. Creates a Razorpay Order object from a saved Supabase order using `RAZORPAY_KEY_SECRET`. Current deployed test failed only because `RAZORPAY_KEY_SECRET` is missing in Supabase secrets. Frontend is NOT wired to this live yet.
-- `confirm-paid-order` — marks order paid/processing after Razorpay success. Local repo version no longer calls Shiprocket as of 2026-06-18. Still supports optional Razorpay signature verification when `razorpay_order_id` + `razorpay_signature` are provided.
-- `confirm-cod-order` — marks saved order as Cash on Delivery (`payment_status: "cod"`, `payment_id: "COD"`). Local repo version no longer calls Shiprocket as of 2026-06-18.
-- `get-order-summary` — reads saved order for success page.
+- `confirm-paid-order` — marks order paid/processing after Razorpay success, then calls `create-rapidshyp-order`. RapidShyp failures return HTTP 207 so customer checkout is not blocked. Still supports optional Razorpay signature verification when `razorpay_order_id` + `razorpay_signature` are provided.
+- `confirm-cod-order` — marks saved order as Cash on Delivery (`payment_status: "cod"`, `payment_id: "COD"`), then calls `create-rapidshyp-order`. RapidShyp failures return HTTP 207 so customer checkout is not blocked.
+- `get-order-summary` — reads saved order for success page. Local repo version labels shipping method as RapidShyp Standard.
 - `get-customer-history` — deployed 2026-06-02, redeployed 2026-06-03. Returns mobile-based past order summaries plus latest saved delivery details for checkout autofill.
 - `admin-orders` — deployed 2026-06-02 so admin Orders tab can list/view/update orders using `SERVICE_ROLE_KEY` server-side instead of blocked browser REST reads.
 - `supabase/config.toml` has `verify_jwt = false` for configured functions so the static GitHub Pages site can call them.
@@ -333,13 +338,15 @@ Functions in repo/project `qfphvsyidbyhbyeyigrh`:
 - [ ] **Add `delivery_type` column in Supabase** — column does not exist yet. User must: Table Editor → products → Add column → `delivery_type` (text, default: `pan_india`). Then run bulk PATCH to set all 6 products to `pan_india`. Code is ready and waiting.
 - [x] **Remove Shiprocket from active website code** — local changes on 2026-06-18 removed visible Shiprocket branding, product page Shiprocket serviceability calls, checkout confirmation Shiprocket creation calls, Shiprocket function config entries, and local Shiprocket function source files.
 - [x] **Deploy updated Supabase functions after Shiprocket removal** — `confirm-paid-order` and `confirm-cod-order` were redeployed to project `qfphvsyidbyhbyeyigrh` on 2026-06-18 so remote checkout confirmation no longer calls `create-shiprocket-order`. Optional cleanup remains: delete remote `create-shiprocket-order`, `assign-shiprocket-courier`, and `estimate-delivery` functions from Supabase if the platform supports deletion.
+- [ ] **Configure RapidShyp Supabase secrets** — owner must add `RAPIDSHYP_API_TOKEN` and `RAPIDSHYP_CREATE_ORDER_URL` privately in Supabase secrets. Optional: package dimensions/weight and pickup location. Do not commit these values or paste private tokens in chat.
+- [x] **Deploy RapidShyp functions** — deployed `create-rapidshyp-order`, `confirm-paid-order`, `confirm-cod-order`, and `get-order-summary` to project `qfphvsyidbyhbyeyigrh` on 2026-06-18. Real shipment creation still requires RapidShyp secrets.
 - [x] **Push canecreme-banner.jpeg split section/asset** — `Assets/canecreme-banner.jpeg` exists locally and live path returned `200 OK` on 2026-05-30.
 - [ ] **Category filtering** — user wants products categorised. All 6 current products = "Healthy Bites". User was in process of adding `category` text column to Supabase `products` table. Once column added: update admin.html to include category field, update shop.html to show filter tabs.
 - [x] **Razorpay live mode** — Live Key ID `rzp_live_SvBwWNQkqzmora` added to `js/config.js` on 2026-05-29. User initially shared a Key Secret in chat, was told to regenerate it, then provided only the regenerated Live Key ID. Do NOT ask for or store the Key Secret in this repo/chat.
 - [ ] **Add `RAZORPAY_KEY_SECRET` in Supabase secrets** — owner must add this privately in Supabase Dashboard → Edge Functions/Secrets. Do not put it in `js/config.js`, repo files, or chat. After adding it, test `create-razorpay-order` with a pending Supabase order and expect a `razorpay_order_id`.
 - [ ] **Finish secure payment verification frontend** — backend groundwork exists locally/deployed: `create-razorpay-order` and enhanced `confirm-paid-order` signature verification. Checkout frontend changes were intentionally reverted/not pushed because `RAZORPAY_KEY_SECRET` is missing. Once the secret is added, wire `js/checkout.js` to call `create-razorpay-order`, pass `order_id` into Razorpay Checkout, then send `razorpay_payment_id`, `razorpay_order_id`, and `razorpay_signature` to `confirm-paid-order`.
 - [ ] **Order note in checkout** — order note is saved to `localStorage` key `canecreme_order_note` but checkout.js does NOT yet read/send it to Supabase. Add to orders table and wire up in checkout.js.
-- [ ] **Verify a fresh real order end-to-end** — Only after `RAZORPAY_KEY_SECRET` is added and checkout frontend is wired to create a Razorpay Order object. Use hard refresh/incognito. Correct Razorpay notes should show a UUID order ID, and Supabase should show paid/processing. Shipping/fulfilment is manual or through a future non-Shiprocket process.
+- [ ] **Verify a fresh real order end-to-end** — Only after RapidShyp secrets are added, and after `RAZORPAY_KEY_SECRET` is added if testing online payment. Use hard refresh/incognito. Correct Razorpay notes should show a UUID order ID, Supabase should show paid/processing, and RapidShyp should show the shipment.
 - [ ] **Delete fake/trial Supabase test orders** — fake order: `90f3f251-f964-4a67-b50a-4f1881e684db` named `Codex Test`, total `1.00`, status `pending/new`. Trial preview order: `29a3895b-de26-4037-a9f2-079c15029dee` named `Trial Preview Customer`, total `229`, status `pending/new`. Delete `order_items` first, then `orders`.
 - [ ] **Optional future auth** — Google login and phone OTP UI were removed from checkout on 2026-05-30 because they were not working. If auth is needed later, configure Supabase Google provider and/or Phone Auth/SMS provider first, then reintroduce UI.
 - [ ] **Policy pages** — draft pages exist, but owner should review final shipping fees, courier timelines, refund eligibility, GST/business details, and legal wording before launch.
@@ -535,3 +542,4 @@ How to add product images correctly:
 | Session 55 | 2026-06-03 | User approved pushing the hero/navbar updates to the official website. Prepared exact-file staging for `index.html`, `css/style.css`, `js/main.js`, public HTML cache-bust updates, `Assets/hero-cover-collage.jpeg`, and `PROJECT-STATE.md`. Left local-only `.claude/`, `supabase/.temp/`, duplicate root platform assets, and unused `Assets/all-products-hero-transparent.png` out of the deployment. |
 | Session 56 | 2026-06-03 | Pushed official website update to GitHub `main` in commit `31c906c Update premium hero and mobile nav`. This deploy includes the premium homepage hero, mobile glass navbar, public `js/main.js?v=5` cache-bust updates, and `Assets/hero-cover-collage.jpeg`. GitHub Pages should publish to `www.canecreme.co` after its normal delay. |
 | Session 57 | 2026-06-18 | User asked to remove Shiprocket from the website. Local changes remove visible Shiprocket branding from `order-placed.html`, replace product-page Shiprocket delivery estimate with a simple local Delivery Availability PIN check in `product.html`, remove the checkout console warning wording from `js/checkout.js`, cache-bust checkout to `js/checkout.js?v=12`, remove Shiprocket creation calls from `supabase/functions/confirm-paid-order/index.ts` and `supabase/functions/confirm-cod-order/index.ts`, remove Shiprocket function entries from `supabase/config.toml`, delete local Shiprocket function source folders, and delete `SHIPROCKET-SETUP.md`. Deployed `confirm-paid-order` and `confirm-cod-order` to Supabase project `qfphvsyidbyhbyeyigrh` on 2026-06-18 so live backend order confirmation no longer calls Shiprocket. Remaining optional cleanup: delete remote Shiprocket functions/secrets from Supabase dashboard/CLI. |
+| Session 58 | 2026-06-18 | User asked to add RapidShyp as delivery partner. Added local Supabase Edge Function `create-rapidshyp-order`, wired `confirm-paid-order` and `confirm-cod-order` to call it non-blockingly after order confirmation, added `create-rapidshyp-order` to `supabase/config.toml`, updated success summary shipping method to `RapidShyp Standard`, and changed `order-placed.html` footer to `Delivery Partner: RapidShyp`. Deployed `create-rapidshyp-order`, `confirm-paid-order`, `confirm-cod-order`, and `get-order-summary` to Supabase project `qfphvsyidbyhbyeyigrh` on 2026-06-18. Non-destructive live test with `{}` returned expected `order_id is required`, confirming function reachability. RapidShyp public API docs were not reachable through search, so function requires owner-provided Supabase secrets `RAPIDSHYP_API_TOKEN` and `RAPIDSHYP_CREATE_ORDER_URL`; optional secrets cover pickup location and package dimensions. |

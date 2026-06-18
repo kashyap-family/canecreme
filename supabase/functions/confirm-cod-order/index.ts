@@ -44,9 +44,31 @@ Deno.serve(async (req) => {
     });
     if (!codRes.ok) throw new Error(`COD status update failed: ${await codRes.text()}`);
 
+    const rapidshypRes = await fetch(`${supabaseUrl}/functions/v1/create-rapidshyp-order`, {
+      method: "POST",
+      headers: {
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ order_id }),
+    });
+
+    const rapidshypText = await rapidshypRes.text();
+    if (!rapidshypRes.ok) {
+      return jsonResponse({
+        ok: true,
+        order_cod: true,
+        rapidshyp_created: false,
+        rapidshyp_error: rapidshypText,
+      }, 207);
+    }
+
     return jsonResponse({
       ok: true,
       order_cod: true,
+      rapidshyp_created: true,
+      rapidshyp: rapidshypText ? JSON.parse(rapidshypText) : null,
     });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Unknown error" }, 500);
