@@ -211,11 +211,12 @@ window.onProductsLoaded = observeProductCards;
   if (!toast) return;
 
   const data = [
-    { name: 'Priya from Delhi',     product: 'just ordered Raw Cane Sugar Gelato!', icon: '🍦' },
-    { name: 'Rahul from Mumbai',    product: 'just ordered Raw Cane Sugar Syrup!',  icon: '🍯' },
-    { name: 'Anjali from Bengaluru',product: 'just ordered Jam Spread!',       icon: '🫙' },
-    { name: 'Vikram from Pune',     product: 'just ordered Raw Cane Sugar Gelato!', icon: '🍦' },
-    { name: 'Sneha from Hyderabad', product: 'just ordered Raw Cane Sugar Syrup!',  icon: '🍯' },
+    { name: 'Priya from Delhi',      product: 'just ordered Soya bites!', icon: '🌿' },
+    { name: 'Rahul from Mumbai',     product: 'just ordered Beet bites!', icon: '🌿' },
+    { name: 'Anjali from Bengaluru', product: 'just ordered Broccoli bites!', icon: '🌿' },
+    { name: 'Vikram from Pune',      product: 'just ordered Pure ghee Atta cookies!', icon: '🍪' },
+    { name: 'Sneha from Hyderabad',  product: 'just ordered Powerbite Multigrain cookies!', icon: '🍪' },
+    { name: 'Aditi from Delhi',      product: 'just ordered Chocochip oatmeal cookies!', icon: '🍪' },
   ];
 
   function showToast() {
