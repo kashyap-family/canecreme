@@ -91,6 +91,9 @@ const parseRapidShypResponse = (text: string) => {
   }
 };
 
+const optionalEnv = (name: string, fallback: string) =>
+  Deno.env.get(name)?.trim() || fallback;
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
@@ -147,7 +150,15 @@ Deno.serve(async (req) => {
     const payload = {
       orderId: order.id,
       orderDate: formatDate(today),
-      pickupAddressName,
+      pickupLocation: {
+        contactName: optionalEnv("RAPIDSHYP_PICKUP_CONTACT_NAME", "Kshitiz"),
+        pickupName: pickupAddressName,
+        pickupEmail: optionalEnv("RAPIDSHYP_PICKUP_EMAIL", "canecreme@gmail.com"),
+        pickupPhone: optionalEnv("RAPIDSHYP_PICKUP_PHONE", "7428906045"),
+        pickupAddress1: optionalEnv("RAPIDSHYP_PICKUP_ADDRESS1", "69/6A najafgarh area, rama road"),
+        pickupAddress2: optionalEnv("RAPIDSHYP_PICKUP_ADDRESS2", "moti nagar, west delhi"),
+        pinCode: optionalEnv("RAPIDSHYP_PICKUP_PIN", "110015"),
+      },
       storeName,
       billingIsShipping: true,
       shippingAddress: {
@@ -184,7 +195,6 @@ Deno.serve(async (req) => {
           brand: "CaneCreme",
           isFragile: false,
           isPersonalisable: false,
-          pickupAddressName,
         };
       }),
       paymentMethod: isCodOrder ? "COD" : "PREPAID",
