@@ -26,6 +26,32 @@ const requiredEnv = (name: string) => {
 const isValidStatus = (status: string) =>
   ["new", "processing", "shipped", "delivered", "cancelled"].includes(status);
 
+const getItemSnapshot = (order: { shipping_address?: { items?: unknown } } | null) => {
+  const snapshot = order?.shipping_address?.items;
+  if (!Array.isArray(snapshot)) return [];
+
+  return snapshot.map((item) => {
+    const row = item as {
+      product_id?: unknown;
+      name?: unknown;
+      quantity?: unknown;
+      price?: unknown;
+      subtotal?: unknown;
+    };
+    return {
+      product_id: row.product_id || null,
+      quantity: Number(row.quantity || 0),
+      price: Number(row.price || 0),
+      subtotal: Number(row.subtotal || 0),
+      products: {
+        name: String(row.name || "Product"),
+        price: Number(row.price || 0),
+      },
+      source: "order_snapshot",
+    };
+  }).filter((item) => item.quantity > 0 && item.price > 0);
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
@@ -62,7 +88,12 @@ Deno.serve(async (req) => {
       if (!orderRes.ok) throw new Error(`Order lookup failed: ${await orderRes.text()}`);
       if (!itemsRes.ok) throw new Error(`Items lookup failed: ${await itemsRes.text()}`);
       const orders = await orderRes.json();
-      return jsonResponse({ order: orders[0] || null, items: await itemsRes.json() });
+      const order = orders[0] || null;
+      const items = await itemsRes.json();
+      return jsonResponse({
+        order,
+        items: Array.isArray(items) && items.length > 0 ? items : getItemSnapshot(order),
+      });
     }
 
     if (action === "update_status") {

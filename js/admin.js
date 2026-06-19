@@ -26,6 +26,27 @@ function formatOrderItems(items) {
   }).join('\n');
 }
 
+function renderOrderItemRows(items) {
+  if (!items.length) {
+    return `
+      <tr>
+        <td colspan="4" style="padding:1rem;color:#6b6b6b;text-align:center;">
+          No item details were saved for this order.
+        </td>
+      </tr>
+    `;
+  }
+
+  return items.map(item => `
+    <tr>
+      <td>${escapeHtml(item.products ? item.products.name : 'Product')}</td>
+      <td>${item.quantity}</td>
+      <td>₹${parseFloat(item.price).toFixed(2)}</td>
+      <td>₹${(item.price * item.quantity).toFixed(2)}</td>
+    </tr>
+  `).join('');
+}
+
 function buildWhatsappUrl(order, items) {
   const addr = order.shipping_address || {};
   const phone = normalizeWhatsappPhone(order.customer_phone);
@@ -340,14 +361,7 @@ async function openOrderModal(orderId) {
     <table class="order-items-table">
       <thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr></thead>
       <tbody>
-        ${items.map(item => `
-          <tr>
-            <td>${escapeHtml(item.products ? item.products.name : 'Product')}</td>
-            <td>${item.quantity}</td>
-            <td>₹${parseFloat(item.price).toFixed(2)}</td>
-            <td>₹${(item.price * item.quantity).toFixed(2)}</td>
-          </tr>
-        `).join('')}
+        ${renderOrderItemRows(items)}
       </tbody>
     </table>
   `;

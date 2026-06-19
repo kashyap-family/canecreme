@@ -22,6 +22,15 @@ type CheckoutBody = {
   delivery_charge?: number;
 };
 
+const normalizeItems = (items: CheckoutItem[]) =>
+  items.map((item, index) => ({
+    product_id: item.id || null,
+    name: String(item.name || `CaneCreme Item ${index + 1}`),
+    quantity: Number(item.quantity || 0),
+    price: Number(item.price || 0),
+    subtotal: Number(item.price || 0) * Number(item.quantity || 0),
+  }));
+
 const isNearDelhiAddress = (customer: CheckoutBody["customer"]) => {
   const pin = String(customer.pin || "").trim();
   const city = String(customer.city || "").trim().toLowerCase();
@@ -79,6 +88,7 @@ Deno.serve(async (req) => {
       ? deliveryZone === "delhi_ncr" ? 50 : 80
       : 0;
     const total = subtotal + deliveryCharge;
+    const itemSnapshot = normalizeItems(items);
 
     const supabaseUrl = requiredEnv("SUPABASE_URL");
     const serviceRoleKey = requiredEnv("SERVICE_ROLE_KEY");
@@ -106,6 +116,7 @@ Deno.serve(async (req) => {
           payment_method: paymentMethod,
           delivery_zone: deliveryZone,
           delivery_charge: deliveryCharge,
+          items: itemSnapshot,
         },
         total_amount: total,
         payment_status: "pending",

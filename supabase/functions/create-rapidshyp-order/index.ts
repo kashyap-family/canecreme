@@ -48,13 +48,47 @@ const optionalNumberEnv = (name: string, fallback: number) => {
   return Number.isFinite(value) && value > 0 ? value : fallback;
 };
 
+const getPackageWeightGrams = () => {
+  const grams = Number(Deno.env.get("RAPIDSHYP_PACKAGE_WEIGHT_GM"));
+  if (Number.isFinite(grams) && grams > 0) return grams;
+
+  const kilograms = Number(Deno.env.get("RAPIDSHYP_PACKAGE_WEIGHT_KG"));
+  if (Number.isFinite(kilograms) && kilograms > 0) return Math.round(kilograms * 1000);
+
+  return 500;
+};
+
 const formatDate = (date: Date) => date.toISOString().slice(0, 10);
 
 const getRapidShypEndpoint = () => {
   const configured = Deno.env.get("RAPIDSHYP_CREATE_ORDER_URL")?.trim();
   if (configured) return configured;
 
-  throw new Error("Missing RAPIDSHYP_CREATE_ORDER_URL");
+  return "https://api.rapidshyp.com/rapidshyp/apis/v1/create_order";
+};
+
+const splitName = (name: string) => {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  const firstName = parts.shift() || "CaneCreme";
+  return {
+    firstName,
+    lastName: parts.join(" "),
+  };
+};
+
+const cleanSkuPart = (value: string) =>
+  String(value || "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48) || "ITEM";
+
+const parseRapidShypResponse = (text: string) => {
+  try {
+    return text ? JSON.parse(text) : null;
+  } catch {
+    return text;
+  }
 };
 
 Deno.serve(async (req) => {
@@ -100,76 +134,108 @@ Deno.serve(async (req) => {
 
     const addr = order.shipping_address || {};
     const deliveryCharge = Number(addr.delivery_charge || 0);
-    const productSubtotal = Math.max(0, Number(order.total_amount || 0) - deliveryCharge);
     const shortId = String(order.id).slice(0, 8).toUpperCase();
     const today = new Date();
+    const customerName = splitName(order.customer_name);
+    const packageLength = optionalNumberEnv("RAPIDSHYP_PACKAGE_LENGTH_CM", 12);
+    const packageBreadth = optionalNumberEnv("RAPIDSHYP_PACKAGE_BREADTH_CM", 12);
+    const packageHeight = optionalNumberEnv("RAPIDSHYP_PACKAGE_HEIGHT_CM", 8);
+    const packageWeightGrams = getPackageWeightGrams();
+    const pickupAddressName = Deno.env.get("RAPIDSHYP_PICKUP_LOCATION")?.trim() || "CaneCreme";
+    const storeName = Deno.env.get("RAPIDSHYP_STORE_NAME")?.trim() || "DEFAULT";
 
     const payload = {
-      order_id: order.id,
-      order_number: shortId,
-      order_date: formatDate(today),
-      pickup_location: Deno.env.get("RAPIDSHYP_PICKUP_LOCATION") || "CaneCreme",
-      payment_method: isCodOrder ? "COD" : "Prepaid",
-      cod_amount: isCodOrder ? Number(order.total_amount || 0) : 0,
-      shipping_charges: deliveryCharge,
-      sub_total: productSubtotal,
-      total_amount: Number(order.total_amount || 0),
-      customer: {
-        name: order.customer_name,
-        email: order.customer_email,
+      orderId: order.id,
+      orderDate: formatDate(today),
+      pickupAddressName,
+      storeName,
+      billingIsShipping: true,
+      shippingAddress: {
+        firstName: customerName.firstName,
+        lastName: customerName.lastName,
+        addressLine1: addr.line1 || "",
+        addressLine2: addr.line2 || "",
+        pinCode: addr.pin || "",
+        email: order.customer_email || "",
         phone: order.customer_phone,
       },
-      shipping_address: {
-        name: order.customer_name,
-        address1: addr.line1 || "",
-        address2: addr.line2 || "",
-        city: addr.city || "",
-        state: addr.state || "",
-        pincode: addr.pin || "",
-        country: addr.country || "India",
+      billingAddress: {
+        firstName: customerName.firstName,
+        lastName: customerName.lastName,
+        addressLine1: addr.line1 || "",
+        addressLine2: addr.line2 || "",
+        pinCode: addr.pin || "",
+        email: order.customer_email || "",
         phone: order.customer_phone,
-        email: order.customer_email,
       },
-      billing_address_same_as_shipping: true,
-      order_items: items.map((item, index) => ({
-        name: item.products?.name || `CaneCreme Item ${index + 1}`,
-        sku: `CC-${shortId}-${index + 1}`,
-        units: Number(item.quantity || 0),
-        selling_price: Number(item.price || 0),
-      })),
-      package: {
-        length_cm: optionalNumberEnv("RAPIDSHYP_PACKAGE_LENGTH_CM", 12),
-        breadth_cm: optionalNumberEnv("RAPIDSHYP_PACKAGE_BREADTH_CM", 12),
-        height_cm: optionalNumberEnv("RAPIDSHYP_PACKAGE_HEIGHT_CM", 8),
-        weight_kg: optionalNumberEnv("RAPIDSHYP_PACKAGE_WEIGHT_KG", 0.5),
+      orderItems: items.map((item, index) => {
+        const itemName = item.products?.name || `CaneCreme Item ${index + 1}`;
+        return {
+          itemName,
+          sku: `CC-${shortId}-${cleanSkuPart(itemName)}-${index + 1}`.slice(0, 200),
+          description: itemName,
+          units: Number(item.quantity || 0),
+          unitPrice: Number(item.price || 0),
+          tax: 0,
+          productLength: packageLength,
+          productBreadth: packageBreadth,
+          productHeight: packageHeight,
+          productWeight: packageWeightGrams,
+          brand: "CaneCreme",
+          isFragile: false,
+          isPersonalisable: false,
+          pickupAddressName,
+        };
+      }),
+      paymentMethod: isCodOrder ? "COD" : "PREPAID",
+      shippingCharges: deliveryCharge,
+      giftWrapCharges: 0,
+      transactionCharges: 0,
+      totalDiscount: 0,
+      codCharges: 0,
+      prepaidAmount: isCodOrder ? 0 : Number(order.total_amount || 0),
+      packageDetails: {
+        packageLength,
+        packageBreadth,
+        packageHeight,
+        packageWeight: packageWeightGrams,
       },
-      note: isCodOrder
-        ? "CaneCreme website COD order."
-        : `CaneCreme website prepaid order. Payment ID: ${order.payment_id || "N/A"}`,
     };
+
+    if (items.length === 0 || payload.orderItems.some((item) => item.units <= 0 || item.unitPrice <= 0)) {
+      return jsonResponse({ error: "Order has invalid or empty items" }, 409);
+    }
 
     const createRes = await fetch(rapidshypEndpoint, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${rapidshypToken}`,
+        "rapidshyp-token": rapidshypToken,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     });
 
     const createText = await createRes.text();
-    let createData: unknown = createText;
-    try {
-      createData = createText ? JSON.parse(createText) : null;
-    } catch {
-      createData = createText;
-    }
+    const createData = parseRapidShypResponse(createText);
 
     if (!createRes.ok) {
       return jsonResponse({ error: "RapidShyp order creation failed", details: createData }, 502);
     }
 
-    return jsonResponse({ ok: true, rapidshyp: createData });
+    const status = typeof createData === "object" && createData !== null && "status" in createData
+      ? String((createData as { status?: unknown }).status || "").toLowerCase()
+      : "";
+    if (status && status !== "success") {
+      return jsonResponse({ error: "RapidShyp rejected the order", details: createData }, 502);
+    }
+
+    return jsonResponse({
+      ok: true,
+      rapidshyp: createData,
+      rapidshyp_order_id: typeof createData === "object" && createData !== null
+        ? (createData as { order_id?: unknown }).order_id || null
+        : null,
+    });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Unknown error" }, 500);
   }
