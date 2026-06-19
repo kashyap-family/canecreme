@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin — CaneCreme</title>
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="stylesheet" href="css/admin.css?v=2" />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 </head>
 <body class="admin-body">
@@ -148,6 +148,8 @@
       </div>
       <div class="modal-body" id="order-detail-content"></div>
       <div class="modal-footer">
+        <div class="rapidshyp-result" id="rapidshyp-result" aria-live="polite"></div>
+        <button class="btn-rapidshyp" id="rapidshyp-push-btn" onclick="pushCurrentOrderToRapidShyp()">Push to RapidShyp</button>
         <label>Update Status: </label>
         <select id="order-status-select">
           <option value="new">New</option>
@@ -163,6 +165,6 @@
   </div>
 
   <script src="js/config.js"></script>
-  <script src="js/admin.js?v=6"></script>
+  <script src="js/admin.js?v=7"></script>
 </body>
 </html>

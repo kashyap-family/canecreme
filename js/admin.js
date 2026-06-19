@@ -94,6 +94,34 @@ async function callAdminOrders(action, extra = {}) {
   return data;
 }
 
+async function callRapidShypOrder(orderId) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/create-rapidshyp-order`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ order_id: orderId })
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const remarks = data.details?.remarks || data.details?.message || data.error;
+    throw new Error(remarks || 'RapidShyp order creation failed');
+  }
+
+  return data;
+}
+
+function setRapidShypResult(message, type = 'info') {
+  const resultEl = document.getElementById('rapidshyp-result');
+  if (!resultEl) return;
+
+  resultEl.textContent = message || '';
+  resultEl.className = `rapidshyp-result ${type ? `rapidshyp-result--${type}` : ''}`;
+}
+
 // ===== AUTH =====
 function adminLogin() {
   const pwd = document.getElementById('admin-password').value;
@@ -326,6 +354,7 @@ async function loadOrders() {
 
 async function openOrderModal(orderId) {
   currentOrderId = orderId;
+  setRapidShypResult('');
 
   const data = await callAdminOrders('detail', { order_id: orderId });
   const order = data.order;
@@ -381,4 +410,41 @@ async function updateOrderStatus() {
   await callAdminOrders('update_status', { order_id: currentOrderId, order_status: status });
   closeOrderModal();
   loadOrders();
+}
+
+async function pushCurrentOrderToRapidShyp() {
+  if (!currentOrderId) {
+    setRapidShypResult('Open an order first.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('rapidshyp-push-btn');
+  const originalText = btn ? btn.textContent : '';
+
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Pushing...';
+  }
+  setRapidShypResult('Sending order to RapidShyp...', 'info');
+
+  try {
+    const data = await callRapidShypOrder(currentOrderId);
+    const rapidshypId = data.rapidshyp_order_id || data.rapidshyp?.order_id || data.rapidshyp?.orderId;
+    setRapidShypResult(
+      rapidshypId ? `Pushed to RapidShyp. ID: ${rapidshypId}` : 'Pushed to RapidShyp successfully.',
+      'success'
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'RapidShyp push failed.';
+    const alreadyExists = /already exists/i.test(message);
+    setRapidShypResult(
+      alreadyExists ? 'Already pushed to RapidShyp. Search this order ID in RapidShyp.' : message,
+      alreadyExists ? 'success' : 'error'
+    );
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = originalText || 'Push to RapidShyp';
+    }
+  }
 }
