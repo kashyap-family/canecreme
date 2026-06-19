@@ -370,6 +370,10 @@ async function openOrderModal(orderId) {
   document.getElementById('order-status-select').value = order.order_status;
 
   document.getElementById('order-detail-content').innerHTML = `
+    <div class="order-id-panel">
+      <span>Order ID</span>
+      <code>${escapeHtml(order.id)}</code>
+    </div>
     <div class="order-detail-grid">
       <div class="order-detail-section">
         <h4>Customer</h4>
