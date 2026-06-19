@@ -52,6 +52,41 @@ const getItemSnapshot = (order: { shipping_address?: { items?: unknown } } | nul
   }).filter((item) => item.quantity > 0 && item.price > 0);
 };
 
+const getInferredItems = async (
+  supabaseUrl: string,
+  headers: Record<string, string>,
+  order: { total_amount?: unknown; shipping_address?: { delivery_charge?: unknown } } | null,
+) => {
+  if (!order) return [];
+
+  const total = Number(order.total_amount || 0);
+  const deliveryCharge = Number(order.shipping_address?.delivery_charge || 0);
+  const productSubtotal = Math.max(0, total - deliveryCharge);
+  if (!Number.isFinite(productSubtotal) || productSubtotal <= 0) return [];
+
+  const res = await fetch(
+    `${supabaseUrl}/rest/v1/products?select=id,name,price&price=eq.${encodeURIComponent(String(productSubtotal))}`,
+    { headers },
+  );
+  if (!res.ok) return [];
+
+  const products = await res.json() as Array<{ id?: string; name?: string; price?: number }>;
+  if (!Array.isArray(products) || products.length === 0) return [];
+
+  const productNames = products.map((product) => product.name).filter(Boolean).join(" / ");
+  return [{
+    product_id: products.length === 1 ? products[0].id || null : null,
+    quantity: 1,
+    price: productSubtotal,
+    subtotal: productSubtotal,
+    products: {
+      name: products.length === 1 ? productNames : `Possible: ${productNames}`,
+      price: productSubtotal,
+    },
+    source: "price_inference",
+  }];
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
@@ -90,9 +125,10 @@ Deno.serve(async (req) => {
       const orders = await orderRes.json();
       const order = orders[0] || null;
       const items = await itemsRes.json();
+      const savedItems = Array.isArray(items) && items.length > 0 ? items : getItemSnapshot(order);
       return jsonResponse({
         order,
-        items: Array.isArray(items) && items.length > 0 ? items : getItemSnapshot(order),
+        items: savedItems.length > 0 ? savedItems : await getInferredItems(supabaseUrl, headers, order),
       });
     }
 

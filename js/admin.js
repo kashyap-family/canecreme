@@ -39,7 +39,10 @@ function renderOrderItemRows(items) {
 
   return items.map(item => `
     <tr>
-      <td>${escapeHtml(item.products ? item.products.name : 'Product')}</td>
+      <td>
+        ${escapeHtml(item.products ? item.products.name : 'Product')}
+        ${item.source === 'price_inference' ? '<br><small style="color:#6b6b6b;">Estimated from order total</small>' : ''}
+      </td>
       <td>${item.quantity}</td>
       <td>₹${parseFloat(item.price).toFixed(2)}</td>
       <td>₹${(item.price * item.quantity).toFixed(2)}</td>
