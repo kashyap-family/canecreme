@@ -2563,8 +2563,7 @@ img { display: block; max-width: 100%; }
   height: 48px;
   width: auto;
   display: block;
-  /* Removes white background on light nav — logo blends cleanly */
-  mix-blend-mode: multiply;
+  color: #111111;
 }
 
 /* ===== FOOTER LOGO ===== */
