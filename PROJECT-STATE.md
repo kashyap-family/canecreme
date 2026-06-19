@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 61 RapidShyp trial order created (2026-06-19)
+> Last updated: Session 68 hero headline fit + admin RapidShyp workflow documented (2026-06-19)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -66,14 +66,14 @@ Never use `git add .` here without checking `git status --short` first. This rep
 - Supabase project ref: `qfphvsyidbyhbyeyigrh`
 - Edge Function secrets were entered by user in Supabase dashboard, not committed:
   - `SERVICE_ROLE_KEY`
-  - `RAPIDSHYP_API_TOKEN` — required before RapidShyp shipment creation can succeed. Generated in RapidShyp portal under Settings > Configure API.
+  - `RAPIDSHYP_API_TOKEN` — added by user in Supabase dashboard on 2026-06-19. Required for RapidShyp shipment/order creation. Generated in RapidShyp portal under Settings > Configure API.
   - `RAPIDSHYP_CREATE_ORDER_URL` — optional override. Current `create-rapidshyp-order` defaults to RapidShyp's documented v1 create-order endpoint `https://api.rapidshyp.com/rapidshyp/apis/v1/create_order`.
   - `RAPIDSHYP_PICKUP_LOCATION` — optional, defaults to `CaneCreme`.
   - `RAPIDSHYP_STORE_NAME` — optional, defaults to `DEFAULT`.
   - `RAPIDSHYP_PACKAGE_LENGTH_CM` / `RAPIDSHYP_PACKAGE_BREADTH_CM` / `RAPIDSHYP_PACKAGE_HEIGHT_CM` / `RAPIDSHYP_PACKAGE_WEIGHT_GM` — optional package defaults. Legacy `RAPIDSHYP_PACKAGE_WEIGHT_KG` is still supported and converted to grams.
 - Missing as of 2026-06-02 handoff: `RAZORPAY_KEY_SECRET`. Test call to deployed `create-razorpay-order` returned `{"error":"Missing RAZORPAY_KEY_SECRET"}`. Do not push checkout frontend changes that depend on `create-razorpay-order` until this secret is added and a test returns a `razorpay_order_id`.
 - Supabase rejects custom secret names beginning with `SUPABASE_`; use `SERVICE_ROLE_KEY`, not `SUPABASE_SERVICE_ROLE_KEY`.
-- Shiprocket was removed from active website code on 2026-06-18. RapidShyp is now the active delivery partner integration in local code as of Session 58.
+- Shiprocket was removed from active website code on 2026-06-18. RapidShyp is now the active delivery partner integration in live code. Trial pushes to RapidShyp succeeded/reached RapidShyp on 2026-06-19.
 
 ---
 
@@ -104,8 +104,10 @@ canecreme-main/
 │   ├── main.js         ← UI: popup, animations, social proof toast, nav, hamburger
 │   └── admin.js        ← Admin panel logic
 └── Assets/
-    ├── logo.png        ← Real CaneCreme logo (black rounded text on WHITE bg)
+    ├── logo.png        ← Original real CaneCreme logo (black rounded text on WHITE bg)
+    ├── logo-transparent.png ← Actual logo with white background removed; used in nav/footer/popup where possible
     ├── logo.svg        ← Old custom SVG — UNUSED
+    ├── hero-cover-collage.jpeg ← Current homepage hero product collage image
     ├── beet-bite-website1.jpg  ← Used: hero + referenced in split section
     ├── beet-bite-website2.jpg  ← Used: split section
     └── beet-bite-website3.jpg  ← Available, not used yet
@@ -202,7 +204,8 @@ Razorpay theme colour: `#BAD50D`
 
 ### Logo Rules
 - `Assets/logo.png` = black text on white background PNG
-- On light bg (nav): `mix-blend-mode: multiply` (white bg disappears)
+- `Assets/logo-transparent.png` = current nav logo asset generated from actual `logo.png` with white background removed. Use this for the live nav/logo display.
+- On light bg (nav): transparent PNG preferred; older `mix-blend-mode: multiply` fallback may remain in CSS.
 - On dark/coloured bg (footer, popup): `filter: invert(1)` + `mix-blend-mode: screen` (NOT brightness(0) invert — that makes everything white)
 
 ---
@@ -212,7 +215,7 @@ Razorpay theme colour: `#BAD50D`
 ### index.html (Homepage)
 1. Announcement bar (marquee — near-black bg `#111111` + orange text)
 2. Sticky nav (white bg, logo, Shop / About links + cart icon)
-3. **Hero** — FULL-BLEED `beet-bite-website1.jpg` as CSS background-image, dark overlay, centered content: Lobster tagline "No More Guilt Indulgence" (orange), eyebrow pill, Lexend bold title, lime CTA button
+3. **Hero** — warm lime/orange premium layout with text left and product collage right. Current headline: **"Wholesome Treats." / "Zero Compromise."** Tagline remains "No More Guilt Indulgence"; eyebrow: "Premium natural bites, cookies & gelato"; image: `Assets/hero-cover-collage.jpeg`; chips: No Refined Sugar / Natural Ingredients / Small Batch Crafted / Handmade in India. Desktop headline was reduced/widened in Session 68 so "Compromise." is fully visible.
 4. Lime marquee strip (`#BAD50D` bg, dark text, ✦ separators)
 5. **Product Categories** — lime `#BAD50D` section with 4 real product photo circles and names: Savoury (`Assets/savoury-category.jpeg`) · Treats (`Assets/treats-category.jpeg`) · Energize (`Assets/energize-category.webp`) · All Products (`Assets/all-products-category.jpeg`). Mobile displays a 2x2 grid.
 6. **Bestsellers** — 3 featured products loaded from Supabase (`id="featured-products"`)
@@ -223,14 +226,14 @@ Razorpay theme colour: `#BAD50D`
 11. **Zomato & Swiggy strip** — above footer, light bg, transparent HD PNG logos with no white badge background. ✅ LOCAL ONLY
 12. Footer (near-black `#111111` bg, 4-col: brand + Shop + Company + Help). Footer text: "Cane Creme goodness, crafted with love from India."
 13. Cart sidebar (slide-in from right) — now includes "You May Also Like" suggestions + "Add Order Note" textarea
-14. Entry popup (green top panel + logo in white pill + form bottom, orange submit button)
-15. Social proof toast (bottom-left, lime left border)
+14. Entry popup (green top panel + logo in white pill + form bottom, orange submit button). Made smaller in Session 62.
+15. Social proof toast (bottom-left, lime left border). Fake order product names now use active website product names: Soya bites, Beet bites, Broccoli bites, Pure ghee Atta cookies, Powerbite Multigrain cookies, Chocochip oatmeal cookies.
 
 ### shop.html — products grid, all loaded from Supabase (`id="all-products"`)
 ### about.html — brand story + values process strip + CTA
 ### checkout.html — shipping form + order summary + Razorpay
 ### success.html — order confirmed, shows order ID from URL param `?order=`
-### admin.html — password-protected: add/edit/delete products. Now includes **Delivery Zone** dropdown (Pan India / Delhi Only) per product. Orders detail popup has an **Open WhatsApp Order** button that opens a prefilled WhatsApp message with order ID, products, quantities, total, payment status, and address.
+### admin.html — password-protected: add/edit/delete products. Now includes **Delivery Zone** dropdown (Pan India / Delhi Only) per product. Orders detail popup shows full order ID at top, has an **Open WhatsApp Order** button, and has a **Push to RapidShyp** button that calls `create-rapidshyp-order` directly. The popup shows success, "Already pushed", or the RapidShyp error message.
 ### product.html — individual product detail page. URL: `product.html?id=PRODUCT_UUID`. Shows image gallery with thumbnails, quantity stepper, Add to Cart, Save badge, stock status, badges. Now includes **Pin Code Delivery Checker** (see section 9 below). Product cards on shop/homepage now link here on click (Add to Cart button uses `event.stopPropagation()`).
 
 ---
@@ -260,7 +263,7 @@ Razorpay theme colour: `#BAD50D`
 - Entry popup: shows after 1.8s delay, skips if `localStorage.getItem('cc_popup_done')` is set
 - Popup saves lead to Supabase `leads` table (silent fail if table missing)
 - Coupon code shown: `WELCOME10` (10% off — honour manually, not auto-applied)
-- Social proof toast: fires at 9s, then every 22s. 5 fake entries (Priya/Rahul/Anjali/Vikram/Sneha)
+- Social proof toast: fires at 9s, then every 22s. Fake entries use real active product names instead of generic items.
 - IntersectionObserver scroll fade: `.fade-section` and `.fade-up` classes
 - Hamburger menu: `#hamburger` toggles `#nav-links` open class
 - Shop dropdown supports hover/focus on desktop and tap-open on mobile through `.nav-dropdown.open`. Dropdown option clicks close mobile nav.
@@ -271,7 +274,7 @@ Razorpay theme colour: `#BAD50D`
 - Razorpay theme colour is `#BAD50D` (current brand lime green)
 - Razorpay Checkout now sends `notes` with order ID, customer name/email/phone, shipping PIN, and support phone `9891239312`, so these details can be seen against the payment in Razorpay Dashboard. Success redirect includes `?order=ORDER_ID` when available.
 - Checkout blocks invalid Indian PIN formats before payment using `/^[1-9][0-9]{5}$/`, so values like `000000`, short PINs, or letters cannot proceed.
-- Current cache-busted scripts: `js/cart.js?v=3`, `js/checkout.js?v=12`, `js/main.js?v=4`. `checkout.html` no longer loads `js/auth.js`.
+- Current cache-busted scripts/styles after 2026-06-19 homepage/admin work include `index.html` loading `css/style.css?v=11`; `admin.html` loading `css/admin.css?v=3` and `js/admin.js?v=8`. `checkout.html` no longer loads `js/auth.js`.
 - Delivery charges: prepaid/online orders have free delivery. COD orders add delivery charge: ₹50 for Delhi/NCR (`Delhi`, `New Delhi`, `Noida`, `Greater Noida`, `Gurgaon/Gurugram`, `Ghaziabad`, `Faridabad`, or PIN prefixes `110`, `121`, `122`, `201`) and ₹80 for the rest of India. Checkout summary updates when payment method, PIN, city, or state changes.
 
 ### auth.js
@@ -309,7 +312,7 @@ Razorpay theme colour: `#BAD50D`
 ### Supabase Edge Functions
 Functions in repo/project `qfphvsyidbyhbyeyigrh`:
 - `create-checkout-order` — creates `orders` and `order_items` before payment opens. Redeployed 2026-06-03 to add COD delivery charge into `total_amount` and save delivery metadata in `shipping_address`.
-- `create-rapidshyp-order` — added locally 2026-06-18, corrected/deployed 2026-06-19 against RapidShyp's public v1 docs. Reads saved Supabase order/items, builds a RapidShyp `create_order` payload using documented camelCase fields (`orderId`, `shippingAddress`, `orderItems`, `packageDetails`), posts to `https://api.rapidshyp.com/rapidshyp/apis/v1/create_order` by default, and authenticates with the documented `rapidshyp-token` header. Requires `RAPIDSHYP_API_TOKEN` before real shipment/order creation can succeed.
+- `create-rapidshyp-order` — added locally 2026-06-18, corrected/deployed 2026-06-19 against RapidShyp's public v1 docs. Reads saved Supabase order/items, builds a RapidShyp `create_order` payload using documented camelCase fields (`orderId`, `shippingAddress`, `orderItems`, `packageDetails`), posts to `https://api.rapidshyp.com/rapidshyp/apis/v1/create_order` by default, and authenticates with the documented `rapidshyp-token` header. `RAPIDSHYP_API_TOKEN` has been added in Supabase. Trial order `ed70f24d-7148-419c-b27c-3932a01af0cc` was pushed successfully; order `cb0df892-6b34-4df7-8cb3-2df0155c2b34` returned RapidShyp message "Order already exists with this orderId", meaning RapidShyp had already received it.
 - `create-razorpay-order` — deployed 2026-06-02. Creates a Razorpay Order object from a saved Supabase order using `RAZORPAY_KEY_SECRET`. Current deployed test failed only because `RAZORPAY_KEY_SECRET` is missing in Supabase secrets. Frontend is NOT wired to this live yet.
 - `confirm-paid-order` — marks order paid/processing after Razorpay success, then calls `create-rapidshyp-order`. RapidShyp failures return HTTP 207 so customer checkout is not blocked. Still supports optional Razorpay signature verification when `razorpay_order_id` + `razorpay_signature` are provided.
 - `confirm-cod-order` — marks saved order as Cash on Delivery (`payment_status: "cod"`, `payment_id: "COD"`), then calls `create-rapidshyp-order`. RapidShyp failures return HTTP 207 so customer checkout is not blocked.
@@ -339,15 +342,15 @@ Functions in repo/project `qfphvsyidbyhbyeyigrh`:
 - [ ] **Add `delivery_type` column in Supabase** — column does not exist yet. User must: Table Editor → products → Add column → `delivery_type` (text, default: `pan_india`). Then run bulk PATCH to set all 6 products to `pan_india`. Code is ready and waiting.
 - [x] **Remove Shiprocket from active website code** — local changes on 2026-06-18 removed visible Shiprocket branding, product page Shiprocket serviceability calls, checkout confirmation Shiprocket creation calls, Shiprocket function config entries, and local Shiprocket function source files.
 - [x] **Deploy updated Supabase functions after Shiprocket removal** — `confirm-paid-order` and `confirm-cod-order` were redeployed to project `qfphvsyidbyhbyeyigrh` on 2026-06-18 so remote checkout confirmation no longer calls `create-shiprocket-order`. Optional cleanup remains: delete remote `create-shiprocket-order`, `assign-shiprocket-courier`, and `estimate-delivery` functions from Supabase if the platform supports deletion.
-- [ ] **Configure RapidShyp Supabase secrets** — owner must add `RAPIDSHYP_API_TOKEN` and `RAPIDSHYP_CREATE_ORDER_URL` privately in Supabase secrets. Optional: package dimensions/weight and pickup location. Do not commit these values or paste private tokens in chat.
-- [x] **Deploy RapidShyp functions** — deployed `create-rapidshyp-order`, `confirm-paid-order`, `confirm-cod-order`, and `get-order-summary` to project `qfphvsyidbyhbyeyigrh` on 2026-06-18. Real shipment creation still requires RapidShyp secrets.
+- [x] **Configure RapidShyp Supabase secrets** — user added `RAPIDSHYP_API_TOKEN` in Supabase dashboard on 2026-06-19. Optional secrets remain package dimensions/weight, pickup override fields, `RAPIDSHYP_PICKUP_LOCATION`, and `RAPIDSHYP_STORE_NAME`. Do not commit token values or paste private tokens in chat.
+- [x] **Deploy RapidShyp functions** — deployed `create-rapidshyp-order`, `confirm-paid-order`, `confirm-cod-order`, and `get-order-summary` to project `qfphvsyidbyhbyeyigrh`. Real RapidShyp order creation was verified/reached RapidShyp on 2026-06-19.
 - [x] **Push canecreme-banner.jpeg split section/asset** — `Assets/canecreme-banner.jpeg` exists locally and live path returned `200 OK` on 2026-05-30.
 - [ ] **Category filtering** — user wants products categorised. All 6 current products = "Healthy Bites". User was in process of adding `category` text column to Supabase `products` table. Once column added: update admin.html to include category field, update shop.html to show filter tabs.
 - [x] **Razorpay live mode** — Live Key ID `rzp_live_SvBwWNQkqzmora` added to `js/config.js` on 2026-05-29. User initially shared a Key Secret in chat, was told to regenerate it, then provided only the regenerated Live Key ID. Do NOT ask for or store the Key Secret in this repo/chat.
 - [ ] **Add `RAZORPAY_KEY_SECRET` in Supabase secrets** — owner must add this privately in Supabase Dashboard → Edge Functions/Secrets. Do not put it in `js/config.js`, repo files, or chat. After adding it, test `create-razorpay-order` with a pending Supabase order and expect a `razorpay_order_id`.
 - [ ] **Finish secure payment verification frontend** — backend groundwork exists locally/deployed: `create-razorpay-order` and enhanced `confirm-paid-order` signature verification. Checkout frontend changes were intentionally reverted/not pushed because `RAZORPAY_KEY_SECRET` is missing. Once the secret is added, wire `js/checkout.js` to call `create-razorpay-order`, pass `order_id` into Razorpay Checkout, then send `razorpay_payment_id`, `razorpay_order_id`, and `razorpay_signature` to `confirm-paid-order`.
 - [ ] **Order note in checkout** — order note is saved to `localStorage` key `canecreme_order_note` but checkout.js does NOT yet read/send it to Supabase. Add to orders table and wire up in checkout.js.
-- [ ] **Verify a fresh real order end-to-end** — Only after RapidShyp secrets are added, and after `RAZORPAY_KEY_SECRET` is added if testing online payment. Use hard refresh/incognito. Correct Razorpay notes should show a UUID order ID, Supabase should show paid/processing, and RapidShyp should show the shipment.
+- [ ] **Verify a fresh real paid order end-to-end** — RapidShyp COD/manual push path is working. Online payment full secure flow still needs `RAZORPAY_KEY_SECRET`. Use hard refresh/incognito. Correct Razorpay notes should show a UUID order ID, Supabase should show paid/processing, and RapidShyp should show the shipment/order.
 - [ ] **Delete fake/trial Supabase test orders** — fake order: `90f3f251-f964-4a67-b50a-4f1881e684db` named `Codex Test`, total `1.00`, status `pending/new`. Trial preview order: `29a3895b-de26-4037-a9f2-079c15029dee` named `Trial Preview Customer`, total `229`, status `pending/new`. Delete `order_items` first, then `orders`.
 - [ ] **Optional future auth** — Google login and phone OTP UI were removed from checkout on 2026-05-30 because they were not working. If auth is needed later, configure Supabase Google provider and/or Phone Auth/SMS provider first, then reintroduce UI.
 - [ ] **Policy pages** — draft pages exist, but owner should review final shipping fees, courier timelines, refund eligibility, GST/business details, and legal wording before launch.
@@ -385,7 +388,9 @@ Functions in repo/project `qfphvsyidbyhbyeyigrh`:
   ```
 - **Delivery Zone** — `<select id="p-delivery-type">` with options `pan_india` / `delhi_only`. Added in Session 8. Reads/writes `delivery_type` field in Supabase. Defaults to `pan_india` on new product. ⚠️ Column must be added in Supabase first (see Pending Tasks).
 - **Product save fallback** — `js/admin.js?v=2` retries saving without `delivery_type` if Supabase rejects that field because the optional column is missing/not in schema cache. This lets price/stock/name edits work before the `delivery_type` column is added.
-- **Orders tab** — `js/admin.js?v=3` calls Edge Function `admin-orders` for list/detail/update status. This avoids RLS/public REST restrictions that made the admin Orders tab show "No orders yet" even when orders existed.
+- **Orders tab** — `js/admin.js?v=8` calls Edge Function `admin-orders` for list/detail/update status. This avoids RLS/public REST restrictions that made the admin Orders tab show "No orders yet" even when orders existed.
+- **Order detail popup** — now shows the full order ID at the top in an `order-id-panel`, displays item details from `order_items` or saved `shipping_address.items` snapshot, includes WhatsApp order message link, and includes a purple **Push to RapidShyp** button.
+- **Push to RapidShyp button** — calls Edge Function `create-rapidshyp-order` with `currentOrderId`. Button shows "Pushing..." while pending, then displays success, "Already pushed to RapidShyp. Search this order ID in RapidShyp.", or the exact RapidShyp error in `#rapidshyp-result`.
 
 ## 10C. Product Image Workflow (for next agent)
 How to add product images correctly:
@@ -425,21 +430,27 @@ How to add product images correctly:
 - Assets/logo/zomato-hd.png and Assets/logo/swiggy-hd.png — transparent HD platform logo cutouts created from user-provided WhatsApp image on 2026-05-29. Referenced by index.html, shop.html, and about.html. Local and live paths verified `200 OK` on 2026-05-30.
 - Duplicate root image files exist locally but are untracked and not referenced by the website: `Assets/zomato-hd.png`, `Assets/swiggy-hd.png`, `Assets/zomato.png`, `Assets/swiggy.png`. Do not commit them unless intentionally changing paths.
 
-## 10F. Current Git / Deployment State (handoff 2026-06-03)
-- Last pushed code commit on `main` before this handoff-state update: `31c906c Update premium hero and mobile nav`.
+## 10F. Current Git / Deployment State (handoff 2026-06-19)
+- Last pushed code commit on `main` before this project-state update: `477dcd2 Fit updated homepage headline`.
 - Recent pushed commits:
-  - `31c906c` Update premium hero and mobile nav
-  - `641a8b6` Add WhatsApp order link in admin
-  - `9284ec7` Connect COD checkout and Shiprocket flow
-  - `b08a29b` Keep delivery platform logos inline on mobile
-  - `107056f` Fix admin orders listing
+  - `477dcd2` Fit updated homepage headline
+  - `b37969f` Update homepage hero headline
+  - `e6f6253` Show full order ID in admin popup
+  - `67c076c` Add RapidShyp push button to admin orders
+  - `a6ef2c8` Show full hero image on mobile
+  - `48266ac` Use actual transparent logo in nav
+  - `56b20d9` Update proof toast product names
+  - `1ada8c7` Make entry popup smaller
+  - `c21ecfd` Show saved order item snapshots in admin
+  - `e33ee77` Save checkout item snapshots
+  - `a466c9a` Fix RapidShyp pickup payload
 - Live deploy is GitHub Pages from `main`; wait about 2 minutes after push.
 - Supabase Edge Functions deployed after/latest around this handoff:
   - `admin-orders` deployed and tested; admin Orders tab can list existing orders.
   - `create-razorpay-order` deployed 2026-06-02, but test returns missing `RAZORPAY_KEY_SECRET`.
   - `confirm-paid-order` redeployed 2026-06-02 with optional Razorpay signature verification and backward-compatible legacy behavior.
   - `confirm-cod-order`, `create-checkout-order`, `create-shiprocket-order`, `get-order-summary`, `get-customer-history`, and `assign-shiprocket-courier` deployed/redeployed on 2026-06-03.
-- Current live website checkout should load `js/checkout.js?v=11` after GitHub Pages cache clears. Admin should load `js/admin.js?v=4`.
+- Current live homepage should load `css/style.css?v=11` after GitHub Pages cache clears. Admin should load `css/admin.css?v=3` and `js/admin.js?v=8`.
 - Uncommitted local files as of this handoff:
   - Modified: `.claude/launch.json` (local preview config only; leave out unless requested)
   - Sessions 50-55 homepage hero redesign/refinement, mobile glass navbar, and new hero cover image were pushed to official website from `main` in commit `31c906c` on 2026-06-03.
@@ -472,7 +483,8 @@ How to add product images correctly:
 - Colour has been changed 7 times — always present numbered options and wait for user to pick
 - `logo.svg` in Assets/ is an old unused file — do not reference it
 - **Font change rule:** Fonts are Lexend + Lobster + DM Sans. Do NOT revert to Cormorant Garamond.
-- **Hero is full-bleed** — CSS `background-image` on `.hero`, NOT an `<img>` tag. The `.hero-overlay` div provides the dark tint.
+- **Hero is NOT the old full-bleed dark photo hero anymore** — current hero is a warm premium split layout with text left and `Assets/hero-cover-collage.jpeg` in a product frame on the right. Do not restore the old beet-bite full-bleed hero unless user explicitly requests it.
+- **Current hero headline:** `Wholesome Treats.` and `Zero Compromise.` Keep the desktop fit rules from Session 68 so "Compromise." is fully visible.
 - **⚠️ IMPORTANT — Preview before push rule:** User instructed on 2026-05-08: ALWAYS make changes locally first, let user preview by opening `canecreme-main/index.html` in their browser, then push to GitHub only after user says "looks good" or "push it".
 - **CTA Banner text** changed from "Nature's Sweetness" → **"Healthy Cravings"** (Session 8).
 - **Colour palette** changed from Earthy Organic → **Lime & Orange** (#BAD50D + #F7AD4E) in Session 8. This is the 8th palette — always present numbered options before changing again.
@@ -547,3 +559,10 @@ How to add product images correctly:
 | Session 59 | 2026-06-19 | User asked to connect CaneCreme website to RapidShyp delivery partner. Verified RapidShyp public docs at `docs.rapidshyp.com`: authentication uses `rapidshyp-token`; Forward B2C Create Order URL is `https://api.rapidshyp.com/rapidshyp/apis/v1/create_order`; payload uses camelCase fields and package weight in grams. Updated `supabase/functions/create-rapidshyp-order/index.ts` accordingly, kept `RAPIDSHYP_CREATE_ORDER_URL` only as an optional override, added `RAPIDSHYP_STORE_NAME` default `DEFAULT`, and retained legacy `RAPIDSHYP_PACKAGE_WEIGHT_KG` conversion. Deployed `create-rapidshyp-order` to Supabase project `qfphvsyidbyhbyeyigrh`; non-destructive live test with `{}` returned expected `{"error":"order_id is required"}`. Could not list Supabase secret names because `supabase secrets list` needs login/access token in this shell. |
 | Session 60 | 2026-06-19 | User reported admin order modal did not show product ordered for live order `152bcdb7-0588-44be-a1a6-4e8f99c29c6a`. Read-only `admin-orders` detail check confirmed `items: []`, so that older order has no saved `order_items` rows and cannot be identified exactly from DB data; total ₹349 with ₹50 COD delivery implies ₹299 product subtotal, which matches more than one product. Updated `create-checkout-order` to store a fallback `shipping_address.items` snapshot of cart items when creating each order, updated `admin-orders` to return that snapshot if `order_items` is empty, updated `js/admin.js` to show a clear "No item details were saved for this order" row for old missing-data orders, cache-busted `admin.html` to `js/admin.js?v=5`, and deployed `create-checkout-order` plus `admin-orders` to Supabase. |
 | Session 61 | 2026-06-19 | User asked to trigger RapidShyp for trial order `ed70f24d-7148-419c-b27c-3932a01af0cc`. First `confirm-cod-order` marked it COD/processing but RapidShyp rejected pickup data with `Either provide pickup address name on item level or order level`. Updated/deployed `create-rapidshyp-order` to send a full `pickupLocation` block using the CaneCreme pickup details from RapidShyp (`Cane creme`, Kshitiz, 7428906045, canecreme@gmail.com, 69/6A najafgarh area, rama road, moti nagar, west delhi, 110015) and removed separate `pickupAddressName` fields so RapidShyp uses the provided pickup creation/details object. Retried direct `create-rapidshyp-order`; RapidShyp returned `status: SUCCESS`, `remarks: order created successfully.`, `order_id: ed70f24d-7148-419c-b27c-3932a01af0cc`, `shipment: []`. |
+| Session 62 | 2026-06-19 | Made entry popup smaller and updated homepage cache-busting. |
+| Session 63 | 2026-06-19 | Updated bottom-left social proof/fake order toast to use active website product names: Soya bites, Beet bites, Broccoli bites, Pure ghee Atta cookies, Powerbite Multigrain cookies, and Chocochip oatmeal cookies. |
+| Session 64 | 2026-06-19 | Created `Assets/logo-transparent.png` from the actual CaneCreme logo and switched public nav logo references away from the old custom SVG so the real logo appears without a white background. |
+| Session 65 | 2026-06-19 | Fixed mobile hero product photo visibility by making the mobile product frame taller and using `object-fit: contain`; pushed homepage CSS cache-bust updates. |
+| Session 66 | 2026-06-19 | Added **Push to RapidShyp** button to admin order popup. Button calls `create-rapidshyp-order` and reports success/already-exists/errors in the popup. Direct push for order `cb0df892-6b34-4df7-8cb3-2df0155c2b34` returned RapidShyp message `Order already exists with this orderId`, confirming RapidShyp had already received it. |
+| Session 67 | 2026-06-19 | Added full order ID display at the top of admin order popup and bumped admin cache to `admin.js?v=8` / `admin.css?v=3`. |
+| Session 68 | 2026-06-19 | Updated homepage hero headline to `Wholesome Treats.` / `Zero Compromise.` and adjusted desktop headline sizing/width so `Compromise.` is fully visible; current homepage CSS cache is `css/style.css?v=11`. |
