@@ -44,6 +44,17 @@ Deno.serve(async (req) => {
     });
     if (!codRes.ok) throw new Error(`COD status update failed: ${await codRes.text()}`);
 
+    const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-order-email`, {
+      method: "POST",
+      headers: {
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ order_id, email_type: "order_confirmation" }),
+    });
+    const emailText = await emailRes.text();
+
     const rapidshypRes = await fetch(`${supabaseUrl}/functions/v1/create-rapidshyp-order`, {
       method: "POST",
       headers: {
@@ -59,6 +70,8 @@ Deno.serve(async (req) => {
       return jsonResponse({
         ok: true,
         order_cod: true,
+        email_sent: emailRes.ok,
+        email_error: emailRes.ok ? undefined : emailText,
         rapidshyp_created: false,
         rapidshyp_error: rapidshypText,
       }, 207);
@@ -67,6 +80,8 @@ Deno.serve(async (req) => {
     return jsonResponse({
       ok: true,
       order_cod: true,
+      email_sent: emailRes.ok,
+      email_error: emailRes.ok ? undefined : emailText,
       rapidshyp_created: true,
       rapidshyp: rapidshypText ? JSON.parse(rapidshypText) : null,
     });

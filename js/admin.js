@@ -1,6 +1,7 @@
 // ===== ADMIN PANEL =====
 
 let currentOrderId = null;
+let allOrders = [];
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -48,6 +49,103 @@ function renderOrderItemRows(items) {
       <td>₹${(item.price * item.quantity).toFixed(2)}</td>
     </tr>
   `).join('');
+}
+
+function formatMoney(value) {
+  return `₹${Number(value || 0).toLocaleString('en-IN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+}
+
+function getShortOrderId(order) {
+  return String(order.order_number || order.id || '').slice(0, 8).toUpperCase();
+}
+
+function getAddressText(order) {
+  const addr = order.shipping_address || {};
+  return [
+    addr.line1,
+    addr.line2,
+    [addr.city, addr.state, addr.pin].filter(Boolean).join(' '),
+    addr.country
+  ].filter(Boolean).join(', ');
+}
+
+function getOrderDate(order) {
+  const date = new Date(order.created_at);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function isWithinDateFilter(order, filterValue) {
+  if (filterValue === 'all') return true;
+  const created = new Date(order.created_at);
+  if (Number.isNaN(created.getTime())) return false;
+  const now = new Date();
+
+  if (filterValue === 'today') {
+    return created.toDateString() === now.toDateString();
+  }
+
+  const days = Number(filterValue);
+  if (!Number.isFinite(days)) return true;
+  const cutoff = new Date(now);
+  cutoff.setDate(now.getDate() - days);
+  return created >= cutoff;
+}
+
+function getOrderSearchText(order) {
+  return [
+    order.id,
+    order.order_number,
+    order.customer_name,
+    order.customer_email,
+    order.customer_phone,
+    order.payment_status,
+    order.order_status,
+    getAddressText(order)
+  ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function getFilteredOrders() {
+  const search = (document.getElementById('order-search')?.value || '').trim().toLowerCase();
+  const payment = document.getElementById('payment-filter')?.value || 'all';
+  const status = document.getElementById('status-filter')?.value || 'all';
+  const date = document.getElementById('date-filter')?.value || 'all';
+
+  return allOrders.filter(order => {
+    const matchesSearch = !search || getOrderSearchText(order).includes(search);
+    const matchesPayment = payment === 'all' || order.payment_status === payment;
+    const matchesStatus = status === 'all' || order.order_status === status;
+    const matchesDate = isWithinDateFilter(order, date);
+    return matchesSearch && matchesPayment && matchesStatus && matchesDate;
+  });
+}
+
+function updateOrderMetrics() {
+  const total = allOrders.length;
+  const pending = allOrders.filter(order => ['new', 'processing'].includes(order.order_status)).length;
+  const cod = allOrders.filter(order => order.payment_status === 'cod').length;
+  const paidRevenue = allOrders
+    .filter(order => order.payment_status === 'paid')
+    .reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
+
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  setText('metric-total-orders', String(total));
+  setText('metric-pending-orders', String(pending));
+  setText('metric-paid-revenue', formatMoney(paidRevenue));
+  setText('metric-cod-orders', String(cod));
 }
 
 function buildWhatsappUrl(order, items) {
@@ -114,12 +212,44 @@ async function callRapidShypOrder(orderId) {
   return data;
 }
 
+async function callOrderEmail(orderId) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/send-order-email`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      admin_password: ADMIN_PASSWORD,
+      order_id: orderId,
+      email_type: 'order_confirmation'
+    })
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const details = data.details?.message || data.details?.error || data.error;
+    throw new Error(details || 'Order email failed');
+  }
+
+  return data;
+}
+
 function setRapidShypResult(message, type = 'info') {
   const resultEl = document.getElementById('rapidshyp-result');
   if (!resultEl) return;
 
   resultEl.textContent = message || '';
   resultEl.className = `rapidshyp-result ${type ? `rapidshyp-result--${type}` : ''}`;
+}
+
+function setEmailResult(message, type = 'info') {
+  const resultEl = document.getElementById('email-result');
+  if (!resultEl) return;
+
+  resultEl.textContent = message || '';
+  resultEl.className = `email-result ${type ? `email-result--${type}` : ''}`;
 }
 
 // ===== AUTH =====
@@ -149,6 +279,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('admin-password').addEventListener('keydown', e => {
     if (e.key === 'Enter') adminLogin();
+  });
+
+  ['order-search', 'payment-filter', 'status-filter', 'date-filter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener(id === 'order-search' ? 'input' : 'change', renderOrders);
   });
 });
 
@@ -324,29 +460,50 @@ async function loadOrders() {
   const tbody = document.getElementById('orders-table-body');
   tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;">Loading...</td></tr>';
 
-  let orders = [];
   try {
     const data = await callAdminOrders('list');
-    orders = Array.isArray(data.orders) ? data.orders : [];
+    allOrders = Array.isArray(data.orders) ? data.orders : [];
   } catch (error) {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:#dc2626;">${error.message}</td></tr>`;
     return;
   }
 
-  if (orders.length === 0) {
+  updateOrderMetrics();
+  renderOrders();
+}
+
+function renderOrders() {
+  const tbody = document.getElementById('orders-table-body');
+  if (!tbody) return;
+
+  const orders = getFilteredOrders();
+
+  if (allOrders.length === 0) {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#6b6b6b;">No orders yet.</td></tr>';
+    return;
+  }
+
+  if (orders.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#6b6b6b;">No orders match these filters.</td></tr>';
     return;
   }
 
   tbody.innerHTML = orders.map(o => `
     <tr>
-      <td><code style="font-size:0.78rem;">${o.id.slice(0,8)}...</code></td>
-      <td>${o.customer_name}</td>
-      <td>${o.customer_email}</td>
-      <td>₹${parseFloat(o.total_amount).toFixed(2)}</td>
-      <td><span class="status-badge status-${o.payment_status}">${o.payment_status}</span></td>
-      <td><span class="status-badge status-${o.order_status}">${o.order_status}</span></td>
-      <td>${new Date(o.created_at).toLocaleDateString('en-IN')}</td>
+      <td>
+        <button class="order-id-button" type="button" onclick="openOrderModal('${o.id}')">
+          ${escapeHtml(getShortOrderId(o))}
+        </button>
+      </td>
+      <td>
+        <strong>${escapeHtml(o.customer_name || 'Customer')}</strong>
+        <small>${escapeHtml(o.customer_email || 'No email')}</small>
+      </td>
+      <td>${escapeHtml(o.customer_phone || 'N/A')}</td>
+      <td><strong>${formatMoney(o.total_amount)}</strong></td>
+      <td><span class="status-badge status-${escapeHtml(o.payment_status || 'pending')}">${escapeHtml(o.payment_status || 'pending')}</span></td>
+      <td><span class="status-badge status-${escapeHtml(o.order_status || 'new')}">${escapeHtml(o.order_status || 'new')}</span></td>
+      <td>${escapeHtml(getOrderDate(o))}</td>
       <td><button class="action-btn" onclick="openOrderModal('${o.id}')">View</button></td>
     </tr>
   `).join('');
@@ -355,6 +512,7 @@ async function loadOrders() {
 async function openOrderModal(orderId) {
   currentOrderId = orderId;
   setRapidShypResult('');
+  setEmailResult('');
 
   const data = await callAdminOrders('detail', { order_id: orderId });
   const order = data.order;
@@ -363,16 +521,27 @@ async function openOrderModal(orderId) {
     alert('Order not found.');
     return;
   }
-  const addr = order.shipping_address;
+  const addr = order.shipping_address || {};
   const whatsappUrl = buildWhatsappUrl(order, items);
   const phoneText = order.customer_phone || '';
+  const deliveryCharge = Number(addr.delivery_charge || order.delivery_charge || 0);
+  const paymentMethod = addr.payment_method || order.payment_method || order.payment_status || 'N/A';
 
-  document.getElementById('order-status-select').value = order.order_status;
+  document.getElementById('order-status-select').value = order.order_status || 'new';
 
   document.getElementById('order-detail-content').innerHTML = `
     <div class="order-id-panel">
-      <span>Order ID</span>
-      <code>${escapeHtml(order.id)}</code>
+      <div>
+        <span>Order ID</span>
+        <code>${escapeHtml(order.id)}</code>
+      </div>
+      <strong>${escapeHtml(getShortOrderId(order))}</strong>
+    </div>
+    <div class="order-summary-strip">
+      <div><span>Total</span><strong>${formatMoney(order.total_amount)}</strong></div>
+      <div><span>Payment</span><strong>${escapeHtml(order.payment_status || 'pending')}</strong></div>
+      <div><span>Status</span><strong>${escapeHtml(order.order_status || 'new')}</strong></div>
+      <div><span>Created</span><strong>${escapeHtml(getOrderDate(order))}</strong></div>
     </div>
     <div class="order-detail-grid">
       <div class="order-detail-section">
@@ -386,11 +555,11 @@ async function openOrderModal(orderId) {
       </div>
       <div class="order-detail-section">
         <h4>Payment</h4>
-        <p>Status: ${escapeHtml(order.payment_status)}<br/>ID: ${escapeHtml(order.payment_id || 'N/A')}</p>
+        <p>Method: ${escapeHtml(paymentMethod)}<br/>Status: ${escapeHtml(order.payment_status)}<br/>ID: ${escapeHtml(order.payment_id || 'N/A')}</p>
       </div>
       <div class="order-detail-section">
-        <h4>Order Total</h4>
-        <p style="font-size:1.3rem;font-weight:600;color:#2d5016;">₹${parseFloat(order.total_amount).toFixed(2)}</p>
+        <h4>Delivery</h4>
+        <p>Partner: ${escapeHtml(order.shipping_partner || 'RapidShyp')}<br/>Charge: ${formatMoney(deliveryCharge)}<br/>AWB: ${escapeHtml(order.shipping_awb || 'Not assigned')}</p>
       </div>
     </div>
     <h4 style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.1em;color:#6b6b6b;margin-bottom:0.75rem;font-weight:600;">Items Ordered</h4>
@@ -414,6 +583,34 @@ async function updateOrderStatus() {
   await callAdminOrders('update_status', { order_id: currentOrderId, order_status: status });
   closeOrderModal();
   loadOrders();
+}
+
+async function sendCurrentOrderEmail() {
+  if (!currentOrderId) {
+    setEmailResult('Open an order first.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('send-email-btn');
+  const originalText = btn ? btn.textContent : '';
+
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+  }
+  setEmailResult('Sending order email...', 'info');
+
+  try {
+    const data = await callOrderEmail(currentOrderId);
+    setEmailResult(`Email sent successfully${data.email_id ? ` (${data.email_id})` : ''}.`, 'success');
+  } catch (error) {
+    setEmailResult(error instanceof Error ? error.message : 'Email could not be sent.', 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = originalText || 'Send Email';
+    }
+  }
 }
 
 async function pushCurrentOrderToRapidShyp() {

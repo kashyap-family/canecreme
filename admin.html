@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin — CaneCreme</title>
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/admin.css?v=3" />
+  <link rel="stylesheet" href="css/admin.css?v=4" />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 </head>
 <body class="admin-body">
@@ -59,16 +59,76 @@
 
     <!-- ORDERS TAB -->
     <div id="tab-orders-content" class="admin-content" style="display:none;">
-      <div class="admin-section-header">
-        <h2>Orders</h2>
+      <div class="admin-section-header orders-header">
+        <div>
+          <p class="admin-eyebrow">Backend Orders</p>
+          <h2>Order Management</h2>
+        </div>
+        <button class="btn-secondary" type="button" onclick="loadOrders()">Refresh</button>
       </div>
+
+      <div class="orders-metrics" aria-label="Order summary">
+        <div class="metric-tile">
+          <span>Total Orders</span>
+          <strong id="metric-total-orders">0</strong>
+        </div>
+        <div class="metric-tile">
+          <span>Pending Action</span>
+          <strong id="metric-pending-orders">0</strong>
+        </div>
+        <div class="metric-tile">
+          <span>Paid Revenue</span>
+          <strong id="metric-paid-revenue">₹0</strong>
+        </div>
+        <div class="metric-tile">
+          <span>COD Orders</span>
+          <strong id="metric-cod-orders">0</strong>
+        </div>
+      </div>
+
+      <div class="orders-toolbar">
+        <div class="orders-search">
+          <label for="order-search">Search orders</label>
+          <input id="order-search" type="search" placeholder="Customer, phone, email, order ID" />
+        </div>
+        <div class="orders-filter">
+          <label for="payment-filter">Payment</label>
+          <select id="payment-filter">
+            <option value="all">All payments</option>
+            <option value="paid">Paid</option>
+            <option value="cod">COD</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+        <div class="orders-filter">
+          <label for="status-filter">Status</label>
+          <select id="status-filter">
+            <option value="all">All statuses</option>
+            <option value="new">New</option>
+            <option value="processing">Processing</option>
+            <option value="shipped">Shipped</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="orders-filter">
+          <label for="date-filter">Date</label>
+          <select id="date-filter">
+            <option value="all">All dates</option>
+            <option value="today">Today</option>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+          </select>
+        </div>
+      </div>
+
       <div class="admin-table-wrap">
         <table class="admin-table">
           <thead>
             <tr>
               <th>Order ID</th>
               <th>Customer</th>
-              <th>Email</th>
+              <th>Phone</th>
               <th>Total</th>
               <th>Payment</th>
               <th>Status</th>
@@ -148,7 +208,9 @@
       </div>
       <div class="modal-body" id="order-detail-content"></div>
       <div class="modal-footer">
+        <div class="email-result" id="email-result" aria-live="polite"></div>
         <div class="rapidshyp-result" id="rapidshyp-result" aria-live="polite"></div>
+        <button class="btn-email" id="send-email-btn" onclick="sendCurrentOrderEmail()">Send Email</button>
         <button class="btn-rapidshyp" id="rapidshyp-push-btn" onclick="pushCurrentOrderToRapidShyp()">Push to RapidShyp</button>
         <label>Update Status: </label>
         <select id="order-status-select">
@@ -165,6 +227,6 @@
   </div>
 
   <script src="js/config.js"></script>
-  <script src="js/admin.js?v=8"></script>
+  <script src="js/admin.js?v=9"></script>
 </body>
 </html>
