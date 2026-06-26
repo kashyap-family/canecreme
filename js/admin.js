@@ -78,9 +78,17 @@ function getAddressText(order) {
   ].filter(Boolean).join(', ');
 }
 
+function parseOrderCreatedAt(value) {
+  if (!value) return null;
+  const raw = String(value);
+  const hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(raw);
+  const date = new Date(hasTimezone ? raw : `${raw}Z`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 function getOrderDate(order) {
-  const date = new Date(order.created_at);
-  if (Number.isNaN(date.getTime())) return '';
+  const date = parseOrderCreatedAt(order.created_at);
+  if (!date) return '';
   return date.toLocaleString('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -104,8 +112,8 @@ function getIndiaDateKey(date) {
 
 function isWithinDateFilter(order, filterValue) {
   if (filterValue === 'all') return true;
-  const created = new Date(order.created_at);
-  if (Number.isNaN(created.getTime())) return false;
+  const created = parseOrderCreatedAt(order.created_at);
+  if (!created) return false;
   const now = new Date();
 
   if (filterValue === 'today') {
