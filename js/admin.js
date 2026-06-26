@@ -2,6 +2,12 @@
 
 let currentOrderId = null;
 let allOrders = [];
+let activeAdminTab = 'products';
+let ordersRefreshTimer = null;
+let ordersLoading = false;
+
+const ADMIN_TIME_ZONE = 'Asia/Kolkata';
+const ORDERS_REFRESH_MS = 10000;
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -80,8 +86,20 @@ function getOrderDate(order) {
     month: 'short',
     year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
+    hour12: true,
+    timeZone: ADMIN_TIME_ZONE,
+    timeZoneName: 'short'
   });
+}
+
+function getIndiaDateKey(date) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: ADMIN_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(date);
 }
 
 function isWithinDateFilter(order, filterValue) {
@@ -91,7 +109,7 @@ function isWithinDateFilter(order, filterValue) {
   const now = new Date();
 
   if (filterValue === 'today') {
-    return created.toDateString() === now.toDateString();
+    return getIndiaDateKey(created) === getIndiaDateKey(now);
   }
 
   const days = Number(filterValue);
@@ -266,6 +284,7 @@ function adminLogin() {
 }
 
 function adminLogout() {
+  stopOrdersAutoRefresh();
   sessionStorage.removeItem('admin_auth');
   location.reload();
 }
@@ -290,12 +309,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== TABS =====
 function showTab(tab) {
+  activeAdminTab = tab;
   document.getElementById('tab-products-content').style.display = tab === 'products' ? 'block' : 'none';
   document.getElementById('tab-orders-content').style.display = tab === 'orders' ? 'block' : 'none';
   document.getElementById('tab-products').classList.toggle('active', tab === 'products');
   document.getElementById('tab-orders').classList.toggle('active', tab === 'orders');
-  if (tab === 'orders') loadOrders();
-  if (tab === 'products') loadProducts();
+  if (tab === 'orders') {
+    loadOrders();
+    startOrdersAutoRefresh();
+  }
+  if (tab === 'products') {
+    stopOrdersAutoRefresh();
+    loadProducts();
+  }
 }
 
 // ===== PRODUCTS =====
@@ -457,19 +483,54 @@ async function deleteProduct(id) {
 
 // ===== ORDERS =====
 async function loadOrders() {
+  if (ordersLoading) return;
+  ordersLoading = true;
   const tbody = document.getElementById('orders-table-body');
-  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;">Loading...</td></tr>';
+  if (allOrders.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;">Loading...</td></tr>';
+  }
 
   try {
     const data = await callAdminOrders('list');
     allOrders = Array.isArray(data.orders) ? data.orders : [];
   } catch (error) {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:#dc2626;">${error.message}</td></tr>`;
+    ordersLoading = false;
     return;
   }
 
   updateOrderMetrics();
   renderOrders();
+  updateOrdersRefreshNote();
+  ordersLoading = false;
+}
+
+function updateOrdersRefreshNote() {
+  const el = document.getElementById('orders-refresh-note');
+  if (!el) return;
+  const time = new Date().toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+    timeZone: ADMIN_TIME_ZONE,
+  });
+  el.textContent = `Auto-refresh: 10 sec · IST · Updated ${time}`;
+}
+
+function startOrdersAutoRefresh() {
+  stopOrdersAutoRefresh();
+  ordersRefreshTimer = window.setInterval(() => {
+    if (activeAdminTab === 'orders' && !document.hidden) {
+      loadOrders();
+    }
+  }, ORDERS_REFRESH_MS);
+}
+
+function stopOrdersAutoRefresh() {
+  if (!ordersRefreshTimer) return;
+  window.clearInterval(ordersRefreshTimer);
+  ordersRefreshTimer = null;
 }
 
 function renderOrders() {
