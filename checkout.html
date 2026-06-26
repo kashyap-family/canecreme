@@ -4,10 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Checkout — CaneCreme</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=13" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Lexend:wght@300;400;500;600;700&family=Lobster&display=swap" rel="stylesheet"/>
 </head>
-<body>
+<body class="checkout-page">
 
   <div class="announcement-bar">
     <div class="marquee-track">
@@ -44,17 +44,19 @@
 
   <div class="page-header">
     <p class="eyebrow">Almost There</p>
-    <h1>Checkout</h1>
-    <p>Fill in your details to complete your order</p>
+    <h1>Smart Checkout</h1>
+    <p>Review delivery, choose payment, and place your order faster</p>
   </div>
 
   <div class="checkout-layout">
     <!-- LEFT: SHIPPING FORM -->
     <div class="checkout-form-wrap fade-section">
-      <h2>Mobile Checkout</h2>
-      <p class="checkout-help">Enter your mobile number first. We will check for your past orders before payment.</p>
+      <div class="checkout-section-label">Delivery Details</div>
+      <div id="saved-address-card" class="saved-address-card" style="display:none;"></div>
 
       <div class="mobile-checkout-card">
+        <h2>Mobile Number</h2>
+        <p class="checkout-help">We will find saved delivery details if you have ordered before.</p>
         <div class="form-group">
           <label>Mobile Number</label>
           <div class="checkout-phone-field">
@@ -69,18 +71,11 @@
       <div id="customer-history" class="customer-history" style="display:none;"></div>
 
       <div id="delivery-details-panel" style="display:none;">
-        <h2>Delivery Details</h2>
-        <p class="checkout-help">Complete these details once for delivery.</p>
+        <h2>Add Delivery Address</h2>
 
-        <div class="form-row">
         <div class="form-group">
           <label>Full Name</label>
           <input type="text" id="c-name" placeholder="Your name" autocomplete="name" />
-        </div>
-          <div class="form-group">
-            <label>Email <span class="optional-label">optional</span></label>
-            <input type="email" id="c-email" placeholder="you@email.com" autocomplete="email" />
-          </div>
         </div>
 
         <div class="form-group">
@@ -88,39 +83,50 @@
           <textarea id="c-address1" rows="3" placeholder="House / flat, building, street, area, landmark" autocomplete="street-address"></textarea>
         </div>
 
-        <div class="form-row checkout-location-row">
-          <div class="form-group">
-            <label>PIN Code</label>
-            <input type="text" id="c-pin" placeholder="6-digit PIN" inputmode="numeric" maxlength="6" pattern="[1-9][0-9]{5}" autocomplete="postal-code" />
-          </div>
-          <div class="form-group">
-            <label>City</label>
-            <input type="text" id="c-city" placeholder="City" autocomplete="address-level2" />
-          </div>
-          <div class="form-group">
-            <label>State</label>
-            <input type="text" id="c-state" placeholder="State" autocomplete="address-level1" />
-          </div>
+        <div class="form-group">
+          <label>PIN Code</label>
+          <input type="text" id="c-pin" placeholder="6-digit PIN" inputmode="numeric" maxlength="6" pattern="[1-9][0-9]{5}" autocomplete="postal-code" />
+          <small id="pin-lookup-message" class="pin-lookup-message"></small>
         </div>
 
-        <div class="payment-method-wrap">
-          <h2>Payment Method</h2>
-          <div class="payment-method-options" role="radiogroup" aria-label="Payment method">
-            <label class="payment-method-option">
-              <input type="radio" name="payment-method" value="online" checked />
-              <span>
-                <strong>Pay Online</strong>
-                <small>Razorpay cards, UPI, wallet or netbanking</small>
-              </span>
-            </label>
-            <label class="payment-method-option">
-              <input type="radio" name="payment-method" value="cod" />
-              <span>
-                <strong>Cash on Delivery</strong>
-                <small>Pay when your order reaches you</small>
-              </span>
-            </label>
+        <details class="checkout-optional-details" open>
+          <summary>Email / city details</summary>
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" id="c-email" placeholder="you@email.com" autocomplete="email" required />
           </div>
+          <div class="form-row">
+            <div class="form-group">
+            <label>City</label>
+            <input type="text" id="c-city" placeholder="City" autocomplete="address-level2" />
+            </div>
+            <div class="form-group">
+            <label>State</label>
+            <input type="text" id="c-state" placeholder="State" autocomplete="address-level1" />
+            </div>
+          </div>
+        </details>
+
+      </div>
+
+      <div class="payment-method-wrap" id="payment-section" style="display:none;">
+        <div class="checkout-section-label">Payment Options</div>
+        <div class="prepaid-offer">Online payments get free delivery. COD delivery charges apply by location.</div>
+        <div class="payment-method-options" role="radiogroup" aria-label="Payment method">
+          <label class="payment-method-option">
+            <input type="radio" name="payment-method" value="online" checked />
+            <span>
+              <strong>Pay Online</strong>
+              <small>UPI, cards, wallet or netbanking via Razorpay</small>
+            </span>
+          </label>
+          <label class="payment-method-option">
+            <input type="radio" name="payment-method" value="cod" />
+            <span>
+              <strong>Cash on Delivery</strong>
+              <small>Pay when your order reaches you</small>
+            </span>
+          </label>
         </div>
       </div>
 
@@ -132,7 +138,7 @@
       <button class="btn-primary btn-full" id="pay-btn" style="margin-top:0.5rem;padding:1rem;">
         Check Mobile First
       </button>
-      <p class="checkout-secure-note">Choose online payment or Cash on Delivery. Real OTP verification requires SMS provider setup.</p>
+      <p class="checkout-secure-note">Secure checkout powered by Razorpay, Supabase, and RapidShyp.</p>
     </div>
 
     <!-- RIGHT: ORDER SUMMARY -->
@@ -160,7 +166,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=3"></script>
   <script src="js/cart.js?v=3"></script>
-  <script src="js/checkout.js?v=12"></script>
+  <script src="js/checkout.js?v=15"></script>
   <script src="js/main.js?v=5"></script>
 </body>
 </html>

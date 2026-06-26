@@ -2,8 +2,13 @@
 
 let currentOrderId = null;
 let checkedMobile = '';
+const CHECKOUT_PROFILE_KEY = 'canecreme_checkout_profile';
+let phoneLookupTimer = null;
+let lastPinLookup = '';
 
 document.addEventListener('DOMContentLoaded', () => {
+  hydrateSavedCheckoutProfile();
+
   const phoneInput = document.getElementById('c-phone');
   if (phoneInput) {
     phoneInput.addEventListener('input', () => {
@@ -12,9 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
         checkedMobile = '';
         setMobileMessage('');
         document.getElementById('customer-history').style.display = 'none';
+        document.getElementById('saved-address-card').style.display = 'none';
         document.getElementById('delivery-details-panel').style.display = 'none';
+        document.getElementById('payment-section').style.display = 'none';
         const payBtn = document.getElementById('pay-btn');
         payBtn.textContent = 'Check Mobile First';
+      }
+      clearTimeout(phoneLookupTimer);
+      if (/^[6-9][0-9]{9}$/.test(phoneInput.value) && phoneInput.value !== checkedMobile) {
+        phoneLookupTimer = setTimeout(checkMobileHistory, 350);
       }
     });
   }
@@ -23,6 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (pinInput) {
     pinInput.addEventListener('input', () => {
       pinInput.value = pinInput.value.replace(/\D/g, '').slice(0, 6);
+      if (/^[1-9][0-9]{5}$/.test(pinInput.value) && pinInput.value !== lastPinLookup) {
+        lookupPinDetails(pinInput.value);
+      }
       renderOrderSummary();
     });
   }
@@ -45,14 +59,21 @@ function setMobileMessage(message, isError = false) {
   el.classList.toggle('err', isError);
 }
 
+function setPinMessage(message, isError = false) {
+  const el = document.getElementById('pin-lookup-message');
+  if (!el) return;
+  el.textContent = message || '';
+  el.classList.toggle('err', isError);
+}
+
 function renderCustomerHistory(history) {
   const panel = document.getElementById('customer-history');
   if (!panel) return;
 
   const orders = Array.isArray(history && history.orders) ? history.orders : [];
   if (orders.length === 0) {
-    panel.innerHTML = '<h3>New customer</h3><p class="mobile-check-message">No past orders found for this mobile number. Add delivery details once to continue.</p>';
-    panel.style.display = 'block';
+    panel.innerHTML = '';
+    panel.style.display = 'none';
     return;
   }
 
@@ -61,6 +82,154 @@ function renderCustomerHistory(history) {
     <p class="mobile-check-message">We filled your delivery details from your latest order. Please check them before placing this order.</p>
   `;
   panel.style.display = 'block';
+}
+
+function getCheckoutProfile() {
+  try {
+    return JSON.parse(localStorage.getItem(CHECKOUT_PROFILE_KEY) || 'null');
+  } catch (err) {
+    return null;
+  }
+}
+
+function getCurrentCustomerProfile() {
+  return {
+    name: document.getElementById('c-name')?.value.trim() || '',
+    email: document.getElementById('c-email')?.value.trim() || '',
+    phone: document.getElementById('c-phone')?.value.trim() || '',
+    address1: document.getElementById('c-address1')?.value.trim() || '',
+    address2: document.getElementById('c-address2')?.value.trim() || '',
+    pin: document.getElementById('c-pin')?.value.trim() || '',
+    city: document.getElementById('c-city')?.value.trim() || '',
+    state: document.getElementById('c-state')?.value.trim() || '',
+    country: document.getElementById('c-country')?.value.trim() || 'India'
+  };
+}
+
+function saveCheckoutProfile(profile) {
+  if (!profile || !/^[6-9][0-9]{9}$/.test(profile.phone || '')) return;
+  localStorage.setItem(CHECKOUT_PROFILE_KEY, JSON.stringify({
+    name: profile.name || '',
+    email: profile.email || '',
+    phone: profile.phone || '',
+    address1: profile.address1 || '',
+    address2: profile.address2 || '',
+    pin: profile.pin || '',
+    city: profile.city || '',
+    state: profile.state || '',
+    country: profile.country || 'India',
+    saved_at: new Date().toISOString()
+  }));
+}
+
+function maskPhone(phone) {
+  if (!phone || phone.length < 10) return phone || '';
+  return `${phone.slice(0, 3)}${'*'.repeat(4)}${phone.slice(-3)}`;
+}
+
+function shortAddress(profile) {
+  return [profile.address1, profile.city, profile.state, profile.pin]
+    .filter(Boolean)
+    .join(', ');
+}
+
+function renderSavedAddressCard(profile) {
+  const panel = document.getElementById('saved-address-card');
+  if (!panel || !profile || !profile.phone) return;
+
+  panel.innerHTML = `
+    <div class="saved-address-main">
+      <div class="saved-address-pin" aria-hidden="true"></div>
+      <div>
+        <h3>Deliver To ${escapeHtml(profile.name || 'Saved Customer')}</h3>
+        <p>${escapeHtml(shortAddress(profile) || 'Saved delivery address')}</p>
+        <small>+91 ${escapeHtml(maskPhone(profile.phone))}${profile.email ? ` · ${escapeHtml(profile.email)}` : ''}</small>
+      </div>
+    </div>
+    <button type="button" class="saved-address-change" id="change-address-btn">Change</button>
+  `;
+  panel.style.display = 'flex';
+
+  const changeBtn = document.getElementById('change-address-btn');
+  if (changeBtn) {
+    changeBtn.addEventListener('click', () => {
+      document.getElementById('delivery-details-panel').style.display = 'block';
+      document.getElementById('delivery-details-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+}
+
+async function lookupPinDetails(pin) {
+  lastPinLookup = pin;
+  setPinMessage('Finding city and state...');
+
+  try {
+    const res = await fetch(`https://api.postalpincode.in/pincode/${encodeURIComponent(pin)}`);
+    if (!res.ok) throw new Error('PIN lookup failed');
+    const data = await res.json();
+    const postOffice = Array.isArray(data)
+      && data[0]
+      && data[0].Status === 'Success'
+      && Array.isArray(data[0].PostOffice)
+      ? data[0].PostOffice[0]
+      : null;
+
+    if (!postOffice) throw new Error('PIN not found');
+
+    setFieldValue('c-city', postOffice.District || postOffice.Block || '');
+    setFieldValue('c-state', postOffice.State || '');
+    setPinMessage(`${postOffice.District || 'City'} · ${postOffice.State || 'State'}`);
+    renderOrderSummary();
+  } catch (err) {
+    const fallback = getFallbackLocationFromPin(pin);
+    if (fallback) {
+      setFieldValue('c-city', fallback.city);
+      setFieldValue('c-state', fallback.state);
+      setPinMessage(`${fallback.city} · ${fallback.state}`);
+      renderOrderSummary();
+      return;
+    }
+    setPinMessage('Could not auto-fill city. Tap email / city details if needed.', true);
+  }
+}
+
+function getFallbackLocationFromPin(pin) {
+  if (/^110/.test(pin)) return { city: 'New Delhi', state: 'Delhi' };
+  if (/^(121|122)/.test(pin)) return { city: 'Gurugram', state: 'Haryana' };
+  if (/^201/.test(pin)) return { city: 'Noida', state: 'Uttar Pradesh' };
+  return null;
+}
+
+function hydrateSavedCheckoutProfile() {
+  const profile = getCheckoutProfile();
+  if (!profile || !/^[6-9][0-9]{9}$/.test(profile.phone || '')) return;
+
+  setFieldValue('c-phone', profile.phone || '');
+  setFieldValue('c-name', profile.name || '');
+  setFieldValue('c-email', profile.email || '');
+  setFieldValue('c-address1', profile.address1 || '');
+  setFieldValue('c-address2', profile.address2 || '');
+  setFieldValue('c-pin', profile.pin || '');
+  setFieldValue('c-city', profile.city || '');
+  setFieldValue('c-state', profile.state || '');
+  setFieldValue('c-country', profile.country || 'India');
+
+  checkedMobile = profile.phone;
+  renderSavedAddressCard(profile);
+  document.getElementById('payment-section').style.display = 'block';
+  const payBtn = document.getElementById('pay-btn');
+  if (payBtn) payBtn.textContent = getCheckoutButtonText();
+  setMobileMessage('Saved delivery details found on this device.');
+  renderOrderSummary();
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 function setFieldValue(id, value) {
@@ -123,20 +292,28 @@ async function checkMobileHistory() {
     const history = await fetchCustomerHistory(phone);
     checkedMobile = phone;
     document.getElementById('delivery-details-panel').style.display = 'block';
+    document.getElementById('payment-section').style.display = 'block';
     const filledFromHistory = autofillSavedDetails(history);
     renderCustomerHistory(history);
+    if (filledFromHistory) {
+      const profile = getCurrentCustomerProfile();
+      saveCheckoutProfile(profile);
+      renderSavedAddressCard(profile);
+      document.getElementById('delivery-details-panel').style.display = 'none';
+    }
     renderOrderSummary();
     payBtn.textContent = getCheckoutButtonText();
     setMobileMessage(filledFromHistory
-      ? 'Mobile number checked. Saved delivery details filled.'
-      : 'Mobile number checked. Complete delivery details to continue.');
+      ? 'Saved delivery details found.'
+      : 'Add delivery address to continue.');
   } catch (err) {
     console.warn('Customer history lookup failed:', err);
     checkedMobile = phone;
     document.getElementById('customer-history').style.display = 'none';
     document.getElementById('delivery-details-panel').style.display = 'block';
+    document.getElementById('payment-section').style.display = 'block';
     payBtn.textContent = getCheckoutButtonText();
-    setMobileMessage('Could not load past orders right now. Continue with delivery details.');
+    setMobileMessage('Add delivery address to continue.');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Continue';
@@ -289,12 +466,12 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
   const emailInput = document.getElementById('c-email').value.trim();
   const phone = document.getElementById('c-phone').value.trim();
   const address1 = document.getElementById('c-address1').value.trim();
-  const city = document.getElementById('c-city').value.trim();
-  const state = document.getElementById('c-state').value.trim();
+  let city = document.getElementById('c-city').value.trim();
+  let state = document.getElementById('c-state').value.trim();
   const pin = document.getElementById('c-pin').value.trim();
   const country = document.getElementById('c-country').value.trim();
   const address2 = document.getElementById('c-address2').value.trim();
-  const email = emailInput || `customer-${phone}@canecreme.co`;
+  const email = emailInput;
   const paymentMethod = getSelectedPaymentMethod();
 
   if (phone !== checkedMobile) {
@@ -303,8 +480,8 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     return;
   }
 
-  if (!name || !phone || !address1 || !city || !state || !pin) {
-    errorEl.textContent = 'Please fill in mobile, name, address, PIN, city and state.';
+  if (!name || !phone || !emailInput || !address1 || !pin) {
+    errorEl.textContent = 'Please fill in mobile, name, email, address and PIN.';
     errorEl.style.display = 'block';
     return;
   }
@@ -315,14 +492,30 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     return;
   }
 
-  if (emailInput && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)) {
-    errorEl.textContent = 'Please enter a valid email, or leave it blank.';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)) {
+    errorEl.textContent = 'Please enter a valid email address.';
     errorEl.style.display = 'block';
     return;
   }
 
   if (!/^[1-9][0-9]{5}$/.test(pin)) {
     errorEl.textContent = 'Please enter a valid Indian 6-digit PIN code.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  if (!city || !state) {
+    const fallback = getFallbackLocationFromPin(pin);
+    if (fallback) {
+      city = fallback.city;
+      state = fallback.state;
+      setFieldValue('c-city', city);
+      setFieldValue('c-state', state);
+    }
+  }
+
+  if (!city || !state) {
+    errorEl.textContent = 'Please tap "Email / city details" and add city and state for this PIN.';
     errorEl.style.display = 'block';
     return;
   }
@@ -344,6 +537,9 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
   btn.disabled = true;
 
   try {
+    const profile = { name, email: emailInput, phone, address1, address2, city, state, pin, country };
+    saveCheckoutProfile(profile);
+    renderSavedAddressCard(profile);
     const order = await createOrderInDB({ name, email, phone, address1, address2, city, state, pin, country });
     currentOrderId = order.id;
     await saveOrderItems(currentOrderId);
