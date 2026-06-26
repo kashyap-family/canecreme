@@ -40,6 +40,48 @@ const verifyRazorpaySignature = async (
   return toHex(signed) === signature;
 };
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const sendOrderEmailWithRetry = async (
+  supabaseUrl: string,
+  serviceRoleKey: string,
+  orderId: string,
+) => {
+  let lastStatus = 0;
+  let lastText = "";
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-order-email`, {
+      method: "POST",
+      headers: {
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ order_id: orderId, email_type: "order_confirmation" }),
+    });
+    const emailText = await emailRes.text();
+    if (emailRes.ok) {
+      return {
+        ok: true,
+        attempts: attempt,
+        response: emailText ? JSON.parse(emailText) : null,
+      };
+    }
+
+    lastStatus = emailRes.status;
+    lastText = emailText;
+    if (attempt < 3) await sleep(650 * attempt);
+  }
+
+  return {
+    ok: false,
+    attempts: 3,
+    status: lastStatus,
+    error: lastText,
+  };
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
@@ -86,16 +128,7 @@ Deno.serve(async (req) => {
     });
     if (!paidRes.ok) throw new Error(`Payment status update failed: ${await paidRes.text()}`);
 
-    const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-order-email`, {
-      method: "POST",
-      headers: {
-        apikey: serviceRoleKey,
-        Authorization: `Bearer ${serviceRoleKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ order_id, email_type: "order_confirmation" }),
-    });
-    const emailText = await emailRes.text();
+    const emailResult = await sendOrderEmailWithRetry(supabaseUrl, serviceRoleKey, order_id);
 
     const rapidshypRes = await fetch(`${supabaseUrl}/functions/v1/create-rapidshyp-order`, {
       method: "POST",
@@ -112,8 +145,8 @@ Deno.serve(async (req) => {
       return jsonResponse({
         ok: true,
         order_paid: true,
-        email_sent: emailRes.ok,
-        email_error: emailRes.ok ? undefined : emailText,
+        email_sent: emailResult.ok,
+        email: emailResult,
         rapidshyp_created: false,
         rapidshyp_error: rapidshypText,
       }, 207);
@@ -122,8 +155,8 @@ Deno.serve(async (req) => {
     return jsonResponse({
       ok: true,
       order_paid: true,
-      email_sent: emailRes.ok,
-      email_error: emailRes.ok ? undefined : emailText,
+      email_sent: emailResult.ok,
+      email: emailResult,
       rapidshyp_created: true,
       rapidshyp: rapidshypText ? JSON.parse(rapidshypText) : null,
     });
