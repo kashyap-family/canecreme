@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 80 fixed admin UTC order timestamp parsing (2026-06-26)
+> Last updated: Session 82 replaced live Atta Cookies JPG asset contents from new user JPEGs (2026-07-09)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -409,7 +409,7 @@ How to add product images correctly:
 | Beet Bites | cf3d5ba7-177f-4033-9ab4-598201bf6cfd | beet-bites-1 → 4 (4 images) | ₹149 |
 | Broccoli Bites | 2df1da36-c102-46a6-8f30-cf169499cf71 | broccoli-bites-1 → 4 (4 images) | ₹149 |
 | Soya Bites | 863f3532-45f8-4c1b-bcfb-2bdb27d05c96 | soya-bites-1 → 4 (4 images) | (check DB) |
-| Pure Ghee Atta Cookies | a494afdd-6bff-44a0-9913-6615badba224 | atta-cookies-1 → 4 (4 images) | ₹229 |
+| Pure Ghee Atta Cookies | a494afdd-6bff-44a0-9913-6615badba224 | public override now uses atta-cookies-2.jpeg and atta-cookies-3.jpeg; older DB may still reference atta-cookies-1 → 4 | ₹229 |
 | Powerbite Multigrain Cookies | 7caa3e8d-6ab3-4fe9-878f-3e4f9a882109 | powerbite-1 → 4 (4 images) | ₹275 |
 | Chocochip Oatmeal Cookies | ec95d67c-5f95-4392-a127-f295dd071ea4 | chocochip-1 → 4 (4 images) | ₹275 |
 
@@ -418,6 +418,7 @@ How to add product images correctly:
 - broccoli-bites-1.jpg → broccoli-bites-4.jpg
 - soya-bites-1.jpg → soya-bites-4.jpg
 - atta-cookies-1.jpg → atta-cookies-4.jpg
+- atta-cookies-2.jpeg and atta-cookies-3.jpeg — new Pure Ghee Atta Cookies public website images added locally on 2026-07-09; `js/products.js`, `product.html`, and cart suggestions override this product by exact name to use these two assets.
 - powerbite-1.jpg → powerbite-4.jpg
 - chocochip-1.jpg → chocochip-4.jpg
 - galeto-1.jpeg, galeto-2.jpeg, galeto-3.jpeg (JPEG format)
@@ -579,3 +580,5 @@ How to add product images correctly:
 | Session 78 | 2026-06-26 | User reported Mohini did not receive order email at `mamta.kashyap2206@gmail.com`. Read live orders through `admin-orders`; Mohini order `163c21fe-a549-45da-9a9b-947f738f3cbf` had correct real email and COD/processing status. Manually resent order confirmation through `send-order-email`; Resend accepted it with email ID `28ea2976-66aa-4cda-ad91-9fc123567019`, sent to Mohini and BCC `canecreme@gmail.com`. Hardened `confirm-cod-order` and `confirm-paid-order` with `sendOrderEmailWithRetry` helper so automatic order emails retry up to 3 times before returning. Redeployed both confirmation functions to Supabase project `qfphvsyidbyhbyeyigrh`. |
 | Session 79 | 2026-06-26 | User requested checkout email no longer be optional after mobile lookup auto-filled details. Published the local Smart Checkout work plus mandatory email correction: `checkout.html` now opens the Email/city details disclosure, labels email as required, adds `required` to `#c-email`, and cache-busts to `js/checkout.js?v=15`; `js/checkout.js` now requires a real email before creating the order, rejects invalid email with clear copy, removes the fake `customer-{phone}@canecreme.co` fallback, and validates/fills city/state before saving the order. Verified `js/checkout.js` syntax with bundled Node. |
 | Session 80 | 2026-06-26 | User reported Kshitiz Kashyap order showed `04:28` in admin despite being placed around 22:00 IST. Live `admin-orders` data showed raw `created_at` as `2026-06-26T16:28:58.685308`, a UTC timestamp without timezone suffix. Fixed `js/admin.js` with `parseOrderCreatedAt()` so timestamps without `Z`/offset are treated as UTC before formatting in `Asia/Kolkata`; date filters now use the same parser. Verified Kshitiz timestamp formats as `26 Jun 2026, 09:58 pm IST`. Cache-busted admin script to `js/admin.js?v=11`. |
+| Session 81 | 2026-07-09 | User provided/read new Atta cookie assets `Assets/atta-cookies-2.jpeg` and `Assets/atta-cookies-3.jpeg` and asked to replace the website image as per product name. Added public product image overrides for exact product name `Pure Ghee Atta Cookies` in `js/products.js` (shop/home product cards) and `product.html` (product detail gallery), updated `js/cart.js` suggestions to use the same display image, changed homepage gallery Atta Cookies images from old `atta-cookies-1.jpg` to the two new `.jpeg` files, cache-busted `js/products.js?v=2` on index/shop and `js/cart.js?v=4` on index/shop/product. Verified `js/products.js` and `js/cart.js` syntax with bundled Node. Changes are LOCAL ONLY and not pushed yet. |
+| Session 82 | 2026-07-09 | User showed live `canecreme.co/product.html?id=a494afdd-6bff-44a0-9913-6615badba224` still displaying old Atta Cookies images. Verified live product is still driven by Supabase image URLs using tracked `.jpg` filenames, so copied the new user assets into those existing live paths: `Assets/atta-cookies-2.jpeg` → `Assets/atta-cookies-2.jpg` and `Assets/atta-cookies-3.jpeg` → `Assets/atta-cookies-3.jpg`. This is the minimal live fix because it keeps existing Supabase product image URLs working. |
