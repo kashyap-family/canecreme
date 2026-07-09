@@ -1058,6 +1058,7 @@ img { display: block; max-width: 100%; }
   overflow: hidden;
   isolation: isolate;
   contain: paint;
+  touch-action: pan-y;
 }
 .carousel-track {
   position: absolute;

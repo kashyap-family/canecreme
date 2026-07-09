@@ -34,7 +34,7 @@ function renderProductCard(product) {
       `<img src="${src}" alt="${product.name}" class="carousel-slide" loading="lazy" onerror="this.style.display='none'" />`
     ).join('');
     const dots = product.images.map((_, i) =>
-      `<button class="carousel-dot${i === 0 ? ' active' : ''}" onclick="carouselGo(this,${i})" aria-label="Image ${i+1}"></button>`
+      `<button class="carousel-dot${i === 0 ? ' active' : ''}" onclick="event.stopPropagation();carouselGo(this,${i})" aria-label="Image ${i+1}"></button>`
     ).join('');
     imageHtml = `<div class="product-image carousel"><div class="carousel-track">${slides}</div><div class="carousel-dots">${dots}</div></div>`;
   } else if (product.images && product.images.length === 1) {
@@ -95,8 +95,16 @@ function carouselGo(dotEl, index) {
 }
 
 function carouselSetIndex(card, index) {
-  card.querySelector('.carousel-track').style.transform = `translateX(-${index * 100}%)`;
-  card.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === index));
+  const dots = card.querySelectorAll('.carousel-dot');
+  const total = dots.length;
+  if (!total) return;
+  const nextIndex = ((index % total) + total) % total;
+  card.querySelector('.carousel-track').style.transform = `translateX(-${nextIndex * 100}%)`;
+  dots.forEach((d, i) => d.classList.toggle('active', i === nextIndex));
+}
+
+function carouselGetIndex(card) {
+  return Array.from(card.querySelectorAll('.carousel-dot')).findIndex(dot => dot.classList.contains('active'));
 }
 
 function initCarouselHover() {
@@ -105,11 +113,25 @@ function initCarouselHover() {
     if (total < 2) return;
     let timer = null;
     let current = 0;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let didSwipe = false;
+    let suppressClick = false;
+
+    const syncCurrent = () => {
+      const activeIndex = carouselGetIndex(card);
+      current = activeIndex >= 0 ? activeIndex : current;
+      return current;
+    };
+
+    const showNext = (delta = 1) => {
+      current = syncCurrent() + delta;
+      carouselSetIndex(card, current);
+    };
 
     card.addEventListener('mouseenter', () => {
       timer = setInterval(() => {
-        current = (current + 1) % total;
-        carouselSetIndex(card, current);
+        showNext(1);
       }, 900);
     });
 
@@ -118,6 +140,46 @@ function initCarouselHover() {
       timer = null;
       current = 0;
       carouselSetIndex(card, 0);
+    });
+
+    card.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      didSwipe = false;
+    }, { passive: true });
+
+    card.addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+
+      if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy)) {
+        didSwipe = true;
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    card.addEventListener('touchend', (e) => {
+      if (!didSwipe) return;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+        e.stopPropagation();
+        suppressClick = true;
+        showNext(dx < 0 ? 1 : -1);
+        window.setTimeout(() => { suppressClick = false; }, 250);
+      }
+    });
+
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.carousel-dot')) return;
+      if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+      e.stopPropagation();
+      if (!suppressClick) showNext(1);
+      suppressClick = false;
     });
   });
 }
