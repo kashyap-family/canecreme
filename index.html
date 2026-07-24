@@ -31,7 +31,7 @@ src="https://www.facebook.com/tr?id=1039053602005956&ev=PageView&noscript=1"
   <meta property="og:url" content="https://www.canecreme.co/" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://www.canecreme.co/Assets/logo.png" />
-  <link rel="stylesheet" href="css/style.css?v=11" />
+  <link rel="stylesheet" href="css/style.css?v=12" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Lexend:wght@300;400;500;600;700&family=Lobster&display=swap" rel="stylesheet"/>
 </head>
 <body>
@@ -172,6 +172,25 @@ src="https://www.facebook.com/tr?id=1039053602005956&ev=PageView&noscript=1"
         <div class="category-circle"><img src="Assets/all-products-category.jpeg" alt="All Products"></div>
         <span>All Products</span>
       </a>
+    </div>
+  </section>
+
+  <!-- FEATURED PRODUCTS -->
+  <section class="section fade-section">
+    <div class="section-header">
+      <div>
+        <p class="eyebrow">Shop CaneCreme</p>
+        <h2 class="section-title">More to Love</h2>
+      </div>
+      <a href="shop.html" class="link-all">View all products <span>&rarr;</span></a>
+    </div>
+    <div class="products-grid" id="featured-products">
+      <div class="product-skeleton"></div>
+      <div class="product-skeleton"></div>
+      <div class="product-skeleton"></div>
+      <div class="product-skeleton"></div>
+      <div class="product-skeleton"></div>
+      <div class="product-skeleton"></div>
     </div>
   </section>
 
@@ -455,12 +474,12 @@ src="https://www.facebook.com/tr?id=1039053602005956&ev=PageView&noscript=1"
   </div>
 
   <script src="js/config.js"></script>
-  <script src="js/cart.js"></script>
-  <script src="js/products.js"></script>
+  <script src="js/cart.js?v=5"></script>
+  <script src="js/products.js?v=3"></script>
   <script src="js/main.js?v=6"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      loadFeaturedProducts('featured-products', 3);
+      loadFeaturedProducts('featured-products', 6);
     });
   </script>
 </body>

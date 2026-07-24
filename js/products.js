@@ -27,6 +27,53 @@ function renderStars(rating) {
   ).join('');
 }
 
+function getProductVariantInfo(product) {
+  const match = String(product.name || '').match(/^(.*?)\s+-\s+([0-9]+(?:\.[0-9]+)?\s*(?:g|gm|kg|ml|l))$/i);
+  if (!match) return null;
+  const size = match[2].replace(/\s+/g, '').toLowerCase();
+  const numeric = parseFloat(size);
+  const unit = size.replace(/[0-9.]/g, '');
+  const grams = unit === 'kg' ? numeric * 1000 : numeric;
+  return {
+    baseName: match[1].trim(),
+    sizeLabel: size.replace(/^([0-9.]+)([a-z]+)$/i, '$1$2'),
+    sortValue: Number.isFinite(grams) ? grams : 0
+  };
+}
+
+function groupProductVariants(products) {
+  const groups = new Map();
+  const singles = [];
+
+  products.forEach(product => {
+    const variant = getProductVariantInfo(product);
+    if (!variant) {
+      singles.push(product);
+      return;
+    }
+
+    const key = variant.baseName.toLowerCase();
+    if (!groups.has(key)) groups.set(key, { baseName: variant.baseName, items: [] });
+    groups.get(key).items.push({ ...product, variant });
+  });
+
+  groups.forEach(group => {
+    group.items.sort((a, b) => a.variant.sortValue - b.variant.sortValue);
+    const first = group.items[0];
+    singles.push({
+      ...first,
+      name: group.baseName,
+      price: first.price,
+      compare_at_price: first.compare_at_price,
+      stock: group.items.reduce((sum, item) => sum + (parseInt(item.stock, 10) || 0), 0),
+      variants: group.items,
+      variant_count: group.items.length
+    });
+  });
+
+  return singles.sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+}
+
 function renderProductCard(product) {
   let imageHtml;
   if (product.images && product.images.length > 1) {
@@ -57,8 +104,11 @@ function renderProductCard(product) {
     : '';
 
   const inStock = product.stock === undefined || product.stock > 0;
+  const hasVariants = Array.isArray(product.variants) && product.variants.length > 1;
 
-  const actionHtml = inStock
+  const actionHtml = hasVariants
+    ? `<button class="add-to-cart" onclick="event.stopPropagation();window.location.href='product.html?id=${product.id}'">Choose Size</button>`
+    : inStock
     ? `<button class="add-to-cart" onclick='event.stopPropagation();addToCart(${JSON.stringify({
         id:    product.id,
         name:  product.name,
@@ -75,10 +125,11 @@ function renderProductCard(product) {
         <div class="product-stock">${inStock ? 'In Stock' : 'Out of Stock'}</div>
         <div class="product-stars">${renderStars(product.rating || 5)}</div>
         <div class="product-name">${product.name}</div>
+        ${hasVariants ? `<div class="product-variant-count">${product.variant_count} sizes available</div>` : ''}
         <div class="product-desc">${product.description || ''}</div>
         <div class="product-footer">
           <div class="price-wrap">
-            <span class="product-price">₹${parseFloat(product.price).toFixed(0)}</span>
+            <span class="product-price">${hasVariants ? 'From ' : ''}₹${parseFloat(product.price).toFixed(0)}</span>
             ${comparePrice}
           </div>
           ${actionHtml}
@@ -188,7 +239,7 @@ async function loadFeaturedProducts(containerId, limit = 3) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  const products = await fetchProducts(limit);
+  const products = groupProductVariants(await fetchProducts(100)).slice(0, limit);
 
   if (products.length === 0) {
     container.innerHTML = `

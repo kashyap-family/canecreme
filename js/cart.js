@@ -116,7 +116,10 @@ async function loadCartSuggestions() {
     );
     const all = await res.json();
     const cartIds = cart.map(i => i.id);
-    const suggestions = all.filter(p => !cartIds.includes(p.id)).slice(0, 3);
+    const visibleProducts = typeof groupProductVariants === 'function'
+      ? groupProductVariants(all)
+      : all;
+    const suggestions = visibleProducts.filter(p => !cartIds.includes(p.id)).slice(0, 3);
     if (!suggestions.length) { suggestionsEl.innerHTML = ''; return; }
 
     suggestionsEl.innerHTML = `
@@ -133,10 +136,12 @@ async function loadCartSuggestions() {
               <div class="cart-suggestion-name">${p.name}</div>
               <div class="cart-suggestion-price">₹${parseFloat(p.price).toFixed(0)}</div>
             </div>
-            <button class="cart-suggestion-add" onclick='addToCart(${JSON.stringify({
+            ${p.variants && p.variants.length > 1
+              ? `<button class="cart-suggestion-add" onclick="window.location.href='product.html?id=${p.id}'">Choose</button>`
+              : `<button class="cart-suggestion-add" onclick='addToCart(${JSON.stringify({
               id: p.id, name: p.name, price: p.price,
               image: (p.images && p.images[0]) || null
-            })})'>+ Add</button>
+            })})'>+ Add</button>`}
           </div>
         `).join('')}
       </div>`;

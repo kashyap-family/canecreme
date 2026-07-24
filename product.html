@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Product — CaneCreme</title>
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=12" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Lexend:wght@300;400;500;600;700&family=Lobster&display=swap" rel="stylesheet"/>
   <style>
     .product-detail-wrap {
@@ -114,6 +114,41 @@
       background: #22c55e;
     }
     .pd-stock-dot.out { background: #ef4444; }
+
+    .pd-variant-wrap {
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+    }
+    .pd-variant-label {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 0.7rem;
+    }
+    .pd-variant-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+    .pd-variant-btn {
+      min-width: 62px;
+      height: 44px;
+      padding: 0 0.85rem;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      color: var(--dark);
+      border-radius: 6px;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, color 0.2s;
+    }
+    .pd-variant-btn.active {
+      background: var(--dark);
+      border-color: var(--dark);
+      color: var(--white);
+    }
 
     /* Quantity */
     .pd-qty-label { font-size: 0.85rem; font-weight: 600; color: var(--dark); margin-bottom: 0.5rem; }
@@ -429,26 +464,56 @@
   </footer>
 
   <script src="js/config.js"></script>
-  <script src="js/cart.js"></script>
+  <script src="js/products.js?v=3"></script>
+  <script src="js/cart.js?v=5"></script>
   <script src="js/main.js?v=5"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
     const productId = params.get('id');
+    let activeProduct = null;
+    let activeVariants = [];
+
+    function getDetailVariantInfo(product) {
+      const match = String(product.name || '').match(/^(.*?)\s+-\s+([0-9]+(?:\.[0-9]+)?\s*(?:g|gm|kg|ml|l))$/i);
+      if (!match) return null;
+      const size = match[2].replace(/\s+/g, '').toLowerCase();
+      const numeric = parseFloat(size);
+      const unit = size.replace(/[0-9.]/g, '');
+      return {
+        baseName: match[1].trim(),
+        sizeLabel: size.replace(/^([0-9.]+)([a-z]+)$/i, '$1$2'),
+        sortValue: unit === 'kg' ? numeric * 1000 : numeric
+      };
+    }
 
     async function loadProduct() {
       if (!productId) { window.location.href = 'shop.html'; return; }
 
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/products?id=eq.${productId}&limit=1`,
+        `${SUPABASE_URL}/rest/v1/products?is_active=eq.true&order=created_at.desc`,
         { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
       );
       const data = await res.json();
-      if (!data || !data[0]) { window.location.href = 'shop.html'; return; }
-      renderProduct(data[0]);
+      const selected = (data || []).find(product => String(product.id) === String(productId));
+      if (!selected) { window.location.href = 'shop.html'; return; }
+
+      const selectedVariant = getDetailVariantInfo(selected);
+      const variants = selectedVariant
+        ? data
+            .map(product => ({ ...product, variant: getDetailVariantInfo(product) }))
+            .filter(product => product.variant && product.variant.baseName.toLowerCase() === selectedVariant.baseName.toLowerCase())
+            .sort((a, b) => a.variant.sortValue - b.variant.sortValue)
+        : [selected];
+
+      renderProduct(selected, variants);
     }
 
-    function renderProduct(p) {
-      document.title = `${p.name} — CaneCreme`;
+    function renderProduct(p, variants = [p]) {
+      activeVariants = variants;
+      activeProduct = p;
+      const selectedVariant = getDetailVariantInfo(p);
+      const displayName = selectedVariant ? selectedVariant.baseName : p.name;
+      document.title = `${displayName} — CaneCreme`;
 
       const images = (p.images && p.images.length) ? p.images : [];
       let currentImg = 0;
@@ -491,17 +556,30 @@
         `<span style="color:${i < rating ? 'var(--gold)' : '#e5e7eb'}">★</span>`
       ).join('');
 
+      const variantHtml = activeVariants.length > 1
+        ? `<div class="pd-variant-wrap">
+            <div class="pd-variant-label">Size: <span id="pd-selected-size">${selectedVariant ? selectedVariant.sizeLabel : ''}</span></div>
+            <div class="pd-variant-options">
+              ${activeVariants.map(variantProduct => `
+                <button class="pd-variant-btn ${variantProduct.id === p.id ? 'active' : ''}" data-variant-id="${variantProduct.id}" onclick="selectVariant('${variantProduct.id}')">
+                  ${variantProduct.variant.sizeLabel}
+                </button>
+              `).join('')}
+            </div>
+          </div>`
+        : '';
+
       document.getElementById('pd-info').innerHTML = `
-        <div class="pd-name">${p.name}</div>
+        <div class="pd-name" id="pd-name">${displayName}</div>
         <div class="pd-stars">${stars}</div>
         <div class="pd-price-row">
-          <span class="pd-price">₹${parseFloat(p.price).toFixed(0)}</span>
-          ${hasSale ? `<span class="pd-compare">₹${parseFloat(p.compare_at_price).toFixed(0)}</span>` : ''}
-          ${hasSale ? `<span class="pd-save">Save ₹${saving}</span>` : ''}
+          <span class="pd-price" id="pd-price">₹${parseFloat(p.price).toFixed(0)}</span>
+          <span class="pd-compare" id="pd-compare" style="${hasSale ? '' : 'display:none;'}">₹${hasSale ? parseFloat(p.compare_at_price).toFixed(0) : ''}</span>
+          <span class="pd-save" id="pd-save" style="${hasSale ? '' : 'display:none;'}">Save ₹${saving}</span>
         </div>
         <div class="pd-stock">
-          <div class="pd-stock-dot ${inStock ? '' : 'out'}"></div>
-          <span>${inStock ? 'In Stock' : 'Out of Stock'}</span>
+          <div class="pd-stock-dot ${inStock ? '' : 'out'}" id="pd-stock-dot"></div>
+          <span id="pd-stock-text">${inStock ? 'In Stock' : 'Out of Stock'}</span>
         </div>
         ${p.description ? `<div class="pd-desc">${p.description}</div>` : ''}
         <div class="pd-badges">
@@ -509,6 +587,7 @@
           <span class="pd-badge">✓ No Preservatives</span>
           <span class="pd-badge">🚚 ${deliveryLabel}</span>
         </div>
+        ${variantHtml}
         <div class="pincode-wrap" data-delivery-type="${deliveryType}">
           <div class="pincode-offer">
             <span>‹</span>
@@ -548,10 +627,41 @@
         el.value = newVal;
       };
 
+      window.selectVariant = function(id) {
+        const selected = activeVariants.find(product => String(product.id) === String(id));
+        if (!selected) return;
+        activeProduct = selected;
+        const variantInfo = getDetailVariantInfo(selected);
+        const selectedHasSale = selected.compare_at_price && parseFloat(selected.compare_at_price) > parseFloat(selected.price);
+        const selectedSaving = selectedHasSale ? Math.round(parseFloat(selected.compare_at_price) - parseFloat(selected.price)) : 0;
+        const selectedInStock = selected.stock === undefined || selected.stock > 0;
+
+        document.getElementById('pd-price').textContent = `₹${parseFloat(selected.price).toFixed(0)}`;
+        document.getElementById('pd-selected-size').textContent = variantInfo ? variantInfo.sizeLabel : '';
+
+        const compareEl = document.getElementById('pd-compare');
+        const saveEl = document.getElementById('pd-save');
+        compareEl.style.display = selectedHasSale ? '' : 'none';
+        compareEl.textContent = selectedHasSale ? `₹${parseFloat(selected.compare_at_price).toFixed(0)}` : '';
+        saveEl.style.display = selectedHasSale ? '' : 'none';
+        saveEl.textContent = selectedHasSale ? `Save ₹${selectedSaving}` : '';
+
+        document.getElementById('pd-stock-dot').classList.toggle('out', !selectedInStock);
+        document.getElementById('pd-stock-text').textContent = selectedInStock ? 'In Stock' : 'Out of Stock';
+        const addBtn = document.getElementById('pd-add-btn');
+        addBtn.disabled = !selectedInStock;
+        addBtn.textContent = selectedInStock ? 'Add to Cart' : 'Out of Stock';
+
+        document.querySelectorAll('.pd-variant-btn').forEach(button => {
+          button.classList.toggle('active', String(button.dataset.variantId) === String(selected.id));
+        });
+      };
+
       window.addToCartFromPage = function() {
+        const selected = activeProduct || p;
         const qty = parseInt(document.getElementById('qty-val').value) || 1;
         for (let i = 0; i < qty; i++) {
-          addToCart({ id: p.id, name: p.name, price: p.price, image: images[0] || null });
+          addToCart({ id: selected.id, name: selected.name, price: selected.price, image: images[0] || null });
         }
       };
     }

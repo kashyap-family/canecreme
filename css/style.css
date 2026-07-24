@@ -1160,6 +1160,13 @@ img { display: block; max-width: 100%; }
   line-height: 1.25;
 }
 
+.product-variant-count {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--green);
+  margin: -0.1rem 0 0.45rem;
+}
+
 .product-desc {
   font-size: 0.83rem;
   color: var(--gray);

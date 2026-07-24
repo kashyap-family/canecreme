@@ -11,7 +11,7 @@
   <meta property="og:description" content="Shop healthy snacks, cookies, brownies and gelato made with raw cane sugar." />
   <meta property="og:url" content="https://www.canecreme.co/shop.html" />
   <meta property="og:type" content="website" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style.css?v=12" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Lexend:wght@300;400;500;600;700&family=Lobster&display=swap" rel="stylesheet"/>
 </head>
 <body>
@@ -153,8 +153,8 @@
   </div>
 
   <script src="js/config.js"></script>
-  <script src="js/cart.js"></script>
-  <script src="js/products.js"></script>
+  <script src="js/cart.js?v=5"></script>
+  <script src="js/products.js?v=3"></script>
   <script src="js/main.js?v=5"></script>
   <script>
     const categoryKeywords = {
@@ -185,12 +185,13 @@
             const keys = categoryKeywords[category] || [category];
             return keys.some(k => name.includes(k) || cat.includes(k));
           });
+      const visibleProducts = groupProductVariants(filtered);
 
-      container.innerHTML = filtered.length
-        ? filtered.map(renderProductCard).join('')
+      container.innerHTML = visibleProducts.length
+        ? visibleProducts.map(renderProductCard).join('')
         : `<div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--gray);">Under construction....delicious things coming soon!</div>`;
 
-      if (countEl) countEl.textContent = `${filtered.length} product${filtered.length !== 1 ? 's' : ''}`;
+      if (countEl) countEl.textContent = `${visibleProducts.length} product${visibleProducts.length !== 1 ? 's' : ''}`;
       initCarouselHover();
     }
 
