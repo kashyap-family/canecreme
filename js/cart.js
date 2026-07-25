@@ -15,7 +15,10 @@ function addToCart(product) {
     cart.push({ ...product, quantity: 1 });
   }
   saveCart();
-  openCart();
+ if (typeof fbq === 'function') {
+   fbq('track','AddToCart');
+ }
+   openCart();
   showToast(`${product.name} added to cart`);
 }
 
