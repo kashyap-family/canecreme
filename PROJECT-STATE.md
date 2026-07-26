@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 96 fixed Makhana filter for Peri pop and Pudina pop (2026-07-26)
+> Last updated: Session 97 added Makhana Chips to Supabase (2026-07-26)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -426,6 +426,7 @@ How to add product images correctly:
 | 2 in 1 tea cake (Chocolate & Dry fruit cake) - 300g | 0f22944a-a5d1-4e45-9ef0-2ef755b9b258 | Assets/Tea cakes/2 in 1 cake/2 in 1-tea-cake-1.jpeg → 4.jpeg (4 images) | ₹235 / compare-at ₹362 |
 | Peri pop - 90g | 8c9f2d2a-83e2-4c0d-bfbb-0f067d054bab | Assets/Makhana/Peri pop/Peri-pop-1.jpeg → 5.jpeg (5 images) | ₹255 / compare-at ₹395 |
 | Pudina pop - 90g | d1080e13-4b72-4a67-9b20-9a41f517290a | Assets/Makhana/pudina pop/Pudina-pop-1.jpeg → 5.jpeg (5 images) | ₹255 / compare-at ₹395 |
+| Makhana Chips - 90g | 8cce9560-ddc3-4f4c-96cf-c49266e407fe | Assets/Makhana/makhana chips/Makhana-chips-1.jpeg → 4.jpeg (4 images) | ₹215 / compare-at ₹335 |
 
 ## 10E. Current Assets in Assets/ folder (verified 2026-05-08)
 - beet-bites-1.jpg → beet-bites-4.jpg
@@ -610,3 +611,4 @@ How to add product images correctly:
 | Session 94 | 2026-07-26 | User provided Peri pop Makhana product details and explicitly approved publishing to live Supabase after external publish confirmation. Inserted 1 active Supabase `products` row: `Peri pop - 90g` ₹255 compare-at ₹395 stock 100 (`8c9f2d2a-83e2-4c0d-bfbb-0f067d054bab`). Description saved as `Roasted makhana with a spicy peri peri flavour.` Images point to `Assets/Makhana/Peri pop/Peri-pop-1.jpeg` through `Peri-pop-5.jpeg`. Live `products` table still lacks `delivery_type`, so Pan India could not be saved on the row. Verified public Supabase read returns the row. Image folder is untracked locally until staged/pushed. |
 | Session 95 | 2026-07-26 | User provided Pudina pop Makhana product details and explicitly approved publishing to live Supabase after external publish confirmation. Inserted 1 active Supabase `products` row: `Pudina pop - 90g` ₹255 compare-at ₹395 stock 100 (`d1080e13-4b72-4a67-9b20-9a41f517290a`). Description saved as `Light, Crispy popped chips with a refreshing mint flavour and less than 1% oil.` Images point to `Assets/Makhana/pudina pop/Pudina-pop-1.jpeg` through `Pudina-pop-5.jpeg`. Live `products` table still lacks `delivery_type`, so Pan India could not be saved on the row. Verified public Supabase read returns the row. Image folder is untracked locally until staged/pushed. |
 | Session 96 | 2026-07-26 | User clarified Peri pop and Pudina pop should appear inside the Makhana website option. Verified `shop.html` category filtering was keyword-based and the Makhana filter only matched `makhana`, while live product names are `Peri pop - 90g` and `Pudina pop - 90g`. Updated the Makhana keyword list to include `peri pop` and `pudina pop`, so `shop.html?category=makhana` and the Makhana filter button include both products. |
+| Session 97 | 2026-07-26 | User provided Makhana Chips product details and explicitly approved publishing to live Supabase after external publish confirmation. Inserted 1 active Supabase `products` row: `Makhana Chips - 90g` ₹215 compare-at ₹335 stock 100 (`8cce9560-ddc3-4f4c-96cf-c49266e407fe`). Description saved as `Crunch into delicious popped makhana chips, perfectly seasoned for a light and satisfying snack.` Images point to `Assets/Makhana/makhana chips/Makhana-chips-1.jpeg` through `Makhana-chips-4.jpeg`. Live `products` table still lacks `delivery_type`, so Pan India could not be saved on the row. Verified public Supabase read returns the row. Product name includes `Makhana`, so the existing Makhana filter includes it without another frontend change. Image folder is untracked locally until staged/pushed. |
