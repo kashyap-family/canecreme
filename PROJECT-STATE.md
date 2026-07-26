@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 98 removed Sale badges from product cards (2026-07-26)
+> Last updated: Session 99 renamed Bites category labels to Snacks (2026-07-26)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -613,3 +613,4 @@ How to add product images correctly:
 | Session 96 | 2026-07-26 | User clarified Peri pop and Pudina pop should appear inside the Makhana website option. Verified `shop.html` category filtering was keyword-based and the Makhana filter only matched `makhana`, while live product names are `Peri pop - 90g` and `Pudina pop - 90g`. Updated the Makhana keyword list to include `peri pop` and `pudina pop`, so `shop.html?category=makhana` and the Makhana filter button include both products. |
 | Session 97 | 2026-07-26 | User provided Makhana Chips product details and explicitly approved publishing to live Supabase after external publish confirmation. Inserted 1 active Supabase `products` row: `Makhana Chips - 90g` ₹215 compare-at ₹335 stock 100 (`8cce9560-ddc3-4f4c-96cf-c49266e407fe`). Description saved as `Crunch into delicious popped makhana chips, perfectly seasoned for a light and satisfying snack.` Images point to `Assets/Makhana/makhana chips/Makhana-chips-1.jpeg` through `Makhana-chips-4.jpeg`. Live `products` table still lacks `delivery_type`, so Pan India could not be saved on the row. Verified public Supabase read returns the row. Product name includes `Makhana`, so the existing Makhana filter includes it without another frontend change. Image folder is untracked locally until staged/pushed. |
 | Session 98 | 2026-07-26 | User asked to remove the `Sale` text shown on website product cards. Updated `js/products.js` so products with compare-at pricing still show compare-at prices but no longer render a `Sale` badge. Bestseller and New badges remain unchanged. |
+| Session 99 | 2026-07-26 | User asked to change the Bites name to Snacks. Updated customer-facing labels from `Bites` to `Snacks` in the public nav dropdowns, shop filter button, homepage hero eyebrow, and homepage category card. Kept the internal `category=bites` URL/filter key unchanged so existing Beet/Broccoli/Soya product filtering continues to work. |
