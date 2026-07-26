@@ -96,7 +96,7 @@ function renderProductCard(product) {
   const badge = isBestseller
     ? `<div class="product-badge bestseller-badge">⭐ Bestseller</div>`
     : hasSale
-    ? `<div class="product-badge">Sale</div>`
+    ? ''
     : `<div class="product-badge new-badge">New</div>`;
 
   const comparePrice = hasSale
