@@ -743,6 +743,18 @@ img { display: block; max-width: 100%; }
   border-radius: 50%;
 }
 
+.category-card--gifting .category-circle {
+  background: #fffaf2;
+  border-radius: 26px;
+}
+
+.category-card--gifting .category-circle img {
+  object-fit: contain;
+  object-position: center;
+  padding: 0.35rem;
+  border-radius: 22px;
+}
+
 .category-card:hover .category-circle {
   background: var(--white);
   border-color: var(--gold);
@@ -3345,6 +3357,15 @@ img { display: block; max-width: 100%; }
     border-radius: 13px;
     filter: saturate(1.08) contrast(1.03);
     transition: transform 0.45s ease;
+  }
+  .category-card--gifting .category-circle {
+    background: #fffaf2;
+  }
+  .category-card--gifting .category-circle img {
+    object-fit: contain;
+    object-position: center;
+    padding: 0.45rem;
+    background: #fffaf2;
   }
   .category-card span {
     position: absolute;
