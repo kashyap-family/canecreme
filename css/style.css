@@ -3133,20 +3133,15 @@ img { display: block; max-width: 100%; }
   .hero {
     min-height: auto;
     align-items: flex-start;
-    background:
-      radial-gradient(circle at 78% 44%, rgba(250,204,21,0.32), transparent 28%),
-      radial-gradient(circle at 88% 18%, rgba(249,115,22,0.24), transparent 30%),
-      linear-gradient(135deg, #FFF8E8 0%, #FFF1D6 30%, #FFE2B3 70%, #FFD18A 100%);
+    background: #fff7ed;
   }
   .hero-inner {
-    width: min(100% - 2rem, 720px);
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.35rem;
-    padding: 5.75rem 0 1.25rem;
+    width: 100%;
+    display: block;
+    padding: 0;
   }
   .hero-copy {
-    display: block;
+    display: none;
     max-width: 100%;
     order: 1;
   }
@@ -3175,8 +3170,8 @@ img { display: block; max-width: 100%; }
   .hero-visual {
     min-height: auto;
     width: 100%;
-    max-width: 480px;
-    margin: 0.2rem auto 0;
+    max-width: none;
+    margin: 0;
     order: 2;
   }
   .hero-product-frame {
@@ -3184,7 +3179,7 @@ img { display: block; max-width: 100%; }
     inset: auto;
     width: 100%;
     aspect-ratio: 16 / 9;
-    border-radius: 24px;
+    border-radius: 0;
     background: #fffaf0;
     transform: none;
   }
@@ -3192,7 +3187,7 @@ img { display: block; max-width: 100%; }
     display: none;
   }
   .hero-cover-slide {
-    object-fit: contain;
+    object-fit: cover;
     object-position: center;
   }
   .hero-product-frame > img {
@@ -3232,52 +3227,77 @@ img { display: block; max-width: 100%; }
     display: none;
   }
   .categories-section {
-    padding: 1rem 0 3.25rem;
-    background: #fff3e8;
-    overflow: hidden;
+    padding: 2.75rem 1rem 3.25rem;
+    background: #fff7ed;
+    overflow: visible;
   }
   .categories-section .section-header {
-    display: none !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    margin-bottom: 1.7rem !important;
+  }
+  .categories-section .eyebrow {
+    display: none;
+  }
+  .categories-section .section-title {
+    font-size: 2.15rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0;
+    margin: 0;
+  }
+  .categories-section .section-title::after {
+    display: none;
   }
   .categories-grid {
-    display: flex;
-    justify-content: flex-start;
-    flex-wrap: nowrap;
-    gap: 0.8rem;
-    max-width: none;
-    margin: 0;
-    padding: 0 1rem 0.2rem;
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
-    -webkit-overflow-scrolling: touch;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 0;
+    overflow: visible;
   }
   .categories-grid::-webkit-scrollbar {
     display: none;
   }
   .category-card {
-    flex: 0 0 44vw;
-    width: 44vw;
-    gap: 0.72rem;
-    scroll-snap-align: start;
+    position: relative;
+    width: 100%;
+    gap: 0;
+    overflow: hidden;
+    border-radius: 6px;
+    scroll-snap-align: none;
   }
   .category-circle {
     width: 100%;
     height: auto;
-    aspect-ratio: 1 / 1;
-    border-radius: 18px;
-    border: 1px solid rgba(255,255,255,0.8);
-    box-shadow: 0 12px 28px rgba(55,31,8,0.13);
+    aspect-ratio: 1.32 / 1;
+    border-radius: 6px;
+    border: none;
+    box-shadow: none;
+    background: #d43a16;
   }
   .category-circle img {
     object-fit: cover;
     padding: 0;
-    border-radius: 18px;
+    border-radius: 6px;
+    filter: saturate(1.08) contrast(1.03);
   }
   .category-card span {
-    font-size: 0.92rem;
+    position: absolute;
+    left: 0.65rem;
+    right: 0.65rem;
+    bottom: 0.7rem;
+    z-index: 2;
+    color: #fff;
+    font-size: 0.95rem;
     font-weight: 800;
-    text-transform: uppercase;
+    text-transform: none;
     letter-spacing: 0;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.45);
   }
 
   .process-inner { flex-direction: column; align-items: flex-start; gap: 0; }
@@ -3340,8 +3360,8 @@ img { display: block; max-width: 100%; }
 
 @media (max-width: 480px) {
   .hero-inner {
-    width: min(100% - 1.25rem, 420px);
-    padding-top: 5.5rem;
+    width: 100%;
+    padding-top: 0;
   }
   .hero-eyebrow {
     font-size: 0.68rem;
@@ -3364,11 +3384,10 @@ img { display: block; max-width: 100%; }
     right: 1%;
   }
   .category-card {
-    flex-basis: 43vw;
-    width: 43vw;
+    width: 100%;
   }
   .category-card span {
-    font-size: 0.84rem;
+    font-size: 0.86rem;
   }
 
   .section-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
