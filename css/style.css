@@ -3034,16 +3034,18 @@ img { display: block; max-width: 100%; }
 
   /* Premium mobile glass navbar */
   .nav {
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: 0.65rem;
-    right: 0.65rem;
+    left: auto;
+    right: auto;
     z-index: 500;
     height: 72px;
-    background: rgba(255, 250, 235, 0.65);
+    width: calc(100% - 1.3rem);
+    margin: 0.65rem auto 0;
+    background: rgba(255, 250, 235, 0.82);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(255,255,255,0.35);
+    border: 1px solid rgba(255,255,255,0.52);
     border-top: 0;
     border-radius: 0 0 18px 18px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.08);
