@@ -2843,13 +2843,13 @@ img { display: block; max-width: 100%; }
   background: var(--white);
   border-radius: 16px;
   overflow: hidden;
-  width: 380px;
-  max-width: 95vw;
+  width: 350px;
+  max-width: 90vw;
   position: relative;
   box-shadow: 0 24px 80px rgba(0,0,0,0.22);
   transform: translateY(28px) scale(0.96);
   transition: transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
-  max-height: 86vh;
+  max-height: 82vh;
   overflow-y: auto;
 }
 
@@ -2860,7 +2860,7 @@ img { display: block; max-width: 100%; }
 /* Top purple visual panel */
 .popup-top {
   background: var(--green);
-  padding: 1.75rem 1.5rem 1.35rem;
+  padding: 1.35rem 1.25rem 1.05rem;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -2889,11 +2889,11 @@ img { display: block; max-width: 100%; }
 }
 
 .popup-logo {
-  width: 145px;
+  width: 118px;
   display: block;
-  margin: 0 auto 0.75rem;
+  margin: 0 auto 0.55rem;
   background: transparent;
-  padding: 6px 12px;
+  padding: 5px 10px;
   position: relative;
   z-index: 1;
   mix-blend-mode: multiply;
@@ -2903,26 +2903,26 @@ img { display: block; max-width: 100%; }
   background: var(--gold);
   box-shadow: 0 4px 20px rgba(221,161,94,0.5);
   border-radius: 50%;
-  width: 74px;
-  height: 74px;
+  width: 62px;
+  height: 62px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 0.85rem;
+  margin: 0 auto 0.62rem;
   position: relative;
   z-index: 1;
 }
 
 .popup-offer-pct {
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: var(--dark);
   line-height: 1;
 }
 
 .popup-offer-txt {
-  font-size: 0.6rem;
+  font-size: 0.52rem;
   font-weight: 700;
   color: var(--dark);
   text-transform: uppercase;
@@ -2931,7 +2931,7 @@ img { display: block; max-width: 100%; }
 }
 
 .popup-fine {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   color: rgba(255,255,255,0.65);
   position: relative;
   z-index: 1;
@@ -2962,22 +2962,22 @@ img { display: block; max-width: 100%; }
 
 /* Bottom form panel */
 .popup-bottom {
-  padding: 1.35rem 1.6rem 1.2rem;
+  padding: 1.05rem 1.25rem 0.95rem;
 }
 
 .popup-eyebrow {
-  font-size: 0.68rem;
+  font-size: 0.6rem;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--green);
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.32rem;
   text-align: center;
 }
 
 .popup-heading {
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.12rem;
   font-weight: 500;
   color: var(--dark);
   line-height: 1.2;
@@ -2986,22 +2986,22 @@ img { display: block; max-width: 100%; }
 }
 
 .popup-sub {
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   color: var(--gray);
-  line-height: 1.5;
-  margin-bottom: 1rem;
+  line-height: 1.42;
+  margin-bottom: 0.78rem;
   text-align: center;
 }
 
-.popup-form { display: flex; flex-direction: column; gap: 0.55rem; }
+.popup-form { display: flex; flex-direction: column; gap: 0.46rem; }
 
 .popup-field input {
   width: 100%;
-  padding: 0.68rem 0.9rem;
+  padding: 0.58rem 0.78rem;
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
   font-family: var(--font-body);
-  font-size: 0.84rem;
+  font-size: 0.76rem;
   color: var(--dark);
   background: var(--cream-dark);
   outline: none;
@@ -3033,8 +3033,8 @@ img { display: block; max-width: 100%; }
 }
 
 .popup-phone-code {
-  padding: 0.68rem 0.8rem;
-  font-size: 0.84rem;
+  padding: 0.58rem 0.68rem;
+  font-size: 0.76rem;
   font-weight: 500;
   color: var(--dark);
   border-right: 1.5px solid var(--border);
@@ -3059,10 +3059,10 @@ img { display: block; max-width: 100%; }
   background: var(--gold);
   color: var(--dark);
   border: none;
-  padding: 0.78rem;
+  padding: 0.66rem;
   border-radius: var(--radius);
   font-family: var(--font-body);
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
   letter-spacing: 0.03em;
@@ -3079,9 +3079,9 @@ img { display: block; max-width: 100%; }
 
 .popup-skip {
   text-align: center;
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   color: var(--gray-light);
-  margin-top: 0.85rem;
+  margin-top: 0.65rem;
   cursor: pointer;
   transition: color var(--transition);
   text-decoration: underline;
@@ -3102,9 +3102,37 @@ img { display: block; max-width: 100%; }
 
 @media (max-width: 768px) {
   /* Popup mobile */
-  .popup-box { max-height: 88vh; }
-  .popup-top { padding: 2rem 1.5rem 1.5rem; }
-  .popup-bottom { padding: 1.5rem 1.5rem 1.25rem; }
+  .popup-box {
+    width: 330px;
+    max-width: 84vw;
+    max-height: 82vh;
+    border-radius: 14px;
+  }
+  .popup-top { padding: 1.15rem 1.05rem 0.85rem; }
+  .popup-bottom { padding: 0.95rem 1.05rem 0.82rem; }
+  .popup-close {
+    top: 0.62rem;
+    right: 0.62rem;
+    width: 26px;
+    height: 26px;
+    font-size: 1rem;
+  }
+  .popup-logo {
+    width: 104px;
+    padding: 4px 8px;
+  }
+  .popup-offer-badge {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 0.5rem;
+  }
+  .popup-offer-pct { font-size: 1.2rem; }
+  .popup-fine { font-size: 0.62rem; }
+  .popup-heading { font-size: 1.02rem; }
+  .popup-sub { font-size: 0.64rem; margin-bottom: 0.68rem; }
+  .popup-field input { padding: 0.54rem 0.72rem; font-size: 0.72rem; }
+  .popup-phone-code { padding: 0.54rem 0.62rem; font-size: 0.72rem; }
+  .popup-submit { padding: 0.62rem; font-size: 0.74rem; }
   .proof-toast { left: 1rem; right: 1rem; max-width: none; }
   .announcement-bar { display: none; }
 
