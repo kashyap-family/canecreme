@@ -3212,7 +3212,7 @@ img { display: block; max-width: 100%; }
     font-size: 0.88rem;
   }
   .hero-visual {
-    min-height: clamp(430px, 92vw, 560px);
+    min-height: auto;
     width: 100%;
     max-width: 480px;
     margin: 0 auto;
@@ -3222,11 +3222,15 @@ img { display: block; max-width: 100%; }
     position: relative;
     inset: auto;
     width: 100%;
-    aspect-ratio: 2 / 3;
+    aspect-ratio: 16 / 9;
     border-radius: 24px;
+    background: #fffaf0;
+  }
+  .hero-product-chip {
+    display: none;
   }
   .hero-cover-slide {
-    object-fit: cover;
+    object-fit: contain;
     object-position: center;
   }
   .hero-product-frame > img {
@@ -3345,7 +3349,7 @@ img { display: block; max-width: 100%; }
   .hero-desc {
     line-height: 1.65;
   }
-  .hero-visual { min-height: clamp(420px, 118vw, 520px); }
+  .hero-visual { min-height: auto; }
   .hero-glow {
     inset: 0 -12% 8%;
   }
