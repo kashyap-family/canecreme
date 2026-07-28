@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 128 cover category label and Gifting nav link (2026-07-28)
+> Last updated: Session 129 Gifting category image replacement (2026-07-28)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -643,3 +643,4 @@ How to add product images correctly:
 | Session 126 | 2026-07-28 | User reported the Gifting gift box still was not fully visible. Root cause was the Gifting image padding increasing the rendered image beyond its thumbnail frame, so the lower gift box could still clip inside the overflow-hidden category frame. Added `box-sizing: border-box` to the Gifting category image overrides on desktop and mobile and bumped homepage stylesheet cache bust from `css/style.css?v=23` to `v=24`. No Supabase/database changes. |
 | Session 127 | 2026-07-28 | User provided a reference for the homepage categories section: cream background, `Shop By Collection` heading, five rounded collection cards, square product photos, and labels below. Updated `index.html` title text from `Categories` to `Shop By Collection`, reordered Gifting after All Products to match the reference, and changed desktop/mobile category CSS from lime circular icons/overlay cards to cream rounded collection cards. Bumped homepage stylesheet cache bust from `css/style.css?v=24` to `v=25`. No Supabase/database changes. |
 | Session 128 | 2026-07-28 | User asked to write `Categories` at the top of the cover photo and add a Gifting button in the navigation bar next to Shop. Added a top-centered `.hero-cover-label` overlay inside the homepage hero cover frame, added a top-level `Gifting` nav link pointing to `shop.html?category=rakhi` immediately after Shop, and bumped homepage stylesheet cache bust from `css/style.css?v=25` to `v=26`. No Supabase/database changes. |
+| Session 129 | 2026-07-28 | User asked to recheck `Assets/category/Gifting/Gifting.jpeg` and replace the Gifting image from the category icon. Verified the local replacement image exists and is `736x846`, committed the modified `Gifting.jpeg` asset, and updated the homepage Gifting category image URL to `Assets/category/Gifting/Gifting.jpeg?v=2` so browsers fetch the refreshed gift-box photo instead of a cached old image. No Supabase/database changes. |
