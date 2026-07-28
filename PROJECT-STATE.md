@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 132 homepage order changed to hero before Shop By Collection (2026-07-28)
+> Last updated: Session 133 Shop By Collection mobile visual polish (2026-07-28)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -647,3 +647,4 @@ How to add product images correctly:
 | Session 130 | 2026-07-28 | User asked to move the `Categories` label to above the hero picture instead of over the image. Moved `.hero-cover-label` in `index.html` so it sits before `.hero-product-frame`, changed `.hero-visual` to a centered column stack, changed `.hero-cover-label` from absolute overlay positioning to an in-flow centered pill, adjusted mobile spacing, and bumped homepage stylesheet cache bust from `css/style.css?v=26` to `v=27`. No Supabase/database changes. |
 | Session 131 | 2026-07-28 | User clarified that the full `Shop By Collection` category section should appear between the navigation bar and the hero image. Moved the homepage product categories section from below the hero/marquee to immediately after `<nav>`, removed the temporary `Categories` hero-cover label and its unused CSS, and bumped homepage stylesheet cache bust from `css/style.css?v=27` to `v=28`. No Supabase/database changes. |
 | Session 132 | 2026-07-28 | User asked to rearrange the website to navigation bar, then hero cover page, then `Shop By Collection`. Updated `index.html` so the homepage product categories section now renders immediately after the hero and before the lime marquee strip. Verified the order markers are now `<!-- HERO -->`, then `<!-- PRODUCT CATEGORIES -->`, then `<!-- MARQUEE STRIP -->`. No Supabase/database changes. |
+| Session 133 | 2026-07-28 | User shared a mobile screenshot of the homepage `Shop By Collection` area and asked to make it look attractive. Refined `css/style.css` for the collection section with warmer layered backgrounds, stronger glass-style cards, richer shadows/borders, bolder labels, a cleaner mobile title underline, tighter mobile spacing after the hero, and centered the single Gifting card across both mobile grid columns. Bumped homepage stylesheet cache bust from `css/style.css?v=28` to `v=29` in `index.html`. No Supabase/database changes. |
