@@ -3273,7 +3273,7 @@ img { display: block; max-width: 100%; }
     display: none;
   }
   .categories-section {
-    padding: 2.35rem 1rem 3.4rem;
+    padding: 2.1rem 1rem 3rem;
     background:
       radial-gradient(circle at 15% 8%, rgba(255,128,0,0.12), transparent 28%),
       linear-gradient(180deg, #fff7ed 0%, #fff4e6 52%, #fffaf3 100%);
@@ -3284,13 +3284,13 @@ img { display: block; max-width: 100%; }
     justify-content: center !important;
     align-items: center !important;
     text-align: center !important;
-    margin-bottom: 1.45rem !important;
+    margin-bottom: 1.25rem !important;
   }
   .categories-section .eyebrow {
     display: none;
   }
   .categories-section .section-title {
-    font-size: 2.05rem;
+    font-size: 1.86rem;
     font-weight: 900;
     text-transform: uppercase;
     letter-spacing: 0;
@@ -3303,8 +3303,8 @@ img { display: block; max-width: 100%; }
   .categories-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.78rem;
-    max-width: 560px;
+    gap: 0.62rem;
+    max-width: 430px;
     margin: 0 auto;
     padding: 0;
     overflow: visible;
@@ -3317,9 +3317,9 @@ img { display: block; max-width: 100%; }
     width: 100%;
     gap: 0;
     overflow: hidden;
-    border-radius: 16px;
+    border-radius: 13px;
     scroll-snap-align: none;
-    box-shadow: 0 16px 34px rgba(53,28,5,0.16);
+    box-shadow: 0 12px 24px rgba(53,28,5,0.14);
     background: #fff;
   }
   .category-card::after {
@@ -3333,8 +3333,8 @@ img { display: block; max-width: 100%; }
   .category-circle {
     width: 100%;
     height: auto;
-    aspect-ratio: 1.08 / 1;
-    border-radius: 16px;
+    aspect-ratio: 1.28 / 1;
+    border-radius: 13px;
     border: none;
     box-shadow: none;
     background: #d43a16;
@@ -3342,18 +3342,18 @@ img { display: block; max-width: 100%; }
   .category-circle img {
     object-fit: cover;
     padding: 0;
-    border-radius: 16px;
+    border-radius: 13px;
     filter: saturate(1.08) contrast(1.03);
     transition: transform 0.45s ease;
   }
   .category-card span {
     position: absolute;
-    left: 0.7rem;
-    right: 0.7rem;
-    bottom: 0.75rem;
+    left: 0.56rem;
+    right: 0.56rem;
+    bottom: 0.58rem;
     z-index: 2;
     color: #fff;
-    font-size: 0.92rem;
+    font-size: 0.82rem;
     font-weight: 800;
     text-transform: none;
     letter-spacing: 0;
@@ -3448,7 +3448,7 @@ img { display: block; max-width: 100%; }
     width: 100%;
   }
   .category-card span {
-    font-size: 0.82rem;
+    font-size: 0.76rem;
   }
 
   .section-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
