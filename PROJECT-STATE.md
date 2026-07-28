@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 134 smaller mobile entry popup (2026-07-28)
+> Last updated: Session 135 handoff after homepage visual updates (2026-07-28)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -649,3 +649,4 @@ How to add product images correctly:
 | Session 132 | 2026-07-28 | User asked to rearrange the website to navigation bar, then hero cover page, then `Shop By Collection`. Updated `index.html` so the homepage product categories section now renders immediately after the hero and before the lime marquee strip. Verified the order markers are now `<!-- HERO -->`, then `<!-- PRODUCT CATEGORIES -->`, then `<!-- MARQUEE STRIP -->`. No Supabase/database changes. |
 | Session 133 | 2026-07-28 | User shared a mobile screenshot of the homepage `Shop By Collection` area and asked to make it look attractive. Refined `css/style.css` for the collection section with warmer layered backgrounds, stronger glass-style cards, richer shadows/borders, bolder labels, a cleaner mobile title underline, tighter mobile spacing after the hero, and centered the single Gifting card across both mobile grid columns. Bumped homepage stylesheet cache bust from `css/style.css?v=28` to `v=29` in `index.html`. No Supabase/database changes. |
 | Session 134 | 2026-07-28 | User shared a mobile screenshot of the entry discount popup and asked to make the popup smaller. Reduced popup box width/max-height, green top panel padding, logo size, 10% badge size, heading/subcopy sizes, form gaps, input/phone-code padding, submit button size, skip-copy size, and added tighter mobile overrides for close button/logo/badge/form controls. Bumped homepage stylesheet cache bust from `css/style.css?v=29` to `v=30` in `index.html`. No Supabase/database changes. |
+| Session 135 | 2026-07-28 | Handoff update only. Confirmed `PROJECT-STATE.md` is current through the latest homepage visual work: homepage order is nav → hero cover → Shop By Collection, collection cards were polished for mobile, and the entry discount popup was made smaller with stylesheet cache bust now at `css/style.css?v=30`. No Supabase/database changes. Current unrelated local worktree changes remain outside this handoff and should not be staged unless user asks. |
