@@ -489,6 +489,38 @@ img { display: block; max-width: 100%; }
   transform: scale(1);
 }
 
+.hero-cover-button {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(1.2rem, 4vw, 3.1rem);
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: clamp(132px, 13vw, 190px);
+  min-height: clamp(42px, 4.2vw, 58px);
+  padding: 0.78rem 1.35rem;
+  border-radius: 999px;
+  background: #000;
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.82);
+  box-shadow: 0 18px 36px rgba(0,0,0,0.22);
+  font-family: var(--font-display);
+  font-size: clamp(0.82rem, 1.1vw, 1rem);
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-decoration: none;
+  transform: translateX(-50%);
+  transition: transform var(--transition), background var(--transition), color var(--transition);
+}
+
+.hero-cover-button:hover {
+  background: var(--gold);
+  color: #000;
+  transform: translateX(-50%) translateY(-2px);
+}
+
 .hero-product-frame > img {
   position: relative;
   z-index: 2;
@@ -3192,6 +3224,15 @@ img { display: block; max-width: 100%; }
   .hero-cover-slide {
     object-fit: cover;
     object-position: center 48%;
+  }
+  .hero-cover-button {
+    bottom: 0.72rem;
+    min-width: 116px;
+    min-height: 38px;
+    padding: 0.62rem 1rem;
+    font-size: 0.74rem;
+    border-width: 1px;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.2);
   }
   .hero-product-frame > img {
     height: 100%;
