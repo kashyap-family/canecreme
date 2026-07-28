@@ -753,6 +753,7 @@ img { display: block; max-width: 100%; }
   object-position: center;
   padding: 0.35rem;
   border-radius: 22px;
+  box-sizing: border-box;
 }
 
 .category-card:hover .category-circle {
@@ -3366,6 +3367,7 @@ img { display: block; max-width: 100%; }
     object-position: center;
     padding: 0.45rem;
     background: #fffaf2;
+    box-sizing: border-box;
   }
   .category-card span {
     position: absolute;
