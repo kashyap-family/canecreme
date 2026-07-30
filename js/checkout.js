@@ -537,6 +537,10 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
   btn.disabled = true;
 
   try {
+    window.CaneCremeAnalytics?.trackInitiateCheckout({
+      value: total,
+      items: cart
+    });
     const profile = { name, email: emailInput, phone, address1, address2, city, state, pin, country };
     saveCheckoutProfile(profile);
     renderSavedAddressCard(profile);

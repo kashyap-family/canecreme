@@ -15,10 +15,8 @@ function addToCart(product) {
     cart.push({ ...product, quantity: 1 });
   }
   saveCart();
- if (typeof fbq === 'function') {
-   fbq('track','AddToCart');
- }
-   openCart();
+  window.CaneCremeAnalytics?.trackAddToCart(product);
+  openCart();
   showToast(`${product.name} added to cart`);
 }
 

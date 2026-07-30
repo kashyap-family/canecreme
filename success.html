@@ -80,6 +80,7 @@
 
   <script src="js/config.js?v=3"></script>
   <script src="js/main.js?v=5"></script>
+  <script src="js/analytics.js?v=2"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
     const orderId = params.get('order');
@@ -184,6 +185,11 @@
       document.getElementById('success-compare').textContent = '';
       renderItems(order.items);
       renderMap(order.map_query || order.address);
+      window.CaneCremeAnalytics?.trackPurchase({
+        order_id: order.id || order.order_id || orderNumber,
+        value: order.total_amount,
+        items: order.items
+      });
 
       summaryBox.innerHTML = `
         <h2>Order details</h2>
