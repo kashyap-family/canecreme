@@ -2,9 +2,11 @@
 
 let currentOrderId = null;
 let allOrders = [];
+let allAbandonedCheckouts = [];
 let activeAdminTab = 'products';
 let ordersRefreshTimer = null;
 let ordersLoading = false;
+let abandonedLoading = false;
 
 const ADMIN_TIME_ZONE = 'Asia/Kolkata';
 const ORDERS_REFRESH_MS = 10000;
@@ -265,6 +267,69 @@ function formatCustomerDate(date) {
   return getOrderDate({ created_at: date.toISOString() });
 }
 
+function parseCheckoutDate(value) {
+  return parseOrderCreatedAt(value);
+}
+
+function getCheckoutDate(checkout) {
+  const date = parseCheckoutDate(checkout.updated_at || checkout.created_at);
+  if (!date) return '';
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: ADMIN_TIME_ZONE,
+    timeZoneName: 'short'
+  });
+}
+
+function getCheckoutAddressText(checkout) {
+  const addr = checkout.shipping_address || {};
+  return [
+    addr.line1,
+    addr.line2,
+    [addr.city, addr.state, addr.pin].filter(Boolean).join(' '),
+    addr.country
+  ].filter(Boolean).join(', ');
+}
+
+function getCheckoutItemNames(checkout) {
+  const items = Array.isArray(checkout.cart_items) ? checkout.cart_items : [];
+  return items.map(item => item?.name).filter(Boolean);
+}
+
+function getAbandonedSearchText(checkout) {
+  return [
+    checkout.customer_name,
+    checkout.customer_email,
+    checkout.customer_phone,
+    checkout.last_step,
+    checkout.payment_method,
+    getCheckoutAddressText(checkout),
+    getCheckoutItemNames(checkout).join(' ')
+  ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function getFilteredAbandonedCheckouts() {
+  const search = (document.getElementById('abandoned-search')?.value || '').trim().toLowerCase();
+  const date = document.getElementById('abandoned-date-filter')?.value || 'all';
+  const contact = document.getElementById('abandoned-contact-filter')?.value || 'all';
+
+  return allAbandonedCheckouts.filter(checkout => {
+    const matchesSearch = !search || getAbandonedSearchText(checkout).includes(search);
+    const syntheticOrder = { created_at: checkout.updated_at || checkout.created_at };
+    const matchesDate = date === 'all' || isWithinDateFilter(syntheticOrder, date);
+    const matchesContact =
+      contact === 'all' ||
+      (contact === 'phone' && checkout.customer_phone) ||
+      (contact === 'email' && checkout.customer_email);
+    return matchesSearch && matchesDate && matchesContact;
+  });
+}
+
 function updateOrderMetrics() {
   const total = allOrders.length;
   const pending = allOrders.filter(order => ['new', 'processing'].includes(order.order_status)).length;
@@ -314,6 +379,26 @@ function updateCustomerMetrics() {
   setText('metric-repeat-customers', String(repeatCustomers));
   setText('metric-customer-revenue', formatMoney(totalRevenue));
   setText('metric-new-customers', String(newThisMonth));
+}
+
+function updateAbandonedMetrics() {
+  const total = allAbandonedCheckouts.length;
+  const value = allAbandonedCheckouts.reduce((sum, checkout) => sum + Number(checkout.cart_total || 0), 0);
+  const today = allAbandonedCheckouts.filter(checkout => {
+    const syntheticOrder = { created_at: checkout.updated_at || checkout.created_at };
+    return isWithinDateFilter(syntheticOrder, 'today');
+  }).length;
+  const withPhone = allAbandonedCheckouts.filter(checkout => checkout.customer_phone).length;
+
+  const setText = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
+
+  setText('metric-abandoned-total', String(total));
+  setText('metric-abandoned-value', formatMoney(value));
+  setText('metric-abandoned-today', String(today));
+  setText('metric-abandoned-phone', String(withPhone));
 }
 
 function buildWhatsappUrl(order, items) {
@@ -404,6 +489,25 @@ async function callOrderEmail(orderId) {
   return data;
 }
 
+async function callAbandonedCheckouts(action, extra = {}) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/abandoned-checkouts`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      admin_password: ADMIN_PASSWORD,
+      action,
+      ...extra
+    })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Abandoned checkouts request failed');
+  return data;
+}
+
 function setRapidShypResult(message, type = 'info') {
   const resultEl = document.getElementById('rapidshyp-result');
   if (!resultEl) return;
@@ -461,6 +565,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!el) return;
     el.addEventListener(id === 'customer-search' ? 'input' : 'change', renderCustomers);
   });
+
+  ['abandoned-search', 'abandoned-date-filter', 'abandoned-contact-filter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener(id === 'abandoned-search' ? 'input' : 'change', renderAbandonedCheckouts);
+  });
 });
 
 // ===== TABS =====
@@ -469,11 +579,17 @@ function showTab(tab) {
   document.getElementById('tab-products-content').style.display = tab === 'products' ? 'block' : 'none';
   document.getElementById('tab-orders-content').style.display = tab === 'orders' ? 'block' : 'none';
   document.getElementById('tab-customers-content').style.display = tab === 'customers' ? 'block' : 'none';
+  document.getElementById('tab-abandoned-content').style.display = tab === 'abandoned' ? 'block' : 'none';
   document.getElementById('tab-products').classList.toggle('active', tab === 'products');
   document.getElementById('tab-orders').classList.toggle('active', tab === 'orders');
   document.getElementById('tab-customers').classList.toggle('active', tab === 'customers');
+  document.getElementById('tab-abandoned').classList.toggle('active', tab === 'abandoned');
   if (tab === 'orders' || tab === 'customers') {
     loadOrders();
+    startOrdersAutoRefresh();
+  }
+  if (tab === 'abandoned') {
+    loadAbandonedCheckouts();
     startOrdersAutoRefresh();
   }
   if (tab === 'products') {
@@ -698,6 +814,9 @@ function startOrdersAutoRefresh() {
     if ((activeAdminTab === 'orders' || activeAdminTab === 'customers') && !document.hidden) {
       loadOrders();
     }
+    if (activeAdminTab === 'abandoned' && !document.hidden) {
+      loadAbandonedCheckouts();
+    }
   }, ORDERS_REFRESH_MS);
 }
 
@@ -742,6 +861,112 @@ function renderOrders() {
       <td><button class="action-btn" onclick="openOrderModal('${o.id}')">View</button></td>
     </tr>
   `).join('');
+}
+
+async function loadAbandonedCheckouts() {
+  if (abandonedLoading) return;
+  abandonedLoading = true;
+  const tbody = document.getElementById('abandoned-table-body');
+  if (tbody && allAbandonedCheckouts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;">Loading...</td></tr>';
+  }
+
+  try {
+    const data = await callAbandonedCheckouts('list');
+    allAbandonedCheckouts = Array.isArray(data.checkouts) ? data.checkouts : [];
+  } catch (error) {
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:2rem;color:#dc2626;">${escapeHtml(error.message)}</td></tr>`;
+    }
+    abandonedLoading = false;
+    return;
+  }
+
+  updateAbandonedMetrics();
+  renderAbandonedCheckouts();
+  updateAbandonedRefreshNote();
+  abandonedLoading = false;
+}
+
+function updateAbandonedRefreshNote() {
+  const el = document.getElementById('abandoned-refresh-note');
+  if (!el) return;
+  const time = new Date().toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+    timeZone: ADMIN_TIME_ZONE,
+  });
+  el.textContent = `Auto-refresh: 10 sec · IST · Updated ${time}`;
+}
+
+function buildAbandonedWhatsappUrl(checkout) {
+  const phone = normalizeWhatsappPhone(checkout.customer_phone);
+  if (!phone) return '';
+  const items = getCheckoutItemNames(checkout).slice(0, 4).join(', ') || 'your CaneCreme cart';
+  const message = [
+    `Hi ${checkout.customer_name || ''},`,
+    '',
+    `You left ${items} in your CaneCreme checkout.`,
+    `Cart total: ${formatMoney(checkout.cart_total)}`,
+    '',
+    'Would you like help completing your order?'
+  ].join('\n');
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+}
+
+function renderAbandonedCheckouts() {
+  const tbody = document.getElementById('abandoned-table-body');
+  if (!tbody) return;
+
+  const checkouts = getFilteredAbandonedCheckouts();
+
+  if (allAbandonedCheckouts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:#6b6b6b;">No abandoned checkouts yet.</td></tr>';
+    return;
+  }
+
+  if (checkouts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:#6b6b6b;">No abandoned checkouts match these filters.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = checkouts.map(checkout => {
+    const items = getCheckoutItemNames(checkout);
+    const address = getCheckoutAddressText(checkout);
+    const whatsappUrl = buildAbandonedWhatsappUrl(checkout);
+    const lastStep = String(checkout.last_step || 'checkout_started').replace(/_/g, ' ');
+
+    return `
+      <tr>
+        <td>
+          <strong>${escapeHtml(checkout.customer_name || 'Checkout visitor')}</strong>
+          <small>${escapeHtml(address || 'Address not completed')}</small>
+        </td>
+        <td>
+          ${escapeHtml(checkout.customer_phone || 'No phone')}
+          <small>${escapeHtml(checkout.customer_email || 'No email')}</small>
+        </td>
+        <td><strong>${formatMoney(checkout.cart_total)}</strong><small>${escapeHtml(checkout.payment_method || 'Payment not selected')}</small></td>
+        <td><span class="status-badge status-pending">${escapeHtml(lastStep)}</span></td>
+        <td>${escapeHtml(getCheckoutDate(checkout))}</td>
+        <td>${escapeHtml(items.join(', ') || 'Cart details saved')}</td>
+        <td class="abandoned-actions">
+          ${whatsappUrl ? `<a class="action-btn abandoned-whatsapp" href="${whatsappUrl}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+          <button class="action-btn" onclick="closeAbandonedCheckout('${checkout.id}')">Close</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function closeAbandonedCheckout(checkoutId) {
+  if (!confirm('Close this abandoned checkout after follow-up?')) return;
+  await callAbandonedCheckouts('complete', { checkout_id: checkoutId });
+  allAbandonedCheckouts = allAbandonedCheckouts.filter(checkout => checkout.id !== checkoutId);
+  updateAbandonedMetrics();
+  renderAbandonedCheckouts();
 }
 
 function renderCustomers() {

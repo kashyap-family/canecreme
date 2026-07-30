@@ -262,14 +262,36 @@
   padding: 0.3rem 0.75rem;
   border-radius: 6px;
   font-size: 0.8rem;
+  color: #111;
   cursor: pointer;
   margin-right: 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
   transition: all 0.2s;
   font-family: var(--font-body);
 }
 
 .action-btn:hover { border-color: var(--green); color: var(--green); }
 .action-btn.danger:hover { border-color: #e53e3e; color: #e53e3e; }
+
+.abandoned-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.abandoned-whatsapp {
+  border-color: #25D366;
+  color: #128C4A;
+}
+
+.abandoned-whatsapp:hover {
+  background: #ecfdf3;
+  border-color: #1fb85a;
+  color: #128C4A;
+}
 
 .order-id-button {
   border: 0;

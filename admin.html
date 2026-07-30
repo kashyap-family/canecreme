@@ -32,6 +32,7 @@
         <button onclick="showTab('products')" class="tab-btn active" id="tab-products">Products</button>
         <button onclick="showTab('orders')" class="tab-btn" id="tab-orders">Orders</button>
         <button onclick="showTab('customers')" class="tab-btn" id="tab-customers">Customers</button>
+        <button onclick="showTab('abandoned')" class="tab-btn" id="tab-abandoned">Abandoned</button>
         <button onclick="adminLogout()" class="tab-btn">Logout</button>
       </div>
     </div>
@@ -227,6 +228,82 @@
         </table>
       </div>
     </div>
+
+    <!-- ABANDONED CHECKOUTS TAB -->
+    <div id="tab-abandoned-content" class="admin-content" style="display:none;">
+      <div class="admin-section-header orders-header">
+        <div>
+          <p class="admin-eyebrow">Follow Up</p>
+          <h2>Abandoned Checkouts</h2>
+        </div>
+        <div class="orders-header-actions">
+          <span class="orders-refresh-note" id="abandoned-refresh-note">Auto-refresh: 10 sec · IST</span>
+          <button class="btn-secondary" type="button" onclick="loadAbandonedCheckouts()">Refresh</button>
+        </div>
+      </div>
+
+      <div class="orders-metrics" aria-label="Abandoned checkout summary">
+        <div class="metric-tile">
+          <span>Open Checkouts</span>
+          <strong id="metric-abandoned-total">0</strong>
+        </div>
+        <div class="metric-tile">
+          <span>Cart Value</span>
+          <strong id="metric-abandoned-value">₹0</strong>
+        </div>
+        <div class="metric-tile">
+          <span>Today</span>
+          <strong id="metric-abandoned-today">0</strong>
+        </div>
+        <div class="metric-tile">
+          <span>With Phone</span>
+          <strong id="metric-abandoned-phone">0</strong>
+        </div>
+      </div>
+
+      <div class="orders-toolbar customer-toolbar">
+        <div class="orders-search">
+          <label for="abandoned-search">Search abandoned</label>
+          <input id="abandoned-search" type="search" placeholder="Name, phone, email, product, city" />
+        </div>
+        <div class="orders-filter">
+          <label for="abandoned-date-filter">Last Activity</label>
+          <select id="abandoned-date-filter">
+            <option value="all">All dates</option>
+            <option value="today">Today</option>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+          </select>
+        </div>
+        <div class="orders-filter">
+          <label for="abandoned-contact-filter">Contact</label>
+          <select id="abandoned-contact-filter">
+            <option value="all">All</option>
+            <option value="phone">Has phone</option>
+            <option value="email">Has email</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Contact</th>
+              <th>Cart Value</th>
+              <th>Last Step</th>
+              <th>Last Activity</th>
+              <th>Items</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="abandoned-table-body">
+            <tr><td colspan="7" style="text-align:center;padding:2rem;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- PRODUCT MODAL -->
@@ -326,6 +403,6 @@
   </div>
 
   <script src="js/config.js"></script>
-  <script src="js/admin.js?v=12"></script>
+  <script src="js/admin.js?v=13"></script>
 </body>
 </html>

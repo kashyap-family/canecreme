@@ -3,8 +3,11 @@
 let currentOrderId = null;
 let checkedMobile = '';
 const CHECKOUT_PROFILE_KEY = 'canecreme_checkout_profile';
+const ABANDONED_CHECKOUT_SESSION_KEY = 'canecreme_checkout_session_id';
+const ABANDONED_CHECKOUT_ID_KEY = 'canecreme_abandoned_checkout_id';
 let phoneLookupTimer = null;
 let lastPinLookup = '';
+let abandonedCheckoutTimer = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   hydrateSavedCheckoutProfile();
@@ -43,7 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   ['c-city', 'c-state'].forEach(id => {
     const field = document.getElementById(id);
-    if (field) field.addEventListener('input', renderOrderSummary);
+    if (field) field.addEventListener('input', () => {
+      renderOrderSummary();
+      scheduleAbandonedCheckoutSave('delivery_details');
+    });
+  });
+
+  ['c-name', 'c-email', 'c-phone', 'c-address1', 'c-address2', 'c-pin', 'c-country'].forEach(id => {
+    const field = document.getElementById(id);
+    if (field) field.addEventListener('input', () => scheduleAbandonedCheckoutSave('checkout_details'));
   });
 
   renderOrderSummary();
@@ -104,6 +115,97 @@ function getCurrentCustomerProfile() {
     state: document.getElementById('c-state')?.value.trim() || '',
     country: document.getElementById('c-country')?.value.trim() || 'India'
   };
+}
+
+function getCheckoutSessionId() {
+  let sessionId = localStorage.getItem(ABANDONED_CHECKOUT_SESSION_KEY);
+  if (!sessionId) {
+    const randomPart = window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    sessionId = `cc-${randomPart}`;
+    localStorage.setItem(ABANDONED_CHECKOUT_SESSION_KEY, sessionId);
+  }
+  return sessionId;
+}
+
+function getAbandonedCheckoutId() {
+  return localStorage.getItem(ABANDONED_CHECKOUT_ID_KEY) || '';
+}
+
+function shouldSaveAbandonedCheckout(profile) {
+  const phone = String(profile.phone || '').replace(/\D/g, '');
+  const email = String(profile.email || '').trim();
+  return cart.length > 0 && (/^[6-9][0-9]{9}$/.test(phone) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+}
+
+function scheduleAbandonedCheckoutSave(lastStep = 'checkout_details') {
+  window.clearTimeout(abandonedCheckoutTimer);
+  abandonedCheckoutTimer = window.setTimeout(() => {
+    saveAbandonedCheckout(lastStep).catch(err => console.warn('Abandoned checkout save skipped:', err.message));
+  }, 900);
+}
+
+async function saveAbandonedCheckout(lastStep = 'checkout_details', extra = {}) {
+  const profile = getCurrentCustomerProfile();
+  if (!shouldSaveAbandonedCheckout(profile)) return null;
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/abandoned-checkouts`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      action: 'upsert',
+      checkout_id: getAbandonedCheckoutId() || undefined,
+      session_id: getCheckoutSessionId(),
+      customer: profile,
+      items: cart,
+      payment_method: getSelectedPaymentMethod(),
+      delivery_charge: getDeliveryCharge(),
+      last_step: lastStep,
+      page_url: window.location.href,
+      order_id: extra.orderId
+    })
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Abandoned checkout error (${res.status}): ${errText}`);
+  }
+
+  const data = await res.json();
+  if (data.checkout?.id) localStorage.setItem(ABANDONED_CHECKOUT_ID_KEY, data.checkout.id);
+  return data.checkout || null;
+}
+
+async function completeAbandonedCheckout(orderId) {
+  const checkoutId = getAbandonedCheckoutId();
+  const sessionId = localStorage.getItem(ABANDONED_CHECKOUT_SESSION_KEY);
+  if (!checkoutId && !sessionId && !orderId) return;
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/abandoned-checkouts`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      action: 'complete',
+      checkout_id: checkoutId || undefined,
+      session_id: sessionId || undefined,
+      order_id: orderId
+    })
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Abandoned checkout completion error (${res.status}): ${errText}`);
+  }
+
+  localStorage.removeItem(ABANDONED_CHECKOUT_ID_KEY);
+  localStorage.removeItem(ABANDONED_CHECKOUT_SESSION_KEY);
 }
 
 function saveCheckoutProfile(profile) {
@@ -303,6 +405,7 @@ async function checkMobileHistory() {
     }
     renderOrderSummary();
     payBtn.textContent = getCheckoutButtonText();
+    scheduleAbandonedCheckoutSave('mobile_checked');
     setMobileMessage(filledFromHistory
       ? 'Saved delivery details found.'
       : 'Add delivery address to continue.');
@@ -313,6 +416,7 @@ async function checkMobileHistory() {
     document.getElementById('delivery-details-panel').style.display = 'block';
     document.getElementById('payment-section').style.display = 'block';
     payBtn.textContent = getCheckoutButtonText();
+    scheduleAbandonedCheckoutSave('mobile_checked');
     setMobileMessage('Add delivery address to continue.');
   } finally {
     btn.disabled = false;
@@ -454,6 +558,7 @@ document.addEventListener('change', (event) => {
     const payBtn = document.getElementById('pay-btn');
     if (payBtn) payBtn.textContent = getCheckoutButtonText();
     renderOrderSummary();
+    scheduleAbandonedCheckoutSave('payment_method_selected');
   }
 });
 
@@ -544,8 +649,10 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     const profile = { name, email: emailInput, phone, address1, address2, city, state, pin, country };
     saveCheckoutProfile(profile);
     renderSavedAddressCard(profile);
+    await saveAbandonedCheckout('payment_attempted').catch(err => console.warn('Abandoned checkout pre-save failed:', err.message));
     const order = await createOrderInDB({ name, email, phone, address1, address2, city, state, pin, country });
     currentOrderId = order.id;
+    await saveAbandonedCheckout('order_created', { orderId: currentOrderId }).catch(err => console.warn('Abandoned checkout order link failed:', err.message));
     await saveOrderItems(currentOrderId);
   } catch (dbErr) {
     console.error('Order save failed:', dbErr);
@@ -559,6 +666,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
   if (paymentMethod === 'cod') {
     try {
       await confirmCodOrder(currentOrderId);
+      await completeAbandonedCheckout(currentOrderId).catch(err => console.warn('Abandoned checkout completion failed:', err.message));
       localStorage.removeItem('canecreme_cart');
       window.location.href = `order-placed.html?order=${encodeURIComponent(currentOrderId)}`;
       return;
@@ -601,6 +709,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
           } catch (confirmErr) {
             console.warn('Payment confirmation failed:', confirmErr.message);
           }
+          await completeAbandonedCheckout(currentOrderId).catch(err => console.warn('Abandoned checkout completion failed:', err.message));
         }
         localStorage.removeItem('canecreme_cart');
         window.location.href = `order-placed.html?order=${encodeURIComponent(currentOrderId)}`;
