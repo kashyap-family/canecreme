@@ -155,6 +155,116 @@ function getFilteredOrders() {
   });
 }
 
+function getCustomerKey(order) {
+  const phone = String(order.customer_phone || '').replace(/\D/g, '');
+  const email = String(order.customer_email || '').trim().toLowerCase();
+  return phone || email || `order-${order.id}`;
+}
+
+function getOrderCity(order) {
+  const addr = order.shipping_address || {};
+  return [addr.city, addr.state].filter(Boolean).join(', ');
+}
+
+function getOrderItemNames(order) {
+  const items = order.shipping_address?.items;
+  if (!Array.isArray(items)) return [];
+  return items.map(item => item?.name).filter(Boolean);
+}
+
+function getCustomerSearchText(customer) {
+  return [
+    customer.name,
+    customer.email,
+    customer.phone,
+    customer.city,
+    customer.topProducts.join(' '),
+    customer.orders.map(order => getOrderSearchText(order)).join(' ')
+  ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function buildCustomerProfiles() {
+  const map = new Map();
+
+  allOrders.forEach(order => {
+    const key = getCustomerKey(order);
+    if (!map.has(key)) {
+      map.set(key, {
+        key,
+        name: order.customer_name || 'Customer',
+        email: order.customer_email || '',
+        phone: order.customer_phone || '',
+        city: getOrderCity(order),
+        orders: [],
+        orderCount: 0,
+        totalSpent: 0,
+        paidOrders: 0,
+        codOrders: 0,
+        firstOrderDate: null,
+        lastOrderDate: null,
+        topProducts: []
+      });
+    }
+
+    const customer = map.get(key);
+    const created = parseOrderCreatedAt(order.created_at);
+    customer.orders.push(order);
+    customer.orderCount += 1;
+    customer.totalSpent += Number(order.total_amount || 0);
+    if (order.payment_status === 'paid') customer.paidOrders += 1;
+    if (order.payment_status === 'cod') customer.codOrders += 1;
+    if (!customer.name || customer.name === 'Customer') customer.name = order.customer_name || customer.name;
+    if (!customer.email) customer.email = order.customer_email || '';
+    if (!customer.phone) customer.phone = order.customer_phone || '';
+    if (!customer.city) customer.city = getOrderCity(order);
+    if (created && (!customer.firstOrderDate || created < customer.firstOrderDate)) customer.firstOrderDate = created;
+    if (created && (!customer.lastOrderDate || created > customer.lastOrderDate)) customer.lastOrderDate = created;
+  });
+
+  return Array.from(map.values()).map(customer => {
+    const productCounts = new Map();
+    customer.orders.forEach(order => {
+      getOrderItemNames(order).forEach(name => {
+        productCounts.set(name, (productCounts.get(name) || 0) + 1);
+      });
+    });
+    customer.topProducts = Array.from(productCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([name]) => name);
+    customer.orders.sort((a, b) => {
+      const aDate = parseOrderCreatedAt(a.created_at)?.getTime() || 0;
+      const bDate = parseOrderCreatedAt(b.created_at)?.getTime() || 0;
+      return bDate - aDate;
+    });
+    return customer;
+  }).sort((a, b) => (b.lastOrderDate?.getTime() || 0) - (a.lastOrderDate?.getTime() || 0));
+}
+
+function getFilteredCustomers() {
+  const search = (document.getElementById('customer-search')?.value || '').trim().toLowerCase();
+  const type = document.getElementById('customer-type-filter')?.value || 'all';
+  const date = document.getElementById('customer-date-filter')?.value || 'all';
+
+  return buildCustomerProfiles().filter(customer => {
+    const matchesSearch = !search || getCustomerSearchText(customer).includes(search);
+    const matchesType =
+      type === 'all' ||
+      (type === 'repeat' && customer.orderCount > 1) ||
+      (type === 'single' && customer.orderCount === 1) ||
+      (type === 'paid' && customer.paidOrders > 0) ||
+      (type === 'cod' && customer.codOrders > 0);
+    const syntheticOrder = { created_at: customer.lastOrderDate?.toISOString() };
+    const matchesDate = date === 'all' || isWithinDateFilter(syntheticOrder, date);
+    return matchesSearch && matchesType && matchesDate;
+  });
+}
+
+function formatCustomerDate(date) {
+  if (!date) return 'N/A';
+  return getOrderDate({ created_at: date.toISOString() });
+}
+
 function updateOrderMetrics() {
   const total = allOrders.length;
   const pending = allOrders.filter(order => ['new', 'processing'].includes(order.order_status)).length;
@@ -172,6 +282,38 @@ function updateOrderMetrics() {
   setText('metric-pending-orders', String(pending));
   setText('metric-paid-revenue', formatMoney(paidRevenue));
   setText('metric-cod-orders', String(cod));
+}
+
+function updateCustomerMetrics() {
+  const customers = buildCustomerProfiles();
+  const now = new Date();
+  const currentMonthKey = new Intl.DateTimeFormat('en-CA', {
+    timeZone: ADMIN_TIME_ZONE,
+    year: 'numeric',
+    month: '2-digit'
+  }).format(now);
+
+  const totalRevenue = customers.reduce((sum, customer) => sum + customer.totalSpent, 0);
+  const repeatCustomers = customers.filter(customer => customer.orderCount > 1).length;
+  const newThisMonth = customers.filter(customer => {
+    if (!customer.firstOrderDate) return false;
+    const key = new Intl.DateTimeFormat('en-CA', {
+      timeZone: ADMIN_TIME_ZONE,
+      year: 'numeric',
+      month: '2-digit'
+    }).format(customer.firstOrderDate);
+    return key === currentMonthKey;
+  }).length;
+
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  setText('metric-total-customers', String(customers.length));
+  setText('metric-repeat-customers', String(repeatCustomers));
+  setText('metric-customer-revenue', formatMoney(totalRevenue));
+  setText('metric-new-customers', String(newThisMonth));
 }
 
 function buildWhatsappUrl(order, items) {
@@ -313,6 +455,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!el) return;
     el.addEventListener(id === 'order-search' ? 'input' : 'change', renderOrders);
   });
+
+  ['customer-search', 'customer-type-filter', 'customer-date-filter'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener(id === 'customer-search' ? 'input' : 'change', renderCustomers);
+  });
 });
 
 // ===== TABS =====
@@ -320,9 +468,11 @@ function showTab(tab) {
   activeAdminTab = tab;
   document.getElementById('tab-products-content').style.display = tab === 'products' ? 'block' : 'none';
   document.getElementById('tab-orders-content').style.display = tab === 'orders' ? 'block' : 'none';
+  document.getElementById('tab-customers-content').style.display = tab === 'customers' ? 'block' : 'none';
   document.getElementById('tab-products').classList.toggle('active', tab === 'products');
   document.getElementById('tab-orders').classList.toggle('active', tab === 'orders');
-  if (tab === 'orders') {
+  document.getElementById('tab-customers').classList.toggle('active', tab === 'customers');
+  if (tab === 'orders' || tab === 'customers') {
     loadOrders();
     startOrdersAutoRefresh();
   }
@@ -508,8 +658,11 @@ async function loadOrders() {
   }
 
   updateOrderMetrics();
+  updateCustomerMetrics();
   renderOrders();
+  renderCustomers();
   updateOrdersRefreshNote();
+  updateCustomersRefreshNote();
   ordersLoading = false;
 }
 
@@ -526,10 +679,23 @@ function updateOrdersRefreshNote() {
   el.textContent = `Auto-refresh: 10 sec · IST · Updated ${time}`;
 }
 
+function updateCustomersRefreshNote() {
+  const el = document.getElementById('customers-refresh-note');
+  if (!el) return;
+  const time = new Date().toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+    timeZone: ADMIN_TIME_ZONE,
+  });
+  el.textContent = `Uses order history · Updated ${time}`;
+}
+
 function startOrdersAutoRefresh() {
   stopOrdersAutoRefresh();
   ordersRefreshTimer = window.setInterval(() => {
-    if (activeAdminTab === 'orders' && !document.hidden) {
+    if ((activeAdminTab === 'orders' || activeAdminTab === 'customers') && !document.hidden) {
       loadOrders();
     }
   }, ORDERS_REFRESH_MS);
@@ -576,6 +742,113 @@ function renderOrders() {
       <td><button class="action-btn" onclick="openOrderModal('${o.id}')">View</button></td>
     </tr>
   `).join('');
+}
+
+function renderCustomers() {
+  const tbody = document.getElementById('customers-table-body');
+  if (!tbody) return;
+
+  const customers = getFilteredCustomers();
+
+  if (allOrders.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:#6b6b6b;">No customer activity yet. Customers appear here after orders are placed.</td></tr>';
+    return;
+  }
+
+  if (customers.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:#6b6b6b;">No customers match these filters.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = customers.map(customer => {
+    const lastOrder = customer.orders[0];
+    const activity = customer.topProducts.length
+      ? customer.topProducts.join(', ')
+      : `${escapeHtml(lastOrder?.order_status || 'new')} order`;
+    const typeLabel = customer.orderCount > 1 ? 'Repeat' : 'First order';
+
+    return `
+      <tr>
+        <td>
+          <strong>${escapeHtml(customer.name || 'Customer')}</strong>
+          <small>${escapeHtml(typeLabel)} · First seen ${escapeHtml(formatCustomerDate(customer.firstOrderDate))}</small>
+        </td>
+        <td>
+          ${escapeHtml(customer.phone || 'No phone')}
+          <small>${escapeHtml(customer.email || 'No email')}${customer.city ? ` · ${escapeHtml(customer.city)}` : ''}</small>
+        </td>
+        <td><strong>${customer.orderCount}</strong><small>${customer.paidOrders} paid · ${customer.codOrders} COD</small></td>
+        <td><strong>${formatMoney(customer.totalSpent)}</strong></td>
+        <td>${escapeHtml(formatCustomerDate(customer.lastOrderDate))}</td>
+        <td>${escapeHtml(activity)}</td>
+        <td><button class="action-btn" onclick="openCustomerModal('${encodeURIComponent(customer.key)}')">View</button></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderCustomerTimeline(customer) {
+  return customer.orders.map(order => `
+    <div class="customer-timeline-item">
+      <div class="customer-timeline-dot"></div>
+      <div class="customer-timeline-card">
+        <div class="customer-timeline-head">
+          <button class="order-id-button" type="button" onclick="openOrderModal('${order.id}')">${escapeHtml(getShortOrderId(order))}</button>
+          <span>${escapeHtml(getOrderDate(order))}</span>
+        </div>
+        <div class="customer-timeline-meta">
+          <span class="status-badge status-${escapeHtml(order.payment_status || 'pending')}">${escapeHtml(order.payment_status || 'pending')}</span>
+          <span class="status-badge status-${escapeHtml(order.order_status || 'new')}">${escapeHtml(order.order_status || 'new')}</span>
+          <strong>${formatMoney(order.total_amount)}</strong>
+        </div>
+        <p>${escapeHtml(getOrderItemNames(order).join(', ') || 'Order details available from View Order')}</p>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openCustomerModal(encodedKey) {
+  const key = decodeURIComponent(encodedKey);
+  const customer = buildCustomerProfiles().find(profile => profile.key === key);
+  if (!customer) {
+    alert('Customer not found.');
+    return;
+  }
+
+  const lastOrder = customer.orders[0] || {};
+  const whatsappPhone = normalizeWhatsappPhone(customer.phone);
+  const whatsappUrl = whatsappPhone
+    ? `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(`Hi ${customer.name || ''}, thank you for ordering from CaneCreme.`)}`
+    : '';
+
+  document.getElementById('customer-detail-content').innerHTML = `
+    <div class="customer-profile-card">
+      <div>
+        <span>Customer</span>
+        <h4>${escapeHtml(customer.name || 'Customer')}</h4>
+        <p>${escapeHtml(customer.phone || 'No phone')}<br/>${escapeHtml(customer.email || 'No email')}<br/>${escapeHtml(customer.city || getOrderCity(lastOrder) || 'No city saved')}</p>
+      </div>
+      <div class="customer-profile-actions">
+        ${whatsappUrl ? `<a class="whatsapp-order-btn" href="${whatsappUrl}" target="_blank" rel="noopener">Message on WhatsApp</a>` : ''}
+      </div>
+    </div>
+    <div class="order-summary-strip">
+      <div><span>Total Orders</span><strong>${customer.orderCount}</strong></div>
+      <div><span>Total Spent</span><strong>${formatMoney(customer.totalSpent)}</strong></div>
+      <div><span>First Seen</span><strong>${escapeHtml(formatCustomerDate(customer.firstOrderDate))}</strong></div>
+      <div><span>Last Activity</span><strong>${escapeHtml(formatCustomerDate(customer.lastOrderDate))}</strong></div>
+    </div>
+    <h4 style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.1em;color:#6b6b6b;margin:1.25rem 0 0.75rem;font-weight:600;">Order Timeline</h4>
+    <div class="customer-timeline">
+      ${renderCustomerTimeline(customer)}
+    </div>
+  `;
+
+  document.getElementById('customer-modal-overlay').style.display = 'flex';
+}
+
+function closeCustomerModal() {
+  document.getElementById('customer-modal-overlay').style.display = 'none';
 }
 
 async function openOrderModal(orderId) {

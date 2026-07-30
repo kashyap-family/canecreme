@@ -8,7 +8,7 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <title>Admin — CaneCreme</title>
   <link rel="stylesheet" href="css/style.css" />
-  <link rel="stylesheet" href="css/admin.css?v=5" />
+  <link rel="stylesheet" href="css/admin.css?v=6" />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
 </head>
 <body class="admin-body">
@@ -31,6 +31,7 @@
       <div class="admin-nav-links">
         <button onclick="showTab('products')" class="tab-btn active" id="tab-products">Products</button>
         <button onclick="showTab('orders')" class="tab-btn" id="tab-orders">Orders</button>
+        <button onclick="showTab('customers')" class="tab-btn" id="tab-customers">Customers</button>
         <button onclick="adminLogout()" class="tab-btn">Logout</button>
       </div>
     </div>
@@ -148,6 +149,84 @@
         </table>
       </div>
     </div>
+
+    <!-- CUSTOMERS TAB -->
+    <div id="tab-customers-content" class="admin-content" style="display:none;">
+      <div class="admin-section-header orders-header">
+        <div>
+          <p class="admin-eyebrow">Customer Activity</p>
+          <h2>Customers</h2>
+        </div>
+        <div class="orders-header-actions">
+          <span class="orders-refresh-note" id="customers-refresh-note">Uses order history · IST</span>
+          <button class="btn-secondary" type="button" onclick="loadOrders()">Refresh</button>
+        </div>
+      </div>
+
+      <div class="orders-metrics" aria-label="Customer activity summary">
+        <div class="metric-tile">
+          <span>Total Customers</span>
+          <strong id="metric-total-customers">0</strong>
+        </div>
+        <div class="metric-tile">
+          <span>Repeat Customers</span>
+          <strong id="metric-repeat-customers">0</strong>
+        </div>
+        <div class="metric-tile">
+          <span>Customer Revenue</span>
+          <strong id="metric-customer-revenue">₹0</strong>
+        </div>
+        <div class="metric-tile">
+          <span>New This Month</span>
+          <strong id="metric-new-customers">0</strong>
+        </div>
+      </div>
+
+      <div class="orders-toolbar customer-toolbar">
+        <div class="orders-search">
+          <label for="customer-search">Search customers</label>
+          <input id="customer-search" type="search" placeholder="Name, phone, email, city, product" />
+        </div>
+        <div class="orders-filter">
+          <label for="customer-type-filter">Type</label>
+          <select id="customer-type-filter">
+            <option value="all">All customers</option>
+            <option value="repeat">Repeat customers</option>
+            <option value="single">Single order</option>
+            <option value="paid">Paid customers</option>
+            <option value="cod">COD customers</option>
+          </select>
+        </div>
+        <div class="orders-filter">
+          <label for="customer-date-filter">Last Activity</label>
+          <select id="customer-date-filter">
+            <option value="all">All dates</option>
+            <option value="today">Today</option>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Contact</th>
+              <th>Orders</th>
+              <th>Total Spent</th>
+              <th>Last Activity</th>
+              <th>Top Activity</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="customers-table-body">
+            <tr><td colspan="7" style="text-align:center;padding:2rem;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- PRODUCT MODAL -->
@@ -232,7 +311,21 @@
     </div>
   </div>
 
+  <!-- CUSTOMER DETAIL MODAL -->
+  <div class="modal-overlay" id="customer-modal-overlay" style="display:none;">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h3>Customer Activity</h3>
+        <button onclick="closeCustomerModal()">✕</button>
+      </div>
+      <div class="modal-body" id="customer-detail-content"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeCustomerModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/config.js"></script>
-  <script src="js/admin.js?v=11"></script>
+  <script src="js/admin.js?v=12"></script>
 </body>
 </html>
