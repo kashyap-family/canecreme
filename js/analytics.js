@@ -40,8 +40,20 @@ const CANECREME_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
       s.parentNode.insertBefore(t, s);
     }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
 
+    window.fbq('set', 'autoConfig', true, CANECREME_META_PIXEL_ID);
     window.fbq('init', CANECREME_META_PIXEL_ID);
-    window.fbq('track', 'PageView');
+    window.fbq('track', 'PageView', {}, { eventID: buildMetaEventId('PageView') });
+  }
+
+  function normalizeMoney(value) {
+    const amount = Number(value || 0);
+    return Number.isFinite(amount) && amount > 0 ? amount : 0;
+  }
+
+  function buildMetaEventId(eventName, seed) {
+    const base = seed || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const safeBase = String(base).replace(/[^a-z0-9_-]/gi, '').slice(0, 72);
+    return `cc-${String(eventName).toLowerCase()}-${safeBase || Date.now()}`;
   }
 
   function normalizeItems(items) {
@@ -49,12 +61,12 @@ const CANECREME_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
     return items.map(item => {
       const itemId = String(item.id || item.product_id || item.sku || item.name || '').trim();
       const itemName = String(item.name || item.product_name || 'CaneCreme product').trim();
-      const price = Number(item.price || item.unit_price || item.item_price || 0);
+      const price = normalizeMoney(item.price || item.unit_price || item.item_price);
       const quantity = Number(item.quantity || 1);
       return {
         item_id: itemId || itemName,
         item_name: itemName,
-        price: Number.isFinite(price) ? price : 0,
+        price,
         quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1
       };
     });
@@ -80,15 +92,17 @@ const CANECREME_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
     }
   }
 
-  function trackMetaEvent(name, params) {
+  function trackMetaEvent(name, params, eventId) {
     if (hasMetaPixel && typeof window.fbq === 'function') {
-      window.fbq('track', name, params || {});
+      const options = eventId ? { eventID: eventId } : undefined;
+      window.fbq('track', name, params || {}, options);
     }
   }
 
   function trackInitiateCheckout(data) {
     const items = normalizeItems(data && data.items);
-    const value = Number(data && data.value || 0);
+    const value = normalizeMoney(data && data.value);
+    const checkoutSeed = `${buildMetaContentIds(items).join('-')}-${value}-${Date.now()}`;
 
     trackMetaEvent('InitiateCheckout', {
       value,
@@ -97,7 +111,7 @@ const CANECREME_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
       num_items: items.reduce((sum, item) => sum + item.quantity, 0),
       content_ids: buildMetaContentIds(items),
       contents: buildMetaContents(items)
-    });
+    }, buildMetaEventId('InitiateCheckout', checkoutSeed));
 
     trackGoogleEvent('begin_checkout', {
       currency: 'INR',
@@ -115,7 +129,7 @@ const CANECREME_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
     }
 
     const items = normalizeItems(data && data.items);
-    const value = Number(data && data.value || 0);
+    const value = normalizeMoney(data && data.value);
 
     trackMetaEvent('Purchase', {
       value,
@@ -123,7 +137,7 @@ const CANECREME_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
       content_type: 'product',
       content_ids: buildMetaContentIds(items),
       contents: buildMetaContents(items)
-    });
+    }, buildMetaEventId('Purchase', orderId || Date.now()));
 
     trackGoogleEvent('purchase', {
       transaction_id: orderId,
@@ -134,7 +148,7 @@ const CANECREME_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
   }
 
   function trackAddToCart(product) {
-    const price = Number(product && product.price || 0);
+    const price = normalizeMoney(product && product.price);
     const itemId = String(product && product.id || product && product.name || '');
     const itemName = String(product && product.name || 'CaneCreme product');
 
@@ -145,7 +159,7 @@ const CANECREME_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
       content_type: 'product',
       content_ids: itemId ? [itemId] : [],
       contents: itemId ? [{ id: itemId, quantity: 1, item_price: price }] : []
-    });
+    }, buildMetaEventId('AddToCart', `${itemId || itemName}-${Date.now()}`));
 
     trackGoogleEvent('add_to_cart', {
       currency: 'INR',
