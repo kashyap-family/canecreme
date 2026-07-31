@@ -46,12 +46,32 @@ const CANECREME_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
 
   function normalizeItems(items) {
     if (!Array.isArray(items)) return [];
-    return items.map(item => ({
-      item_id: String(item.id || item.product_id || item.sku || item.name || ''),
-      item_name: String(item.name || item.product_name || 'CaneCreme product'),
-      price: Number(item.price || item.unit_price || 0),
-      quantity: Number(item.quantity || 1)
-    }));
+    return items.map(item => {
+      const itemId = String(item.id || item.product_id || item.sku || item.name || '').trim();
+      const itemName = String(item.name || item.product_name || 'CaneCreme product').trim();
+      const price = Number(item.price || item.unit_price || item.item_price || 0);
+      const quantity = Number(item.quantity || 1);
+      return {
+        item_id: itemId || itemName,
+        item_name: itemName,
+        price: Number.isFinite(price) ? price : 0,
+        quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1
+      };
+    });
+  }
+
+  function buildMetaContents(items) {
+    return items
+      .filter(item => item.item_id)
+      .map(item => ({
+        id: item.item_id,
+        quantity: item.quantity,
+        item_price: item.price
+      }));
+  }
+
+  function buildMetaContentIds(items) {
+    return items.map(item => item.item_id).filter(Boolean);
   }
 
   function trackGoogleEvent(name, params) {
@@ -73,9 +93,10 @@ const CANECREME_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
     trackMetaEvent('InitiateCheckout', {
       value,
       currency: 'INR',
+      content_type: 'product',
       num_items: items.reduce((sum, item) => sum + item.quantity, 0),
-      content_ids: items.map(item => item.item_id).filter(Boolean),
-      contents: items.map(item => ({ id: item.item_id, quantity: item.quantity, item_price: item.price }))
+      content_ids: buildMetaContentIds(items),
+      contents: buildMetaContents(items)
     });
 
     trackGoogleEvent('begin_checkout', {
@@ -99,8 +120,9 @@ const CANECREME_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
     trackMetaEvent('Purchase', {
       value,
       currency: 'INR',
-      content_ids: items.map(item => item.item_id).filter(Boolean),
-      contents: items.map(item => ({ id: item.item_id, quantity: item.quantity, item_price: item.price }))
+      content_type: 'product',
+      content_ids: buildMetaContentIds(items),
+      contents: buildMetaContents(items)
     });
 
     trackGoogleEvent('purchase', {
@@ -119,6 +141,8 @@ const CANECREME_GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
     trackMetaEvent('AddToCart', {
       value: price,
       currency: 'INR',
+      content_name: itemName,
+      content_type: 'product',
       content_ids: itemId ? [itemId] : [],
       contents: itemId ? [{ id: itemId, quantity: 1, item_price: price }] : []
     });
