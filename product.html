@@ -6,8 +6,23 @@
   <link rel="icon" href="favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
-  <title>Product — CaneCreme</title>
-  <link rel="stylesheet" href="css/style.css?v=12" />
+  <title>Cane Creme Product | Raw Cane Sugar Snacks & Treats</title>
+  <meta name="description" content="View Cane Creme snacks, cookies, hampers and treats made with raw cane sugar and natural ingredients. Check price, stock and delivery availability." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.canecreme.co/product.html" id="canonical-link" />
+  <meta property="og:title" content="Cane Creme Product" id="og-title" />
+  <meta property="og:description" content="View Cane Creme snacks, cookies, hampers and treats made with raw cane sugar and natural ingredients." id="og-description" />
+  <meta property="og:url" content="https://www.canecreme.co/product.html" id="og-url" />
+  <meta property="og:type" content="product" />
+  <meta property="og:image" content="https://www.canecreme.co/Assets/logo.png" id="og-image" />
+  <meta property="og:image:alt" content="Cane Creme product" id="og-image-alt" />
+  <meta property="og:site_name" content="Cane Creme" />
+  <meta property="og:locale" content="en_IN" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Cane Creme Product" id="twitter-title" />
+  <meta name="twitter:description" content="View Cane Creme snacks, cookies, hampers and treats made with raw cane sugar." id="twitter-description" />
+  <meta name="twitter:image" content="https://www.canecreme.co/Assets/logo.png" id="twitter-image" />
+  <link rel="stylesheet" href="css/style.css?v=31" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Lexend:wght@300;400;500;600;700&family=Lobster&display=swap" rel="stylesheet"/>
   <style>
     .product-detail-wrap {
@@ -368,14 +383,26 @@
     </div>
   </div>
 
-  <nav class="nav" id="nav">
+    <nav class="nav" id="nav">
     <div class="nav-inner">
-      <a href="index.html" class="logo">
+      <a href="shop.html" class="nav-icon-link nav-search-link" aria-label="Search products">
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      </a>
+      <a href="index.html" class="logo" aria-label="CaneCreme home">
         <img src="Assets/logo-transparent.png" alt="CaneCreme" class="logo-img" />
       </a>
+      <div class="nav-actions">
+        <a href="mailto:canecreme@gmail.com" class="nav-icon-link" aria-label="Contact CaneCreme">
+          <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </a>
+        <a href="#" id="cart-icon" class="cart-link nav-icon-link" aria-label="Open cart">
+          <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span class="cart-count" id="cart-count">0</span>
+        </a>
+      </div>
       <div class="nav-links" id="nav-links">
         <div class="nav-dropdown">
-          <a href="shop.html">Shop</a>
+          <a href="shop.html">Shop by Categories</a>
           <div class="dropdown-menu">
             <a href="shop.html">All Products</a>
             <a href="shop.html?category=bites">Snacks</a>
@@ -385,11 +412,11 @@
             <a href="shop.html?category=rakhi">Rakhi Hampers</a>
           </div>
         </div>
+        <a href="shop.html?category=rakhi">Rakhi Gifting</a>
+        <a href="shop.html?category=bites">Healthy Indulgences</a>
+        <a href="shop.html?category=rakhi">Gift Boxes</a>
+        <a href="mailto:canecreme@gmail.com?subject=Corporate%20Gifting%20Enquiry">Corporate &amp; Diwali Gifting</a>
         <a href="about.html">About</a>
-        <a href="#" id="cart-icon" class="cart-link">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-          <span class="cart-count" id="cart-count">0</span>
-        </a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Menu">
         <span></span><span></span><span></span>
@@ -443,44 +470,62 @@
     </div>
   </div>
 
-  <footer class="footer">
+    <footer class="footer">
     <div class="footer-top">
       <div class="footer-brand">
         <img src="Assets/logo.png" alt="CaneCreme" class="footer-logo-img" />
-        <p>Cane Creme goodness,<br/>crafted with love from India.</p>
-        <a href="mailto:canecreme@gmail.com" class="footer-email">canecreme@gmail.com</a>
+        <p>Deliciously better treats made with raw cane sugar, real ingredients, and no compromise on joy.</p>
+        <div class="footer-socials" aria-label="CaneCreme social links">
+          <a href="https://www.instagram.com/canecreme/" target="_blank" rel="noopener" aria-label="Instagram">Ig</a>
+          <a href="mailto:canecreme@gmail.com" aria-label="Email">@</a>
+          <a href="https://wa.me/919891239312" target="_blank" rel="noopener" aria-label="WhatsApp">Wa</a>
+        </div>
       </div>
       <div class="footer-nav">
         <div class="footer-col">
-          <h4>SHOP</h4>
+          <h5>Shop</h5>
           <a href="shop.html">All Products</a>
+          <a href="shop.html?category=bites">Snacks</a>
+          <a href="shop.html?category=cookies">Cookies</a>
+          <a href="shop.html?category=teacake">Tea Cakes</a>
+          <a href="shop.html?category=rakhi">Gift Boxes</a>
         </div>
         <div class="footer-col">
-          <h4>COMPANY</h4>
-          <a href="about.html">About Us</a>
-          <a href="#">Contact</a>
-        </div>
-        <div class="footer-col">
-          <h4>HELP</h4>
-          <a href="#">Support</a>
-          <a href="tel:9891239312">9891239312</a>
-          <a href="shipping-policy.html">Shipping Policy</a>
-          <a href="return-policy.html">Returns &amp; Refunds</a>
+          <h5>Learn More</h5>
+          <a href="about.html">The CaneCreme Story</a>
+          <a href="shop.html">Shop By Categories</a>
+          <a href="mailto:canecreme@gmail.com?subject=Corporate%20Gifting%20Enquiry">Corporate Gifting</a>
+          <a href="return-policy.html">Return, Refund and Cancellation Policy</a>
+          <a href="terms.html">Terms &amp; Conditions</a>
           <a href="privacy-policy.html">Privacy Policy</a>
-          <a href="terms.html">Terms</a>
+        </div>
+        <div class="footer-col footer-store">
+          <h5>Our Store</h5>
+          <a href="mailto:canecreme@gmail.com">canecreme@gmail.com</a>
+          <a href="tel:+919891239312">9891239312</a>
+          <a href="shipping-policy.html">Shipping Policy</a>
+        </div>
+        <div class="footer-col footer-newsletter">
+          <h5>Let's Stay in Touch</h5>
+          <p>The good kind: offers, launches, gifting drops, and CaneCreme updates.</p>
+          <form action="mailto:canecreme@gmail.com" method="post" enctype="text/plain" class="footer-subscribe">
+            <input type="email" name="email" placeholder="E-mail" aria-label="Email address" required />
+            <button type="submit">Subscribe</button>
+          </form>
         </div>
       </div>
     </div>
     <div class="footer-bottom">
       <p>© 2026 CaneCreme. All rights reserved.</p>
-      <p>Made with 🌿 in India</p>
+      <p>Made with real ingredients in India</p>
     </div>
   </footer>
 
-  <script src="js/config.js"></script>
+  <script src="js/config.js?v=4"></script>
   <script src="js/products.js?v=3"></script>
   <script src="js/cart.js?v=5"></script>
   <script src="js/main.js?v=5"></script>
+  <script src="js/clarity.js?v=1"></script>
   <script src="js/analytics.js?v=5"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
@@ -499,6 +544,59 @@
         sizeLabel: size.replace(/^([0-9.]+)([a-z]+)$/i, '$1$2'),
         sortValue: unit === 'kg' ? numeric * 1000 : numeric
       };
+    }
+
+    function setProductSeo(product, displayName) {
+      const title = `${displayName} | Cane Creme`;
+      const description = product.description
+        ? `${product.description}`.slice(0, 155)
+        : `Buy ${displayName} from Cane Creme, made with raw cane sugar and natural ingredients.`;
+      const url = `https://www.canecreme.co/product.html?id=${encodeURIComponent(product.id)}`;
+      const image = product.images && product.images[0]
+        ? new URL(product.images[0], window.location.origin).href
+        : 'https://www.canecreme.co/Assets/logo.png';
+
+      document.title = title;
+      document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+      document.getElementById('canonical-link')?.setAttribute('href', url);
+      document.getElementById('og-title')?.setAttribute('content', title);
+      document.getElementById('og-description')?.setAttribute('content', description);
+      document.getElementById('og-url')?.setAttribute('content', url);
+      document.getElementById('og-image')?.setAttribute('content', image);
+      document.getElementById('og-image-alt')?.setAttribute('content', displayName);
+      document.getElementById('twitter-title')?.setAttribute('content', title);
+      document.getElementById('twitter-description')?.setAttribute('content', description);
+      document.getElementById('twitter-image')?.setAttribute('content', image);
+
+      let structuredData = document.getElementById('product-structured-data');
+      if (!structuredData) {
+        structuredData = document.createElement('script');
+        structuredData.type = 'application/ld+json';
+        structuredData.id = 'product-structured-data';
+        document.head.appendChild(structuredData);
+      }
+      structuredData.textContent = JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: displayName,
+        description,
+        image,
+        sku: product.id,
+        brand: {
+          '@type': 'Brand',
+          name: 'Cane Creme'
+        },
+        offers: {
+          '@type': 'Offer',
+          url,
+          priceCurrency: 'INR',
+          price: Number(product.price || 0).toFixed(2),
+          availability: Number(product.stock || 0) > 0
+            ? 'https://schema.org/InStock'
+            : 'https://schema.org/OutOfStock',
+          itemCondition: 'https://schema.org/NewCondition'
+        }
+      });
     }
 
     async function loadProduct() {
@@ -528,7 +626,7 @@
       activeProduct = p;
       const selectedVariant = getDetailVariantInfo(p);
       const displayName = selectedVariant ? selectedVariant.baseName : p.name;
-      document.title = `${displayName} — CaneCreme`;
+      setProductSeo(p, displayName);
 
       const images = (p.images && p.images.length) ? p.images : [];
       let currentImg = 0;
@@ -647,9 +745,11 @@
         if (!selected) return;
         activeProduct = selected;
         const variantInfo = getDetailVariantInfo(selected);
+        const variantDisplayName = variantInfo ? variantInfo.baseName : selected.name;
         const selectedHasSale = selected.compare_at_price && parseFloat(selected.compare_at_price) > parseFloat(selected.price);
         const selectedSaving = selectedHasSale ? Math.round(parseFloat(selected.compare_at_price) - parseFloat(selected.price)) : 0;
         const selectedInStock = selected.stock === undefined || selected.stock > 0;
+        setProductSeo(selected, variantDisplayName);
 
         document.getElementById('pd-price').textContent = `₹${parseFloat(selected.price).toFixed(0)}`;
         document.getElementById('pd-selected-size').textContent = variantInfo ? variantInfo.sizeLabel : '';
