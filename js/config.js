@@ -15,3 +15,6 @@ const STORE_NAME = 'CaneCreme';
 const STORE_EMAIL = 'canecreme@gmail.com';
 const STORE_PHONE = '9891239312';
 const STORE_CURRENCY = 'INR';
+
+// Microsoft Clarity Project ID. Add the ID from clarity.microsoft.com to activate session recording.
+const CLARITY_PROJECT_ID = 'xv519kdgni';
