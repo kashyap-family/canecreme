@@ -20,6 +20,7 @@ type CheckoutBody = {
   items: CheckoutItem[];
   payment_method?: "online" | "cod";
   delivery_charge?: number;
+  coupon_code?: string;
 };
 
 const normalizeItems = (items: CheckoutItem[]) =>
@@ -39,6 +40,13 @@ const isNearDelhiAddress = (customer: CheckoutBody["customer"]) => {
 
   if (state.includes("delhi") || ncrCities.some((name) => city.includes(name))) return true;
   return /^(110|121|122|201)/.test(pin);
+};
+
+const normalizeCouponCode = (value?: string) => String(value || "").trim().toUpperCase().replace(/\s+/g, "");
+
+const getCouponDiscount = (couponCode: string, subtotal: number) => {
+  if (couponCode !== "WELCOME10" || subtotal <= 0) return 0;
+  return Math.round((subtotal * 0.10) * 100) / 100;
 };
 
 const corsHeaders = {
@@ -87,7 +95,9 @@ Deno.serve(async (req) => {
     const deliveryCharge = paymentMethod === "cod"
       ? deliveryZone === "delhi_ncr" ? 50 : 80
       : 0;
-    const total = subtotal + deliveryCharge;
+    const couponCode = normalizeCouponCode(body.coupon_code);
+    const discountAmount = getCouponDiscount(couponCode, subtotal);
+    const total = Math.max(0, subtotal - discountAmount + deliveryCharge);
     const itemSnapshot = normalizeItems(items);
 
     const supabaseUrl = requiredEnv("SUPABASE_URL");
@@ -116,9 +126,14 @@ Deno.serve(async (req) => {
           payment_method: paymentMethod,
           delivery_zone: deliveryZone,
           delivery_charge: deliveryCharge,
+          subtotal_before_discount: subtotal,
+          coupon_code: discountAmount > 0 ? couponCode : null,
+          discount_amount: discountAmount,
           items: itemSnapshot,
         },
         total_amount: total,
+        discount_amount: discountAmount,
+        coupon_code: discountAmount > 0 ? couponCode : null,
         payment_status: "pending",
         order_status: "new",
       }),

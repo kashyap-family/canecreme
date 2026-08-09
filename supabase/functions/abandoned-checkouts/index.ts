@@ -27,6 +27,8 @@ type AbandonedCheckoutBody = {
   items?: CheckoutItem[];
   payment_method?: "online" | "cod";
   delivery_charge?: number;
+  coupon_code?: string;
+  discount_amount?: number;
 };
 
 const corsHeaders = {
@@ -61,6 +63,15 @@ const normalizeItems = (items: CheckoutItem[] = []) =>
       subtotal: price * quantity,
     };
   }).filter((item) => item.quantity > 0 && item.price > 0);
+
+const normalizeCouponCode = (value?: string) => String(value || "").trim().toUpperCase().replace(/\s+/g, "");
+
+const getCouponDiscount = (couponCode: string, subtotal: number, requestedDiscount?: number) => {
+  if (couponCode !== "WELCOME10" || subtotal <= 0) return 0;
+  const calculated = Math.round((subtotal * 0.10) * 100) / 100;
+  const requested = Number(requestedDiscount || 0);
+  return requested > 0 ? Math.min(calculated, requested) : calculated;
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -128,6 +139,8 @@ Deno.serve(async (req) => {
     if (items.length === 0) return jsonResponse({ error: "cart is empty" }, 400);
 
     const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0);
+    const couponCode = normalizeCouponCode(body.coupon_code);
+    const discountAmount = getCouponDiscount(couponCode, subtotal, body.discount_amount);
     const payload = {
       session_id: sessionId,
       customer_name: String(customer.name || "").trim() || null,
@@ -140,9 +153,11 @@ Deno.serve(async (req) => {
         state: customer.state || "",
         pin: customer.pin || "",
         country: customer.country || "India",
+        coupon_code: discountAmount > 0 ? couponCode : null,
+        discount_amount: discountAmount,
       },
       cart_items: items,
-      cart_total: subtotal + Number(body.delivery_charge || 0),
+      cart_total: Math.max(0, subtotal - discountAmount + Number(body.delivery_charge || 0)),
       delivery_charge: Number(body.delivery_charge || 0),
       payment_method: body.payment_method || null,
       status: "active",

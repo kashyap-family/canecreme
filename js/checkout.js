@@ -5,9 +5,13 @@ let checkedMobile = '';
 const CHECKOUT_PROFILE_KEY = 'canecreme_checkout_profile';
 const ABANDONED_CHECKOUT_SESSION_KEY = 'canecreme_checkout_session_id';
 const ABANDONED_CHECKOUT_ID_KEY = 'canecreme_abandoned_checkout_id';
+const CHECKOUT_COUPON_KEY = 'canecreme_checkout_coupon';
+const WELCOME_COUPON_CODE = 'WELCOME10';
+const WELCOME_COUPON_PERCENT = 10;
 let phoneLookupTimer = null;
 let lastPinLookup = '';
 let abandonedCheckoutTimer = null;
+let appliedCouponCode = normalizeCouponCode(localStorage.getItem(CHECKOUT_COUPON_KEY) || '');
 
 document.addEventListener('DOMContentLoaded', () => {
   hydrateSavedCheckoutProfile();
@@ -61,6 +65,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const mobileCheckBtn = document.getElementById('mobile-check-btn');
   if (mobileCheckBtn) mobileCheckBtn.addEventListener('click', checkMobileHistory);
+
+  const couponInput = document.getElementById('coupon-code');
+  if (couponInput) {
+    couponInput.value = appliedCouponCode;
+    couponInput.addEventListener('input', () => {
+      couponInput.value = normalizeCouponCode(couponInput.value);
+      setCouponMessage('');
+    });
+    couponInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        applyCouponFromInput();
+      }
+    });
+  }
+
+  document.getElementById('apply-coupon-btn')?.addEventListener('click', applyCouponFromInput);
+  document.getElementById('remove-coupon-btn')?.addEventListener('click', removeCoupon);
 });
 
 function setMobileMessage(message, isError = false) {
@@ -163,6 +185,8 @@ async function saveAbandonedCheckout(lastStep = 'checkout_details', extra = {}) 
       items: cart,
       payment_method: getSelectedPaymentMethod(),
       delivery_charge: getDeliveryCharge(),
+      coupon_code: isValidCouponCode(appliedCouponCode) ? appliedCouponCode : undefined,
+      discount_amount: getCheckoutPricing().discount,
       last_step: lastStep,
       page_url: window.location.href,
       order_id: extra.orderId
@@ -334,6 +358,76 @@ function escapeHtml(value) {
     .replace(/'/g, '&#039;');
 }
 
+function normalizeCouponCode(value) {
+  return String(value || '').trim().toUpperCase().replace(/\s+/g, '');
+}
+
+function isValidCouponCode(code) {
+  return normalizeCouponCode(code) === WELCOME_COUPON_CODE;
+}
+
+function getCouponDiscount(subtotal) {
+  if (!isValidCouponCode(appliedCouponCode) || subtotal <= 0) return 0;
+  return Math.round((subtotal * WELCOME_COUPON_PERCENT / 100) * 100) / 100;
+}
+
+function getCheckoutPricing() {
+  const subtotal = getCartTotal();
+  const discount = getCouponDiscount(subtotal);
+  const deliveryCharge = getDeliveryCharge();
+  const total = Math.max(0, subtotal - discount + deliveryCharge);
+  return { subtotal, discount, deliveryCharge, total };
+}
+
+function setCouponMessage(message, isError = false) {
+  const messageEl = document.getElementById('coupon-message');
+  if (!messageEl) return;
+  messageEl.textContent = message || '';
+  messageEl.classList.toggle('err', isError);
+}
+
+function syncCouponControls() {
+  const input = document.getElementById('coupon-code');
+  const removeBtn = document.getElementById('remove-coupon-btn');
+  if (input && input.value !== appliedCouponCode) input.value = appliedCouponCode;
+  if (removeBtn) removeBtn.style.display = isValidCouponCode(appliedCouponCode) ? '' : 'none';
+}
+
+function applyCouponFromInput() {
+  const input = document.getElementById('coupon-code');
+  const code = normalizeCouponCode(input?.value || '');
+
+  if (!code) {
+    setCouponMessage('Enter coupon code WELCOME10.', true);
+    return;
+  }
+
+  if (!isValidCouponCode(code)) {
+    appliedCouponCode = '';
+    localStorage.removeItem(CHECKOUT_COUPON_KEY);
+    renderOrderSummary();
+    setCouponMessage('This coupon code is not valid.', true);
+    return;
+  }
+
+  appliedCouponCode = WELCOME_COUPON_CODE;
+  localStorage.setItem(CHECKOUT_COUPON_KEY, appliedCouponCode);
+  renderOrderSummary();
+  const { discount } = getCheckoutPricing();
+  setCouponMessage(`WELCOME10 applied. You saved Rs. ${discount.toFixed(2)}.`);
+  scheduleAbandonedCheckoutSave('coupon_applied');
+}
+
+function removeCoupon() {
+  appliedCouponCode = '';
+  localStorage.removeItem(CHECKOUT_COUPON_KEY);
+  const input = document.getElementById('coupon-code');
+  if (input) input.value = '';
+  renderOrderSummary();
+  setCouponMessage('Coupon removed.');
+  scheduleAbandonedCheckoutSave('coupon_removed');
+}
+
 function setFieldValue(id, value) {
   const field = document.getElementById(id);
   if (!field || value === undefined || value === null) return;
@@ -435,8 +529,7 @@ function renderOrderSummary() {
     return;
   }
 
-  const subtotal = getCartTotal();
-  const deliveryCharge = getDeliveryCharge();
+  const { discount, deliveryCharge, total } = getCheckoutPricing();
 
   summaryItems.innerHTML = cart.map(item => `
     <div class="summary-item">
@@ -450,9 +543,17 @@ function renderOrderSummary() {
       <span class="summary-item-qty">${getDeliveryLabel()}</span>
       <span>${deliveryCharge > 0 ? `Rs. ${deliveryCharge.toFixed(2)}` : 'Free'}</span>
     </div>
+    ${discount > 0 ? `
+      <div class="summary-item summary-discount-row">
+        <span class="summary-item-name">Coupon ${WELCOME_COUPON_CODE}</span>
+        <span class="summary-item-qty">${WELCOME_COUPON_PERCENT}% off</span>
+        <span>- Rs. ${discount.toFixed(2)}</span>
+      </div>
+    ` : ''}
   `;
 
-  if (summaryTotal) summaryTotal.textContent = (subtotal + deliveryCharge).toFixed(2);
+  if (summaryTotal) summaryTotal.textContent = total.toFixed(2);
+  syncCouponControls();
 }
 
 async function createOrderInDB(customerData) {
@@ -468,7 +569,8 @@ async function createOrderInDB(customerData) {
       customer: customerData,
       items: cart,
       payment_method: paymentMethod,
-      delivery_charge: getDeliveryCharge()
+      delivery_charge: getDeliveryCharge(),
+      coupon_code: isValidCouponCode(appliedCouponCode) ? appliedCouponCode : undefined
     })
   });
 
@@ -631,7 +733,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     return;
   }
 
-  const total = getCartTotal() + getDeliveryCharge();
+  const { total, discount } = getCheckoutPricing();
   if (total < 1) {
     errorEl.textContent = 'Order total must be at least Rs. 1.';
     errorEl.style.display = 'block';
@@ -694,6 +796,8 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
         customer_phone: phone,
         shipping_pin: pin,
         delivery_charge: String(getDeliveryCharge()),
+        coupon_code: isValidCouponCode(appliedCouponCode) ? appliedCouponCode : '',
+        discount_amount: String(discount),
         support_phone: typeof STORE_PHONE !== 'undefined' ? STORE_PHONE : '9891239312'
       },
       prefill: {
