@@ -4295,7 +4295,53 @@ img { display: block; max-width: 100%; }
   justify-content: center;
   color: var(--green-light);
   background: #fff;
-  font-size: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.payment-method-icon-online::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-top: 18px solid transparent;
+  border-bottom: 18px solid transparent;
+  border-left: 16px solid var(--green-light);
+  transform: skewY(-16deg);
+}
+
+.payment-method-icon-online::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 33px;
+  border-radius: 999px;
+  background: var(--gold);
+  left: 20px;
+  top: 10px;
+  transform: skewY(-28deg) rotate(13deg);
+}
+
+.payment-method-icon-cod::before {
+  content: "";
+  width: 28px;
+  height: 20px;
+  border: 2px solid #151515;
+  border-radius: 4px;
+  background: var(--green-pale);
+  box-shadow: inset 0 8px 0 rgba(186, 213, 13, 0.75);
+  transform: rotate(-6deg);
+}
+
+.payment-method-icon-cod::after {
+  content: "";
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  right: 13px;
+  top: 23px;
+  border-radius: 50%;
+  background: #151515;
+  box-shadow: -19px -12px 0 -2px var(--green-light);
 }
 
 .checkout-page .payment-method-option strong {
