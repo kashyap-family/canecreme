@@ -4617,6 +4617,31 @@ img { display: block; max-width: 100%; }
   }
 }
 
+/* Keep the mobile public header flush with both viewport edges. */
+@media (max-width: 768px) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  body:not(.checkout-page) .nav {
+    width: 100vw;
+    max-width: 100vw;
+    left: 0;
+    right: 0;
+    margin-left: 0;
+    margin-right: 0;
+    box-sizing: border-box;
+  }
+
+  body:not(.checkout-page) .nav-inner {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
 @media (max-width: 420px) {
   .checkout-secure-badge {
     max-width: 96px;
