@@ -388,9 +388,12 @@ function setCouponMessage(message, isError = false) {
 
 function syncCouponControls() {
   const input = document.getElementById('coupon-code');
+  const applyBtn = document.getElementById('apply-coupon-btn');
   const removeBtn = document.getElementById('remove-coupon-btn');
+  const hasValidCoupon = isValidCouponCode(appliedCouponCode);
   if (input && input.value !== appliedCouponCode) input.value = appliedCouponCode;
-  if (removeBtn) removeBtn.style.display = isValidCouponCode(appliedCouponCode) ? '' : 'none';
+  if (applyBtn) applyBtn.textContent = hasValidCoupon ? 'Applied' : 'Apply';
+  if (removeBtn) removeBtn.style.display = hasValidCoupon ? '' : 'none';
 }
 
 function syncCheckoutTotals(total) {
