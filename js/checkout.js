@@ -393,6 +393,14 @@ function syncCouponControls() {
   if (removeBtn) removeBtn.style.display = isValidCouponCode(appliedCouponCode) ? '' : 'none';
 }
 
+function syncCheckoutTotals(total) {
+  const stickyTotal = document.getElementById('sticky-total');
+  if (stickyTotal) stickyTotal.textContent = total.toFixed(2);
+
+  const payBtn = document.getElementById('pay-btn');
+  if (payBtn && !payBtn.disabled) payBtn.textContent = getCheckoutButtonText();
+}
+
 function applyCouponFromInput() {
   const input = document.getElementById('coupon-code');
   const code = normalizeCouponCode(input?.value || '');
@@ -440,7 +448,8 @@ function autofillSavedDetails(history) {
 
   setFieldValue('c-name', details.name || '');
   const email = details.email || '';
-  setFieldValue('c-email', email.includes('@canecreme.co') && email.startsWith('customer-') ? '' : email);
+  const isInternalEmail = email.startsWith('customer-') && (email.includes('@canecreme.co') || email.includes('@canecreme.local'));
+  setFieldValue('c-email', isInternalEmail ? '' : email);
   setFieldValue('c-address1', details.address1 || '');
   setFieldValue('c-address2', details.address2 || '');
   setFieldValue('c-pin', details.pin || '');
@@ -526,34 +535,42 @@ function renderOrderSummary() {
 
   if (cart.length === 0) {
     summaryItems.innerHTML = '<p style="color:#6b6b6b;font-size:0.9rem;">Your cart is empty. <a href="shop.html">Go shopping &rarr;</a></p>';
+    if (summaryTotal) summaryTotal.textContent = '0.00';
+    syncCheckoutTotals(0);
     return;
   }
 
-  const { discount, deliveryCharge, total } = getCheckoutPricing();
+  const { subtotal, discount, deliveryCharge, total } = getCheckoutPricing();
 
   summaryItems.innerHTML = cart.map(item => `
-    <div class="summary-item">
-      <span class="summary-item-name">${item.name}</span>
-      <span class="summary-item-qty">x ${item.quantity}</span>
-      <span>Rs. ${(item.price * item.quantity).toFixed(2)}</span>
+    <div class="summary-product">
+      ${item.image ? `<img class="summary-product-image" src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" />` : '<div class="summary-product-image" aria-hidden="true"></div>'}
+      <div class="summary-product-info">
+        <strong>${escapeHtml(item.name)}</strong>
+        <span>Qty: ${item.quantity}</span>
+      </div>
+      <span class="summary-product-price">Rs. ${(item.price * item.quantity).toFixed(2)}</span>
     </div>
   `).join('') + `
-    <div class="summary-item summary-delivery-row">
-      <span class="summary-item-name">Delivery</span>
-      <span class="summary-item-qty">${getDeliveryLabel()}</span>
-      <span>${deliveryCharge > 0 ? `Rs. ${deliveryCharge.toFixed(2)}` : 'Free'}</span>
+    <div class="summary-line">
+      <span>Subtotal</span>
+      <strong>Rs. ${subtotal.toFixed(2)}</strong>
+    </div>
+    <div class="summary-line summary-delivery-row">
+      <span>Delivery</span>
+      <strong>${deliveryCharge > 0 ? `Rs. ${deliveryCharge.toFixed(2)}` : 'FREE'}</strong>
     </div>
     ${discount > 0 ? `
-      <div class="summary-item summary-discount-row">
-        <span class="summary-item-name">Coupon ${WELCOME_COUPON_CODE}</span>
-        <span class="summary-item-qty">${WELCOME_COUPON_PERCENT}% off</span>
-        <span>- Rs. ${discount.toFixed(2)}</span>
+      <div class="summary-line summary-discount-row">
+        <span>Coupon (${WELCOME_COUPON_CODE})</span>
+        <strong>- Rs. ${discount.toFixed(2)}</strong>
       </div>
     ` : ''}
   `;
 
   if (summaryTotal) summaryTotal.textContent = total.toFixed(2);
   syncCouponControls();
+  syncCheckoutTotals(total);
 }
 
 async function createOrderInDB(customerData) {
@@ -652,7 +669,10 @@ function getDeliveryLabel() {
 
 function getCheckoutButtonText() {
   if (!checkedMobile) return 'Check Mobile First';
-  return getSelectedPaymentMethod() === 'cod' ? 'Place COD Order' : 'Pay Securely ->';
+  const { total } = getCheckoutPricing();
+  return getSelectedPaymentMethod() === 'cod'
+    ? `Place Order Rs. ${total.toFixed(2)} ->`
+    : `Pay Rs. ${total.toFixed(2)} ->`;
 }
 
 document.addEventListener('change', (event) => {
@@ -678,7 +698,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
   const pin = document.getElementById('c-pin').value.trim();
   const country = document.getElementById('c-country').value.trim();
   const address2 = document.getElementById('c-address2').value.trim();
-  const email = emailInput;
+  const email = emailInput || `customer-${phone}@canecreme.local`;
   const paymentMethod = getSelectedPaymentMethod();
 
   if (phone !== checkedMobile) {
@@ -687,8 +707,8 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     return;
   }
 
-  if (!name || !phone || !emailInput || !address1 || !pin) {
-    errorEl.textContent = 'Please fill in mobile, name, email, address and PIN.';
+  if (!name || !phone || !address1 || !pin) {
+    errorEl.textContent = 'Please fill in mobile, name, address and PIN.';
     errorEl.style.display = 'block';
     return;
   }
@@ -699,7 +719,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     return;
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)) {
+  if (emailInput && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput)) {
     errorEl.textContent = 'Please enter a valid email address.';
     errorEl.style.display = 'block';
     return;
@@ -820,7 +840,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
       },
       modal: {
         ondismiss: function() {
-          btn.textContent = 'Pay Securely ->';
+          btn.textContent = getCheckoutButtonText();
           btn.disabled = false;
         }
       }
@@ -831,7 +851,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     rzp.on('payment.failed', function(response) {
       errorEl.textContent = 'Payment failed: ' + (response.error.description || 'Please try again.');
       errorEl.style.display = 'block';
-      btn.textContent = 'Pay Securely ->';
+      btn.textContent = getCheckoutButtonText();
       btn.disabled = false;
     });
 
@@ -840,7 +860,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     console.error('Razorpay error:', rzpErr);
     errorEl.textContent = 'Payment gateway error: ' + rzpErr.message;
     errorEl.style.display = 'block';
-    btn.textContent = 'Pay Securely ->';
+    btn.textContent = getCheckoutButtonText();
     btn.disabled = false;
   }
 });

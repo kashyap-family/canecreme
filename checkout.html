@@ -9,7 +9,7 @@
   <title>Checkout | Cane Creme</title>
   <meta name="robots" content="noindex, nofollow, noarchive" />
   <link rel="canonical" href="https://www.canecreme.co/checkout.html" />
-  <link rel="stylesheet" href="css/style.css?v=14" />
+  <link rel="stylesheet" href="css/style.css?v=34" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Lexend:wght@300;400;500;600;700&family=Lobster&display=swap" rel="stylesheet"/>
   <!-- Meta Pixel Code -->
   <script>
@@ -26,161 +26,152 @@
 <body class="checkout-page">
   <noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=1039053602005956&ev=PageView&noscript=1" /></noscript>
 
-  <div class="announcement-bar">
-    <div class="marquee-track">
-      <span>🌿 Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp; Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp;</span>
-      <span aria-hidden="true">🌿 Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp; Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp;</span>
-    </div>
-  </div>
-
-  <nav class="nav" id="nav">
-    <div class="nav-inner">
-      <a href="index.html" class="logo">
-        <img src="Assets/logo-transparent.png" alt="CaneCreme" class="logo-img" />
+  <main class="checkout-app-shell">
+    <header class="checkout-app-header">
+      <a class="checkout-back-link" href="shop.html" aria-label="Back to shop">←</a>
+      <a href="index.html" class="checkout-brand-link" aria-label="CaneCreme home">
+        <img src="Assets/logo-transparent.png" alt="CaneCreme" />
       </a>
-      <div class="nav-links" id="nav-links">
-        <div class="nav-dropdown">
-          <a href="shop.html">Shop</a>
-          <div class="dropdown-menu">
-            <a href="shop.html">All Products</a>
-            <a href="shop.html?category=bites">Snacks</a>
-            <a href="shop.html?category=cookies">Cookies</a>
-            <a href="shop.html?category=makhana">Makhana</a>
-            <a href="shop.html?category=teacake">Tea Cake</a>
-            <a href="shop.html?category=rakhi">Rakhi Hampers</a>
-          </div>
-        </div>
-        <a href="about.html">About</a>
+      <div class="checkout-secure-badge" aria-label="Secure checkout">
+        <span aria-hidden="true">◆</span>
+        Secure Checkout
       </div>
-      <button class="hamburger" id="hamburger" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
+    </header>
+
+    <div class="checkout-progress" aria-hidden="true">
+      <span class="active"></span>
+      <span></span>
+      <span></span>
     </div>
-  </nav>
 
-  <div class="page-header">
-    <p class="eyebrow">Almost There</p>
-    <h1>Smart Checkout</h1>
-    <p>Review delivery, choose payment, and place your order faster</p>
-  </div>
+    <div class="checkout-layout">
+      <div class="checkout-form-wrap fade-section">
+        <div class="checkout-section-label">Delivery Address</div>
+        <div id="saved-address-card" class="saved-address-card" style="display:none;"></div>
 
-  <div class="checkout-layout">
-    <!-- LEFT: SHIPPING FORM -->
-    <div class="checkout-form-wrap fade-section">
-      <div class="checkout-section-label">Delivery Details</div>
-      <div id="saved-address-card" class="saved-address-card" style="display:none;"></div>
-
-      <div class="mobile-checkout-card">
-        <h2>Mobile Number</h2>
-        <p class="checkout-help">We will find saved delivery details if you have ordered before.</p>
-        <div class="form-group">
-          <label>Mobile Number</label>
-          <div class="checkout-phone-field">
-            <span>+91</span>
-            <input type="tel" id="c-phone" placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric" maxlength="10" />
+        <div class="mobile-checkout-card">
+          <div class="checkout-card-title-row">
+            <span class="checkout-card-icon" aria-hidden="true">⌕</span>
+            <div>
+              <h2>Mobile Number</h2>
+              <p class="checkout-help">Enter your number to fetch saved delivery details.</p>
+            </div>
           </div>
+          <div class="form-group">
+            <label>Mobile Number</label>
+            <div class="checkout-phone-field">
+              <span>+91</span>
+              <input type="tel" id="c-phone" placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric" maxlength="10" />
+            </div>
+          </div>
+          <button type="button" class="btn-primary btn-full" id="mobile-check-btn">Continue</button>
+          <div id="mobile-check-message" class="mobile-check-message" aria-live="polite"></div>
         </div>
-        <button type="button" class="btn-primary btn-full" id="mobile-check-btn">Continue</button>
-        <div id="mobile-check-message" class="mobile-check-message" aria-live="polite"></div>
+
+        <div id="customer-history" class="customer-history" style="display:none;"></div>
+
+        <div id="delivery-details-panel" style="display:none;">
+          <h2>Add Delivery Address</h2>
+
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="c-name" placeholder="Your name" autocomplete="name" />
+          </div>
+
+          <div class="form-group">
+            <label>Delivery Address</label>
+            <textarea id="c-address1" rows="3" placeholder="House / flat, building, street, area, landmark" autocomplete="street-address"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>PIN Code</label>
+            <input type="text" id="c-pin" placeholder="6-digit PIN" inputmode="numeric" maxlength="6" pattern="[1-9][0-9]{5}" autocomplete="postal-code" />
+            <small id="pin-lookup-message" class="pin-lookup-message"></small>
+          </div>
+
+          <details class="checkout-optional-details" open>
+            <summary>Email / city details</summary>
+            <div class="form-group">
+              <label>Email <span class="optional-label">optional</span></label>
+              <input type="email" id="c-email" placeholder="you@email.com" autocomplete="email" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>City</label>
+                <input type="text" id="c-city" placeholder="City" autocomplete="address-level2" />
+              </div>
+              <div class="form-group">
+                <label>State</label>
+                <input type="text" id="c-state" placeholder="State" autocomplete="address-level1" />
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <input type="hidden" id="c-address2" value="" />
+        <input type="hidden" id="c-country" value="India" />
+
+        <div id="checkout-error" class="error-msg" style="display:none;"></div>
       </div>
 
-      <div id="customer-history" class="customer-history" style="display:none;"></div>
-
-      <div id="delivery-details-panel" style="display:none;">
-        <h2>Add Delivery Address</h2>
-
-        <div class="form-group">
-          <label>Full Name</label>
-          <input type="text" id="c-name" placeholder="Your name" autocomplete="name" />
+      <div class="order-summary fade-section">
+        <div class="checkout-summary-head">
+          <h2>Order Summary</h2>
+          <a href="shop.html" class="checkout-edit-link">Edit Cart</a>
         </div>
-
-        <div class="form-group">
-          <label>Delivery Address</label>
-          <textarea id="c-address1" rows="3" placeholder="House / flat, building, street, area, landmark" autocomplete="street-address"></textarea>
+        <div id="summary-items"></div>
+        <div class="summary-total">
+          <span>Total Payable</span>
+          <span>₹<span id="summary-total">0</span></span>
         </div>
-
-        <div class="form-group">
-          <label>PIN Code</label>
-          <input type="text" id="c-pin" placeholder="6-digit PIN" inputmode="numeric" maxlength="6" pattern="[1-9][0-9]{5}" autocomplete="postal-code" />
-          <small id="pin-lookup-message" class="pin-lookup-message"></small>
-        </div>
-
-        <details class="checkout-optional-details" open>
-          <summary>Email / city details</summary>
-          <div class="form-group">
-            <label>Email *</label>
-            <input type="email" id="c-email" placeholder="you@email.com" autocomplete="email" required />
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-            <label>City</label>
-            <input type="text" id="c-city" placeholder="City" autocomplete="address-level2" />
-            </div>
-            <div class="form-group">
-            <label>State</label>
-            <input type="text" id="c-state" placeholder="State" autocomplete="address-level1" />
-            </div>
-          </div>
-        </details>
-
       </div>
 
       <div class="payment-method-wrap" id="payment-section" style="display:none;">
-        <div class="checkout-section-label">Payment Options</div>
-        <div class="prepaid-offer">Online payments get free delivery. COD delivery charges apply by location.</div>
+        <div class="checkout-section-label">Payment Method</div>
         <div class="payment-method-options" role="radiogroup" aria-label="Payment method">
           <label class="payment-method-option">
             <input type="radio" name="payment-method" value="online" checked />
+            <span class="payment-method-icon" aria-hidden="true">▰</span>
             <span>
-              <strong>Pay Online</strong>
-              <small>UPI, cards, wallet or netbanking via Razorpay</small>
+              <strong>UPI / Cards / Net Banking</strong>
+              <small>Fast & secure payment</small>
             </span>
           </label>
           <label class="payment-method-option">
             <input type="radio" name="payment-method" value="cod" />
+            <span class="payment-method-icon" aria-hidden="true">□</span>
             <span>
               <strong>Cash on Delivery</strong>
-              <small>Pay when your order reaches you</small>
+              <small>Additional COD charges may apply</small>
             </span>
           </label>
         </div>
       </div>
 
-      <input type="hidden" id="c-address2" value="" />
-      <input type="hidden" id="c-country" value="India" />
-
-      <div id="checkout-error" class="error-msg" style="display:none;"></div>
-
-      <button class="btn-primary btn-full" id="pay-btn" style="margin-top:0.5rem;padding:1rem;">
-        Check Mobile First
-      </button>
-      <p class="checkout-secure-note">Secure checkout powered by Razorpay, Supabase, and RapidShyp.</p>
-    </div>
-
-    <!-- RIGHT: ORDER SUMMARY -->
-    <div class="order-summary fade-section">
-      <h2>Order Summary</h2>
-      <div id="summary-items"></div>
-      <div class="checkout-coupon-box">
-        <label for="coupon-code">Coupon code</label>
-        <div class="checkout-coupon-row">
-          <input type="text" id="coupon-code" placeholder="WELCOME10" autocomplete="off" />
-          <button type="button" id="apply-coupon-btn">Apply</button>
-          <button type="button" id="remove-coupon-btn" style="display:none;">Remove</button>
+      <div class="checkout-coupon-shell">
+        <div class="checkout-coupon-box">
+          <label for="coupon-code">Have a coupon?</label>
+          <div class="checkout-coupon-row">
+            <input type="text" id="coupon-code" placeholder="WELCOME10" autocomplete="off" />
+            <button type="button" id="apply-coupon-btn">Apply</button>
+            <button type="button" id="remove-coupon-btn" style="display:none;">Remove</button>
+          </div>
+          <p id="coupon-message" class="checkout-coupon-message"></p>
         </div>
-        <p id="coupon-message" class="checkout-coupon-message"></p>
       </div>
-      <div class="summary-total">
-        <span>Total</span>
-        <span style="color:var(--green);">₹<span id="summary-total">0</span></span>
-      </div>
-      <div style="margin-top:1.25rem;padding:1rem;background:var(--green-pale);border-radius:var(--radius);font-size:0.82rem;color:var(--green);">
-        Pan-India delivery. Online payment or Cash on Delivery.
+
+      <div class="checkout-sticky-pay">
+        <div class="sticky-pay-total">
+          <span>Total Payable</span>
+          <strong>₹<span id="sticky-total">0</span></strong>
+        </div>
+        <button class="btn-primary btn-full" id="pay-btn">Check Mobile First</button>
+        <p class="checkout-secure-note">Secure payment by Razorpay</p>
       </div>
     </div>
-  </div>
+  </main>
 
-  <footer class="footer">
+  <footer class="footer checkout-footer">
     <div class="footer-bottom" style="border-top:none;max-width:100%;padding:1.5rem 2rem;">
       <p>© 2026 CaneCreme. All rights reserved.</p>
       <p><a href="tel:+919891239312">9891239312</a> · <a href="shipping-policy.html">Shipping</a> · <a href="return-policy.html">Returns</a></p>
@@ -191,7 +182,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js?v=4"></script>
   <script src="js/cart.js?v=3"></script>
-  <script src="js/checkout.js?v=17"></script>
+  <script src="js/checkout.js?v=18"></script>
   <script src="js/main.js?v=5"></script>
   <script src="js/clarity.js?v=1"></script>
   <script src="js/analytics.js?v=5"></script>
