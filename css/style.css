@@ -6282,3 +6282,26 @@ body:has(.hero-cover-slider) .benefit-strip {
     margin-top: 20px;
   }
 }
+
+/* ===== POPUP UNLOCKED STATE CLEANUP ===== */
+.popup-stage-form.is-unlocked > .popup-logo,
+.popup-stage-form.is-unlocked > .popup-eyebrow,
+.popup-stage-form.is-unlocked > .popup-heading,
+.popup-stage-form.is-unlocked > .popup-sub {
+  display: none;
+}
+
+.popup-stage-form.is-unlocked {
+  min-height: auto;
+  padding-top: 66px;
+}
+
+.popup-stage-form.is-unlocked .popup-success {
+  padding-top: 0;
+}
+
+@media (max-width: 520px) {
+  .popup-stage-form.is-unlocked {
+    padding-top: 58px;
+  }
+}

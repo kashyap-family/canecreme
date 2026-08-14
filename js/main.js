@@ -61,7 +61,10 @@
 
   function showDetailsForm() {
     if (introStage) introStage.hidden = true;
-    if (detailsStage) detailsStage.hidden = false;
+    if (detailsStage) {
+      detailsStage.hidden = false;
+      detailsStage.classList.remove('is-unlocked');
+    }
   }
 
   closeBtn?.addEventListener('click', closePopup);
@@ -109,6 +112,7 @@
     } catch (_) { /* silent fail — still show success */ }
 
     // Show success state
+    detailsStage?.classList.add('is-unlocked');
     form.innerHTML = `
       <div class="popup-success">
         <p class="popup-eyebrow">Coupon saved</p>
