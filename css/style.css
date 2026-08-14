@@ -6305,3 +6305,22 @@ body:has(.hero-cover-slider) .benefit-strip {
     padding-top: 58px;
   }
 }
+
+/* ===== HOME CATEGORY TO BESTSELLERS SPACING ===== */
+.home-page .categories-section {
+  padding-bottom: 2.2rem;
+}
+
+.home-page .categories-section + .section {
+  padding-top: 2.4rem;
+}
+
+@media (max-width: 768px) {
+  .home-page .categories-section {
+    padding-bottom: 1.4rem;
+  }
+
+  .home-page .categories-section + .section {
+    padding-top: 1.8rem;
+  }
+}
