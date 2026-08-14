@@ -112,6 +112,7 @@ function renderProductCard(product) {
     : '';
   const stars = renderStars(product.rating);
   const reviewText = product.review_count ? ` <span class="product-review-count">(${parseInt(product.review_count, 10)})</span>` : '';
+  const hasVariants = Array.isArray(product.variants) && product.variants.length > 1;
   const benefitTags = [
     product.delivery_type === 'delhi_only' ? 'Delhi/NCR delivery' : 'Pan India delivery',
     isBestseller ? 'Customer favourite' : '',
@@ -119,7 +120,6 @@ function renderProductCard(product) {
   ].filter(Boolean).slice(0, 2);
 
   const inStock = product.stock === undefined || product.stock > 0;
-  const hasVariants = Array.isArray(product.variants) && product.variants.length > 1;
 
   const actionHtml = hasVariants
     ? `<button class="add-to-cart" onclick="event.stopPropagation();window.location.href='product.html?id=${product.id}'">Choose Size</button>`
