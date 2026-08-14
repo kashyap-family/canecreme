@@ -57,7 +57,7 @@
     }
   }
   </script>
-  <link rel="stylesheet" href="css/style.css?v=48" />
+  <link rel="stylesheet" href="css/style.css?v=49" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Lexend:wght@300;400;500;600;700&family=Lobster&display=swap" rel="stylesheet"/>
   <!-- Meta Pixel Code -->
   <script>
@@ -550,31 +550,27 @@
     <div class="popup-box">
       <button class="popup-close" id="popup-close" aria-label="Close">✕</button>
 
-      <!-- Top: Coupon panel -->
-      <div class="popup-top">
-        <p class="popup-mini">For 10% Off</p>
-        <h2 class="popup-code-heading">Use this code at checkout:</h2>
-        <div class="popup-code-card" aria-label="Coupon code WELCOME10">
-          <span>WELCOME10</span>
-          <button type="button" class="popup-copy-code" data-code="WELCOME10" aria-label="Copy coupon code WELCOME10">
-            <span class="popup-copy-icon" aria-hidden="true"></span>
-            <span class="popup-copy-label">Copy</span>
-          </button>
+      <div class="popup-stage popup-stage-intro" id="popup-intro">
+        <div class="popup-gift" aria-hidden="true">
+          <span class="popup-gift-lid"></span>
+          <span class="popup-gift-box"></span>
+          <span class="popup-gift-ribbon"></span>
+          <span class="popup-gift-bow popup-gift-bow-left"></span>
+          <span class="popup-gift-bow popup-gift-bow-right"></span>
         </div>
-        <a href="shop.html" class="popup-shop-now">Shop now</a>
+        <h2 class="popup-heading">Mystery treat is here!</h2>
+        <p class="popup-sub">Open your CaneCreme surprise and unlock 10% off your first order.</p>
+        <button type="button" class="popup-accept" id="popup-accept">Accept</button>
+        <button type="button" class="popup-decline" id="popup-skip">No, thanks</button>
       </div>
 
-      <!-- Bottom: Form panel -->
-      <div class="popup-bottom">
+      <div class="popup-stage popup-stage-form" id="popup-details" hidden>
         <img src="Assets/logo.png" alt="CaneCreme" class="popup-logo" />
-        <p class="popup-eyebrow">Join the CaneCreme family</p>
-        <h3 class="popup-heading">Save your coupon and get sweet updates</h3>
-        <p class="popup-sub">Share your details so we can save the code for you and send fresh offers.</p>
+        <p class="popup-eyebrow">Almost there</p>
+        <h2 class="popup-heading">Where should we send your offer?</h2>
+        <p class="popup-sub">Enter your phone number and email to reveal your coupon code.</p>
 
         <form class="popup-form" id="popup-form" novalidate>
-          <div class="popup-field">
-            <input type="text" id="popup-name" placeholder="Your name *" autocomplete="name" required />
-          </div>
           <div class="popup-field">
             <div class="popup-phone-wrap">
               <span class="popup-phone-code">+91</span>
@@ -585,14 +581,8 @@
             <input type="email" id="popup-email" placeholder="Email address *" autocomplete="email" required />
           </div>
           <div id="popup-error" class="popup-error" style="display:none;"></div>
-          <button type="submit" class="popup-submit">Unlock 10% Off →</button>
+          <button type="submit" class="popup-submit">Show my coupon →</button>
         </form>
-
-        <p class="popup-skip" id="popup-skip">No thanks, I'll browse first</p>
-      </div>
-
-      <div class="popup-visual" aria-hidden="true">
-        <img src="Assets/hero-cover-collage.jpeg" alt="" loading="lazy" />
       </div>
     </div>
   </div>
@@ -601,7 +591,7 @@
   <script src="js/config.js?v=4"></script>
   <script src="js/cart.js?v=7"></script>
   <script src="js/products.js?v=7"></script>
-  <script src="js/main.js?v=9"></script>
+  <script src="js/main.js?v=10"></script>
   <script src="js/clarity.js?v=1"></script>
   <script src="js/analytics.js?v=5"></script>
   <script>

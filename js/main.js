@@ -5,6 +5,9 @@
   const overlay  = document.getElementById('popup-overlay');
   const closeBtn = document.getElementById('popup-close');
   const skipBtn  = document.getElementById('popup-skip');
+  const acceptBtn = document.getElementById('popup-accept');
+  const introStage = document.getElementById('popup-intro');
+  const detailsStage = document.getElementById('popup-details');
   const form     = document.getElementById('popup-form');
   if (!overlay) return;
 
@@ -56,20 +59,25 @@
     overlay.classList.remove('open');
   }
 
+  function showDetailsForm() {
+    if (introStage) introStage.hidden = true;
+    if (detailsStage) detailsStage.hidden = false;
+  }
+
   closeBtn?.addEventListener('click', closePopup);
   skipBtn?.addEventListener('click',  closePopup);
+  acceptBtn?.addEventListener('click', showDetailsForm);
   overlay.addEventListener('click', e => { if (e.target === overlay) closePopup(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closePopup(); });
 
   form?.addEventListener('submit', async e => {
     e.preventDefault();
-    const name  = document.getElementById('popup-name')?.value.trim();
     const phone = document.getElementById('popup-phone')?.value.trim();
     const email = document.getElementById('popup-email')?.value.trim();
     const errEl = document.getElementById('popup-error');
 
-    if (!name || !phone || !email) {
-      errEl.textContent = 'Please fill in all fields.';
+    if (!phone || !email) {
+      errEl.textContent = 'Please enter your phone number and email.';
       errEl.style.display = 'block';
       return;
     }
@@ -96,7 +104,7 @@
           'Content-Type': 'application/json',
           'Prefer': 'return=minimal'
         },
-        body: JSON.stringify({ name, phone: '+91' + phone, email, source: 'popup' })
+        body: JSON.stringify({ name: '', phone: '+91' + phone, email, source: 'popup' })
       });
     } catch (_) { /* silent fail — still show success */ }
 
@@ -104,7 +112,7 @@
     form.innerHTML = `
       <div class="popup-success">
         <p class="popup-eyebrow">Coupon saved</p>
-        <h3 class="popup-heading">You're in!</h3>
+        <h2 class="popup-heading">Your mystery treat is unlocked!</h2>
         <p class="popup-sub">Use this code at checkout for 10% off your first order.</p>
         <div class="popup-success-code">
           <span>WELCOME10</span>
