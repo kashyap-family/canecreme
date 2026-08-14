@@ -5148,3 +5148,127 @@ summary:focus-visible {
     padding: 0.68rem 0.85rem;
   }
 }
+/* ===== HOMEPAGE FULL-BLEED HERO IMAGE ===== */
+.home-page .hero {
+  background: #120c08;
+  overflow: hidden;
+}
+
+.home-page .hero-inner {
+  max-width: none;
+  min-height: clamp(480px, 68vw, 760px);
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: stretch;
+}
+
+.home-page .hero-visual {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+}
+
+.home-page .hero-product-frame {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  aspect-ratio: auto;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.home-page .hero-product-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background:
+    linear-gradient(90deg, rgba(18, 9, 4, 0.82) 0%, rgba(18, 9, 4, 0.58) 34%, rgba(18, 9, 4, 0.18) 68%, rgba(18, 9, 4, 0.08) 100%),
+    linear-gradient(180deg, rgba(18, 9, 4, 0.08) 0%, rgba(18, 9, 4, 0.22) 100%);
+  pointer-events: none;
+}
+
+.home-page .hero-cover-slider {
+  height: 100%;
+}
+
+.home-page .hero-cover-slide {
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.home-page .hero-copy {
+  grid-area: 1 / 1;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: min(620px, 90vw);
+  padding: clamp(2.2rem, 5vw, 5.5rem) clamp(1.25rem, 7vw, 8rem);
+  color: #fffaf1;
+}
+
+.home-page .hero-tagline,
+.home-page .hero-title,
+.home-page .hero-title span,
+.home-page .hero-desc,
+.home-page .hero-social-proof,
+.home-page .hero-social-proof strong {
+  color: #fffaf1;
+}
+
+.home-page .hero-eyebrow {
+  background: rgba(255, 250, 241, 0.9);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: #2a160d;
+}
+
+.home-page .hero-desc {
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.2);
+}
+
+.home-page .hero .btn-primary {
+  background: #fffaf1;
+  color: #1f120b;
+}
+
+.home-page .hero .btn-primary:hover {
+  background: var(--cc-gold);
+  color: #1f120b;
+}
+
+.home-page .hero .btn-secondary {
+  background: rgba(255, 250, 241, 0.08);
+  border-color: rgba(255, 250, 241, 0.72);
+  color: #fffaf1;
+}
+
+.home-page .hero-cover-button,
+.home-page .hero-product-chip,
+.home-page .hero-trust {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .home-page .hero-inner {
+    min-height: 560px;
+  }
+
+  .home-page .hero-product-frame::before {
+    background:
+      linear-gradient(180deg, rgba(18, 9, 4, 0.7) 0%, rgba(18, 9, 4, 0.42) 45%, rgba(18, 9, 4, 0.74) 100%);
+  }
+
+  .home-page .hero-copy {
+    justify-content: flex-end;
+    padding: 2rem 1.15rem 2.4rem;
+    max-width: 100%;
+  }
+
+  .home-page .hero-actions {
+    max-width: none;
+  }
+}
