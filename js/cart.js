@@ -1,6 +1,7 @@
 // ===== CART MANAGEMENT =====
 
 let cart = JSON.parse(localStorage.getItem('canecreme_cart') || '[]');
+const FREE_SHIPPING_MIN_SUBTOTAL = 499;
 
 function saveCart() {
   localStorage.setItem('canecreme_cart', JSON.stringify(cart));
@@ -42,12 +43,21 @@ function getCartCount() {
   return cart.reduce((sum, item) => sum + item.quantity, 0);
 }
 
+function getFreeShippingMessage() {
+  const remaining = Math.max(0, FREE_SHIPPING_MIN_SUBTOTAL - getCartTotal());
+  if (remaining <= 0) return 'FREE SHIPPING unlocked on prepaid orders';
+  return `Add ₹${remaining.toFixed(0)} more to unlock FREE SHIPPING`;
+}
+
 function updateCartUI() {
   const countEl = document.getElementById('cart-count');
   if (countEl) countEl.textContent = getCartCount();
 
   const totalEl = document.getElementById('cart-total');
   if (totalEl) totalEl.textContent = getCartTotal().toFixed(0);
+
+  const shippingNoteEl = document.querySelector('.cart-shipping-note');
+  if (shippingNoteEl) shippingNoteEl.textContent = getFreeShippingMessage();
 
   const itemsEl = document.getElementById('cart-items');
   if (!itemsEl) return;
