@@ -46,7 +46,17 @@ function getCartCount() {
 function getFreeShippingMessage() {
   const remaining = Math.max(0, FREE_SHIPPING_MIN_SUBTOTAL - getCartTotal());
   if (remaining <= 0) return 'FREE SHIPPING unlocked on prepaid orders';
-  return `Add ₹${remaining.toFixed(0)} more to unlock FREE SHIPPING`;
+  return `You're ₹${remaining.toFixed(0)} away from FREE SHIPPING`;
+}
+
+function updateFreeShippingProgress() {
+  const progressEl = document.querySelector('.cart-shipping-progress-fill');
+  const progressTextEl = document.querySelector('.cart-shipping-progress-text');
+  const subtotal = getCartTotal();
+  const progress = Math.max(0, Math.min(100, (subtotal / FREE_SHIPPING_MIN_SUBTOTAL) * 100));
+
+  if (progressEl) progressEl.style.width = `${progress}%`;
+  if (progressTextEl) progressTextEl.textContent = getFreeShippingMessage();
 }
 
 function updateCartUI() {
@@ -58,6 +68,15 @@ function updateCartUI() {
 
   const shippingNoteEl = document.querySelector('.cart-shipping-note');
   if (shippingNoteEl) shippingNoteEl.textContent = getFreeShippingMessage();
+  if (shippingNoteEl && !document.querySelector('.cart-shipping-progress')) {
+    shippingNoteEl.insertAdjacentHTML('afterend', `
+      <div class="cart-shipping-progress" aria-hidden="true">
+        <div class="cart-shipping-progress-fill"></div>
+      </div>
+      <div class="cart-shipping-progress-text">${getFreeShippingMessage()}</div>
+    `);
+  }
+  updateFreeShippingProgress();
 
   const itemsEl = document.getElementById('cart-items');
   if (!itemsEl) return;

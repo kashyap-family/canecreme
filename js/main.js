@@ -205,29 +205,123 @@ function observeProductCards() {
 // Re-observe after products load (called from products.js)
 window.onProductsLoaded = observeProductCards;
 
-// ===== SOCIAL PROOF TOAST =====
+// ===== SEARCH OVERLAY =====
+(function initSearchOverlay() {
+  const searchTriggers = document.querySelectorAll('.nav-search-link');
+  if (!searchTriggers.length) return;
+
+  let products = [];
+  let hasLoaded = false;
+  const overlay = document.createElement('div');
+  overlay.className = 'search-overlay';
+  overlay.innerHTML = `
+    <div class="search-panel" role="dialog" aria-modal="true" aria-label="Search CaneCreme products">
+      <button class="search-close" type="button" aria-label="Close search">×</button>
+      <label class="search-label" for="site-search-input">Search CaneCreme</label>
+      <input id="site-search-input" class="search-input" type="search" placeholder="Search cookies, makhana, hampers..." autocomplete="off" />
+      <div class="search-suggestions">
+        <button type="button" data-search-suggestion="cookie">Cookies</button>
+        <button type="button" data-search-suggestion="makhana">Makhana</button>
+        <button type="button" data-search-suggestion="hamper">Gifting</button>
+      </div>
+      <div class="search-results" id="site-search-results"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const input = overlay.querySelector('.search-input');
+  const resultsEl = overlay.querySelector('.search-results');
+
+  async function loadSearchProducts() {
+    if (hasLoaded) return products;
+    hasLoaded = true;
+    if (typeof fetchProducts === 'function') {
+      products = await fetchProducts(100);
+      return products;
+    }
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/products?is_active=eq.true&limit=100&order=created_at.desc`, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+      });
+      products = res.ok ? await res.json() : [];
+    } catch (_) {
+      products = [];
+    }
+    return products;
+  }
+
+  function productImage(product) {
+    return Array.isArray(product.images) && product.images[0] ? product.images[0] : 'Assets/logo.png';
+  }
+
+  function renderSearchResults(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      resultsEl.innerHTML = '<p class="search-empty">Try “cookie”, “makhana”, “bites”, or “hamper”.</p>';
+      return;
+    }
+
+    const matches = products.filter(product => {
+      const haystack = `${product.name || ''} ${product.description || ''} ${product.category || ''}`.toLowerCase();
+      return haystack.includes(q);
+    }).slice(0, 8);
+
+    resultsEl.innerHTML = matches.length ? matches.map(product => `
+      <a class="search-result" href="product.html?id=${encodeURIComponent(product.id)}">
+        <img src="${productImage(product)}" alt="${product.name}" loading="lazy" />
+        <span>
+          <strong>${product.name}</strong>
+          <small>₹${parseFloat(product.price || 0).toFixed(0)}</small>
+        </span>
+      </a>
+    `).join('') : `<p class="search-empty">No products found for “${query.trim()}”. Try cookies, makhana, snacks, or gifting.</p>`;
+  }
+
+  async function openSearch(event) {
+    event.preventDefault();
+    overlay.classList.add('open');
+    document.body.classList.add('search-open');
+    resultsEl.innerHTML = '<p class="search-empty">Loading products...</p>';
+    await loadSearchProducts();
+    renderSearchResults(input.value);
+    input.focus();
+  }
+
+  function closeSearch() {
+    overlay.classList.remove('open');
+    document.body.classList.remove('search-open');
+  }
+
+  searchTriggers.forEach(trigger => trigger.addEventListener('click', openSearch));
+  overlay.querySelector('.search-close').addEventListener('click', closeSearch);
+  overlay.addEventListener('click', event => { if (event.target === overlay) closeSearch(); });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') closeSearch(); });
+  input.addEventListener('input', () => renderSearchResults(input.value));
+  overlay.querySelectorAll('[data-search-suggestion]').forEach(button => {
+    button.addEventListener('click', () => {
+      input.value = button.dataset.searchSuggestion;
+      renderSearchResults(input.value);
+      input.focus();
+    });
+  });
+})();
+
+// ===== FLOATING WHATSAPP =====
+(function initFloatingWhatsApp() {
+  if (document.querySelector('.floating-whatsapp') || document.body.classList.contains('checkout-page')) return;
+  const link = document.createElement('a');
+  link.className = 'floating-whatsapp';
+  link.href = 'https://wa.me/919891239312';
+  link.target = '_blank';
+  link.rel = 'noopener';
+  link.setAttribute('aria-label', 'Chat with CaneCreme on WhatsApp');
+  link.textContent = 'Chat with us';
+  document.body.appendChild(link);
+})();
+
+// Fake live-order notifications are intentionally disabled.
 (function initProofToast() {
   const toast = document.getElementById('proof-toast');
   if (!toast) return;
-
-  const data = [
-    { name: 'Priya from Delhi',      product: 'just ordered Soya bites!', icon: '🌿' },
-    { name: 'Rahul from Mumbai',     product: 'just ordered Beet bites!', icon: '🌿' },
-    { name: 'Anjali from Bengaluru', product: 'just ordered Broccoli bites!', icon: '🌿' },
-    { name: 'Vikram from Pune',      product: 'just ordered Pure ghee Atta cookies!', icon: '🍪' },
-    { name: 'Sneha from Hyderabad',  product: 'just ordered Powerbite Multigrain cookies!', icon: '🍪' },
-    { name: 'Aditi from Delhi',      product: 'just ordered Chocochip oatmeal cookies!', icon: '🍪' },
-  ];
-
-  function showToast() {
-    const item = data[Math.floor(Math.random() * data.length)];
-    document.getElementById('proof-name').textContent    = item.name;
-    document.getElementById('proof-product').textContent = item.product;
-    document.getElementById('proof-icon').textContent    = item.icon;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 4500);
-  }
-
-  // First show after 9s, then every 22s
-  setTimeout(() => { showToast(); setInterval(showToast, 22000); }, 9000);
+  toast.remove();
 })();

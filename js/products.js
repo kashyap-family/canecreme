@@ -21,7 +21,10 @@ async function fetchProducts(limit = 100) {
 }
 
 function renderStars(rating) {
-  const r = Math.round(parseFloat(rating) || 5);
+  if (rating === undefined || rating === null || rating === '') return '';
+  const parsed = parseFloat(rating);
+  if (!Number.isFinite(parsed) || parsed <= 0) return '';
+  const r = Math.round(parsed);
   return Array.from({length: 5}, (_, i) =>
     `<span class="${i < r ? '' : 'star-empty'}">★</span>`
   ).join('');
@@ -102,6 +105,16 @@ function renderProductCard(product) {
   const comparePrice = hasSale
     ? `<span class="product-compare-price">₹${parseFloat(product.compare_at_price).toFixed(0)}</span>`
     : '';
+  const discount = hasSale
+    ? `<span class="product-discount">${Math.round(((parseFloat(product.compare_at_price) - parseFloat(product.price)) / parseFloat(product.compare_at_price)) * 100)}% off</span>`
+    : '';
+  const stars = renderStars(product.rating);
+  const reviewText = product.review_count ? ` <span class="product-review-count">(${parseInt(product.review_count, 10)})</span>` : '';
+  const benefitTags = [
+    product.delivery_type === 'delhi_only' ? 'Delhi/NCR delivery' : 'Pan India delivery',
+    isBestseller ? 'Customer favourite' : '',
+    hasVariants ? `${product.variant_count} sizes` : ''
+  ].filter(Boolean).slice(0, 2);
 
   const inStock = product.stock === undefined || product.stock > 0;
   const hasVariants = Array.isArray(product.variants) && product.variants.length > 1;
@@ -123,14 +136,16 @@ function renderProductCard(product) {
       ${badge}
       <div class="product-info">
         <div class="product-stock">${inStock ? 'In Stock' : 'Out of Stock'}</div>
-        <div class="product-stars">${renderStars(product.rating || 5)}</div>
+        ${stars ? `<div class="product-stars" aria-label="Rating">${stars}${reviewText}</div>` : ''}
         <div class="product-name">${product.name}</div>
         ${hasVariants ? `<div class="product-variant-count">${product.variant_count} sizes available</div>` : ''}
         <div class="product-desc">${product.description || ''}</div>
+        ${benefitTags.length ? `<div class="product-tags">${benefitTags.map(tag => `<span>${tag}</span>`).join('')}</div>` : ''}
         <div class="product-footer">
           <div class="price-wrap">
             <span class="product-price">${hasVariants ? 'From ' : ''}₹${parseFloat(product.price).toFixed(0)}</span>
             ${comparePrice}
+            ${discount}
           </div>
           ${actionHtml}
         </div>
@@ -265,4 +280,28 @@ async function loadFeaturedProducts(containerId, limit = 3) {
   if (countEl) {
     countEl.textContent = `${products.length} product${products.length !== 1 ? 's' : ''}`;
   }
+}
+
+async function loadBestsellerProducts(containerId, limit = 6) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const products = await fetchProducts(100);
+  const bestsellerNames = ['beet', 'soya', 'powerbite', 'banana tea cake', 'dry fruit tea cake', 'classic hamper', 'jumbo hamper'];
+  const bestsellers = products.filter(product =>
+    bestsellerNames.some(name => String(product.name || '').toLowerCase().includes(name))
+  );
+  const visibleProducts = groupProductVariants(bestsellers).slice(0, limit);
+
+  if (visibleProducts.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--gray);">
+        Bestsellers will appear here once matching products are available.
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = visibleProducts.map(renderProductCard).join('');
+  initCarouselHover();
+  if (typeof window.onProductsLoaded === 'function') window.onProductsLoaded();
 }

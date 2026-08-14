@@ -22,7 +22,7 @@
   <meta name="twitter:title" content="Cane Creme Product" id="twitter-title" />
   <meta name="twitter:description" content="View Cane Creme snacks, cookies, hampers and treats made with raw cane sugar." id="twitter-description" />
   <meta name="twitter:image" content="https://www.canecreme.co/Assets/logo.png" id="twitter-image" />
-  <link rel="stylesheet" href="css/style.css?v=41" />
+  <link rel="stylesheet" href="css/style.css?v=42" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Lexend:wght@300;400;500;600;700&family=Lobster&display=swap" rel="stylesheet"/>
   <style>
     .product-detail-wrap {
@@ -378,8 +378,8 @@
 
   <div class="announcement-bar">
     <div class="marquee-track">
-      <span>🌿 Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp; Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp;</span>
-      <span aria-hidden="true">🌿 Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp; Free shipping above ₹499 &nbsp;&nbsp;·&nbsp;&nbsp; 100% Natural &nbsp;&nbsp;·&nbsp;&nbsp; Pan-India Delivery &nbsp;&nbsp;·&nbsp;&nbsp; No Artificial Additives &nbsp;&nbsp;·&nbsp;&nbsp; Handcrafted &nbsp;&nbsp;·&nbsp;&nbsp; Premium Quality &nbsp;&nbsp;·&nbsp;&nbsp;</span>
+      <span>FREE SHIPPING ON PREPAID ORDERS ABOVE ₹499 &nbsp;|&nbsp; PAN INDIA DELIVERY &nbsp;|&nbsp; 100% SECURE PAYMENTS</span>
+      <span aria-hidden="true">FREE SHIPPING ON PREPAID ORDERS ABOVE ₹499 &nbsp;|&nbsp; PAN INDIA DELIVERY &nbsp;|&nbsp; 100% SECURE PAYMENTS</span>
     </div>
   </div>
 
@@ -523,9 +523,9 @@
   </footer>
 
   <script src="js/config.js?v=4"></script>
-  <script src="js/products.js?v=4"></script>
-  <script src="js/cart.js?v=6"></script>
-  <script src="js/main.js?v=5"></script>
+  <script src="js/products.js?v=5"></script>
+  <script src="js/cart.js?v=7"></script>
+  <script src="js/main.js?v=7"></script>
   <script src="js/clarity.js?v=1"></script>
   <script src="js/analytics.js?v=5"></script>
   <script>
@@ -665,10 +665,19 @@
         ? 'This product is currently delivered within Delhi only.'
         : 'This product is delivered across India.';
       const saving  = hasSale ? Math.round(parseFloat(p.compare_at_price) - parseFloat(p.price)) : 0;
-      const rating  = Math.round(parseFloat(p.rating) || 5);
-      const stars   = Array.from({length:5}, (_,i) =>
+      const ratingValue = parseFloat(p.rating);
+      const hasRating = Number.isFinite(ratingValue) && ratingValue > 0;
+      const rating  = hasRating ? Math.round(ratingValue) : 0;
+      const stars   = hasRating ? Array.from({length:5}, (_,i) =>
         `<span style="color:${i < rating ? 'var(--gold)' : '#e5e7eb'}">★</span>`
-      ).join('');
+      ).join('') : '';
+      const detailRows = [
+        ['Ingredients', p.ingredients || 'Ingredient details will be updated soon.'],
+        ['Allergens', p.allergens || 'Allergen information will be updated soon. Please contact CaneCreme before ordering if you have allergies.'],
+        ['Nutrition', p.nutritional_info || p.nutrition || 'Nutritional information will be updated soon.'],
+        ['Storage', p.storage_info || p.storage || 'Storage information will be updated soon.'],
+        ['Shelf Life', p.shelf_life || 'Shelf-life information will be updated soon.']
+      ];
 
       const variantHtml = activeVariants.length > 1
         ? `<div class="pd-variant-wrap">
@@ -685,7 +694,7 @@
 
       document.getElementById('pd-info').innerHTML = `
         <div class="pd-name" id="pd-name">${displayName}</div>
-        <div class="pd-stars">${stars}</div>
+        ${stars ? `<div class="pd-stars">${stars}${p.review_count ? ` <span>(${parseInt(p.review_count, 10)})</span>` : ''}</div>` : ''}
         <div class="pd-price-row">
           <span class="pd-price" id="pd-price">₹${parseFloat(p.price).toFixed(0)}</span>
           <span class="pd-compare" id="pd-compare" style="${hasSale ? '' : 'display:none;'}">₹${hasSale ? parseFloat(p.compare_at_price).toFixed(0) : ''}</span>
@@ -697,15 +706,15 @@
         </div>
         ${p.description ? `<div class="pd-desc">${p.description}</div>` : ''}
         <div class="pd-badges">
-          <span class="pd-badge">🌿 100% Natural</span>
-          <span class="pd-badge">✓ No Preservatives</span>
+          <span class="pd-badge">Raw cane sugar</span>
+          <span class="pd-badge">Real ingredients</span>
           <span class="pd-badge">🚚 ${deliveryLabel}</span>
         </div>
         ${variantHtml}
         <div class="pincode-wrap" data-delivery-type="${deliveryType}">
           <div class="pincode-offer">
             <span>‹</span>
-            <strong>Free Shipping on all Order above ₹499</strong>
+            <strong>Free shipping on prepaid orders above ₹499</strong>
             <span>›</span>
           </div>
           <div class="pincode-card" id="pincode-card">
@@ -732,6 +741,14 @@
               ${inStock ? 'Add to Cart' : 'Out of Stock'}
             </button>
           </div>
+        </div>
+        <div class="pd-accordion">
+          ${detailRows.map(([title, value], index) => `
+            <details ${index === 0 ? 'open' : ''}>
+              <summary>${title}</summary>
+              <p>${escapeHTML(String(value))}</p>
+            </details>
+          `).join('')}
         </div>
       `;
 
