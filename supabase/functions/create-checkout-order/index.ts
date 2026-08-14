@@ -49,6 +49,38 @@ const getCouponDiscount = (couponCode: string, subtotal: number) => {
   return Math.round((subtotal * 0.10) * 100) / 100;
 };
 
+const getPhoneVariants = (phone: string) => {
+  const trimmed = String(phone || "").trim();
+  const digits = trimmed.replace(/\D/g, "");
+  const tenDigit = digits.length >= 10 ? digits.slice(-10) : digits;
+  return Array.from(new Set([
+    trimmed,
+    digits,
+    tenDigit,
+    tenDigit ? `91${tenDigit}` : "",
+    tenDigit ? `+91${tenDigit}` : "",
+  ].filter(Boolean)));
+};
+
+const hasUsedWelcomeCoupon = async (supabaseUrl: string, headers: HeadersInit, phone: string) => {
+  const phoneFilters = getPhoneVariants(phone).map((value) => `customer_phone.eq.${value}`);
+  if (phoneFilters.length === 0) return false;
+
+  const params = new URLSearchParams({
+    select: "id",
+    coupon_code: "eq.WELCOME10",
+    order_status: "not.eq.cancelled",
+    limit: "1",
+  });
+  params.set("or", `(${phoneFilters.join(",")})`);
+
+  const res = await fetch(`${supabaseUrl}/rest/v1/orders?${params.toString()}`, { headers });
+  if (!res.ok) throw new Error(`Coupon usage check failed: ${await res.text()}`);
+
+  const rows = await res.json();
+  return Array.isArray(rows) && rows.length > 0;
+};
+
 const FREE_DELIVERY_MIN_SUBTOTAL = 499;
 
 const corsHeaders = {
@@ -98,9 +130,6 @@ Deno.serve(async (req) => {
       ? 0
       : deliveryZone === "delhi_ncr" ? 50 : 80;
     const couponCode = normalizeCouponCode(body.coupon_code);
-    const discountAmount = getCouponDiscount(couponCode, subtotal);
-    const total = Math.max(0, subtotal - discountAmount + deliveryCharge);
-    const itemSnapshot = normalizeItems(items);
 
     const supabaseUrl = requiredEnv("SUPABASE_URL");
     const serviceRoleKey = requiredEnv("SERVICE_ROLE_KEY");
@@ -110,6 +139,14 @@ Deno.serve(async (req) => {
       "Content-Type": "application/json",
       Prefer: "return=representation",
     };
+
+    if (couponCode === "WELCOME10" && await hasUsedWelcomeCoupon(supabaseUrl, dbHeaders, customer.phone)) {
+      return jsonResponse({ error: "WELCOME10 can be used only once per customer." }, 400);
+    }
+
+    const discountAmount = getCouponDiscount(couponCode, subtotal);
+    const total = Math.max(0, subtotal - discountAmount + deliveryCharge);
+    const itemSnapshot = normalizeItems(items);
 
     const orderRes = await fetch(`${supabaseUrl}/rest/v1/orders`, {
       method: "POST",

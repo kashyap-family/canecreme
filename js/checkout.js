@@ -604,6 +604,37 @@ async function createOrderInDB(customerData) {
   return data.order;
 }
 
+function getOrderSaveErrorMessage(error) {
+  const fallback = 'Could not save your order. Please try again or contact support.';
+  const raw = String(error?.message || error || '');
+  const jsonText = raw.match(/\{.*\}$/)?.[0];
+
+  if (jsonText) {
+    try {
+      const parsed = JSON.parse(jsonText);
+      if (parsed?.error) return String(parsed.error);
+    } catch (_) {
+      // Keep the friendly fallback if the server error is not valid JSON.
+    }
+  }
+
+  if (/WELCOME10 can be used only once per customer/i.test(raw)) {
+    return 'WELCOME10 can be used only once per customer.';
+  }
+
+  return fallback;
+}
+
+function clearRejectedCoupon(message) {
+  if (!/WELCOME10|coupon/i.test(message)) return;
+  appliedCouponCode = '';
+  localStorage.removeItem(CHECKOUT_COUPON_KEY);
+  const input = document.getElementById('coupon-code');
+  if (input) input.value = '';
+  renderOrderSummary();
+  setCouponMessage(message, true);
+}
+
 async function confirmCodOrder(orderId) {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/confirm-cod-order`, {
     method: 'POST',
@@ -789,7 +820,9 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     await saveOrderItems(currentOrderId);
   } catch (dbErr) {
     console.error('Order save failed:', dbErr);
-    errorEl.textContent = 'Could not save your order. Please try again or contact support.';
+    const message = getOrderSaveErrorMessage(dbErr);
+    clearRejectedCoupon(message);
+    errorEl.textContent = message;
     errorEl.style.display = 'block';
     btn.textContent = getCheckoutButtonText();
     btn.disabled = false;
