@@ -151,6 +151,7 @@ function getFilteredOrders() {
   return allOrders.filter(order => {
     const matchesSearch = !search || getOrderSearchText(order).includes(search);
     const matchesPayment = payment === 'all' || order.payment_status === payment;
+    if (isCancelledOrder(order)) return false;
     const matchesStatus = status === 'all' || order.order_status === status;
     const matchesDate = isWithinDateFilter(order, date);
     return matchesSearch && matchesPayment && matchesStatus && matchesDate;
