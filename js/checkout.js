@@ -8,6 +8,7 @@ const ABANDONED_CHECKOUT_ID_KEY = 'canecreme_abandoned_checkout_id';
 const CHECKOUT_COUPON_KEY = 'canecreme_checkout_coupon';
 const WELCOME_COUPON_CODE = 'WELCOME10';
 const WELCOME_COUPON_PERCENT = 10;
+const FREE_DELIVERY_MIN_SUBTOTAL = 499;
 let phoneLookupTimer = null;
 let lastPinLookup = '';
 let abandonedCheckoutTimer = null;
@@ -660,14 +661,19 @@ function isNearDelhiAddress() {
   return /^(110|121|122|201)/.test(pin);
 }
 
-function getDeliveryCharge() {
-  if (getSelectedPaymentMethod() !== 'cod') return 0;
+function getBaseDeliveryCharge() {
   return isNearDelhiAddress() ? 50 : 80;
 }
 
+function getDeliveryCharge() {
+  const subtotal = getCartTotal();
+  if (subtotal <= 0 || subtotal >= FREE_DELIVERY_MIN_SUBTOTAL) return 0;
+  return getBaseDeliveryCharge();
+}
+
 function getDeliveryLabel() {
-  if (getSelectedPaymentMethod() !== 'cod') return 'Prepaid';
-  return isNearDelhiAddress() ? 'COD Delhi/NCR' : 'COD Pan India';
+  if (getCartTotal() >= FREE_DELIVERY_MIN_SUBTOTAL) return 'Free over Rs. 499';
+  return isNearDelhiAddress() ? 'Delhi/NCR delivery' : 'Pan India delivery';
 }
 
 function getCheckoutButtonText() {

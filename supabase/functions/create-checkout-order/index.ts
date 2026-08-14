@@ -49,6 +49,8 @@ const getCouponDiscount = (couponCode: string, subtotal: number) => {
   return Math.round((subtotal * 0.10) * 100) / 100;
 };
 
+const FREE_DELIVERY_MIN_SUBTOTAL = 499;
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -92,9 +94,9 @@ Deno.serve(async (req) => {
     }
     const paymentMethod = body.payment_method === "cod" ? "cod" : "online";
     const deliveryZone = isNearDelhiAddress(customer) ? "delhi_ncr" : "pan_india";
-    const deliveryCharge = paymentMethod === "cod"
-      ? deliveryZone === "delhi_ncr" ? 50 : 80
-      : 0;
+    const deliveryCharge = subtotal >= FREE_DELIVERY_MIN_SUBTOTAL
+      ? 0
+      : deliveryZone === "delhi_ncr" ? 50 : 80;
     const couponCode = normalizeCouponCode(body.coupon_code);
     const discountAmount = getCouponDiscount(couponCode, subtotal);
     const total = Math.max(0, subtotal - discountAmount + deliveryCharge);
