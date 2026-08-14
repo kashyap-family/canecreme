@@ -6168,3 +6168,32 @@ body:has(.hero-cover-slider) .benefit-strip {
     margin-top: 26px;
   }
 }
+
+/* ===== POPUP 3D GIFT ASSET ===== */
+.popup-gift {
+  top: -112px;
+  width: 312px;
+  height: 286px;
+  filter: drop-shadow(0 28px 30px rgba(26, 30, 38, 0.2));
+}
+
+.popup-gift img {
+  object-fit: contain;
+  transform: none;
+}
+
+.popup-stage-intro {
+  padding-top: 236px;
+}
+
+@media (max-width: 520px) {
+  .popup-gift {
+    top: -86px;
+    width: 238px;
+    height: 220px;
+  }
+
+  .popup-stage-intro {
+    padding-top: 204px;
+  }
+}
