@@ -91,7 +91,7 @@ function renderProductCard(product) {
   }
 
   const hasSale = product.compare_at_price && parseFloat(product.compare_at_price) > parseFloat(product.price);
-  const bestsellerNames = ['beet', 'soya', 'powerbite'];
+  const bestsellerNames = ['beet', 'soya', 'powerbite', 'banana tea cake', 'dry fruit tea cake', 'classic hamper', 'jumbo hamper'];
   const isBestseller = bestsellerNames.some(n => product.name.toLowerCase().includes(n));
   const badge = isBestseller
     ? `<div class="product-badge bestseller-badge">⭐ Bestseller</div>`
