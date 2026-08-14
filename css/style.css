@@ -5173,6 +5173,12 @@ summary:focus-visible {
   padding: 0;
 }
 
+body:has(.hero-cover-slider) .hero-copy,
+body:has(.hero-cover-slider) .hero-trust,
+body:has(.hero-cover-slider) .benefit-strip {
+  display: none;
+}
+
 .home-page .hero-inner {
   max-width: none;
   margin: 0;
