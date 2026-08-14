@@ -1,5 +1,7 @@
 // ===== PRODUCTS — Load from Supabase =====
 
+const BESTSELLER_KEYWORDS = ['beet', 'soya', 'powerbite', 'banana tea cake', 'dry fruit tea cake', 'classic hamper', 'jumbo hamper'];
+
 async function fetchProducts(limit = 100) {
   try {
     let url = `${SUPABASE_URL}/rest/v1/products?is_active=eq.true&order=created_at.desc`;
@@ -94,8 +96,8 @@ function renderProductCard(product) {
   }
 
   const hasSale = product.compare_at_price && parseFloat(product.compare_at_price) > parseFloat(product.price);
-  const bestsellerNames = ['beet', 'soya', 'powerbite', 'banana tea cake', 'dry fruit tea cake', 'classic hamper', 'jumbo hamper'];
-  const isBestseller = bestsellerNames.some(n => product.name.toLowerCase().includes(n));
+  const productName = String(product.name || '');
+  const isBestseller = BESTSELLER_KEYWORDS.some(n => productName.toLowerCase().includes(n));
   const badge = isBestseller
     ? `<div class="product-badge bestseller-badge">⭐ Bestseller</div>`
     : hasSale
@@ -286,22 +288,33 @@ async function loadBestsellerProducts(containerId, limit = 6) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  const products = await fetchProducts(100);
-  const bestsellerNames = ['beet', 'soya', 'powerbite', 'banana tea cake', 'dry fruit tea cake', 'classic hamper', 'jumbo hamper'];
-  const bestsellers = products.filter(product =>
-    bestsellerNames.some(name => String(product.name || '').toLowerCase().includes(name))
-  );
-  const visibleProducts = groupProductVariants(bestsellers).slice(0, limit);
+  try {
+    const products = await fetchProducts(100);
+    const groupedProducts = groupProductVariants(products);
+    const bestsellers = groupedProducts.filter(product =>
+      BESTSELLER_KEYWORDS.some(name => String(product.name || '').toLowerCase().includes(name))
+    );
+    const visibleProducts = (bestsellers.length ? bestsellers : groupedProducts).slice(0, limit);
 
-  if (visibleProducts.length === 0) {
+    if (visibleProducts.length === 0) {
+      container.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--gray);">
+          Products will appear here once the catalogue is available.
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = visibleProducts.map(renderProductCard).join('');
+    initCarouselHover();
+    if (typeof window.onProductsLoaded === 'function') window.onProductsLoaded();
+  } catch (err) {
+    console.error('Error loading bestsellers:', err);
     container.innerHTML = `
       <div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--gray);">
-        Bestsellers will appear here once matching products are available.
+        Could not load bestsellers. Please refresh the page.
       </div>`;
-    return;
   }
-
-  container.innerHTML = visibleProducts.map(renderProductCard).join('');
-  initCarouselHover();
-  if (typeof window.onProductsLoaded === 'function') window.onProductsLoaded();
 }
+
+window.loadBestsellerProducts = loadBestsellerProducts;
+window.loadFeaturedProducts = loadFeaturedProducts;

@@ -591,13 +591,21 @@
   <!-- SOCIAL PROOF TOAST -->
   <script src="js/config.js?v=4"></script>
   <script src="js/cart.js?v=7"></script>
-  <script src="js/products.js?v=5"></script>
+  <script src="js/products.js?v=6"></script>
   <script src="js/main.js?v=7"></script>
   <script src="js/clarity.js?v=1"></script>
   <script src="js/analytics.js?v=5"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      loadBestsellerProducts('featured-products', 6);
+      if (typeof window.loadBestsellerProducts === 'function') {
+        window.loadBestsellerProducts('featured-products', 6);
+        return;
+      }
+
+      const featured = document.getElementById('featured-products');
+      if (featured) {
+        featured.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--gray);">Could not load bestsellers. Please refresh the page.</div>';
+      }
     });
   </script>
 </body>
