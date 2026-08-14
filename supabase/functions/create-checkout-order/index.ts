@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
     }
     const paymentMethod = body.payment_method === "cod" ? "cod" : "online";
     const deliveryZone = isNearDelhiAddress(customer) ? "delhi_ncr" : "pan_india";
-    const deliveryCharge = subtotal >= FREE_DELIVERY_MIN_SUBTOTAL
+    const deliveryCharge = paymentMethod === "online" && subtotal >= FREE_DELIVERY_MIN_SUBTOTAL
       ? 0
       : deliveryZone === "delhi_ncr" ? 50 : 80;
     const couponCode = normalizeCouponCode(body.coupon_code);

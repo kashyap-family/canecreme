@@ -667,12 +667,14 @@ function getBaseDeliveryCharge() {
 
 function getDeliveryCharge() {
   const subtotal = getCartTotal();
-  if (subtotal <= 0 || subtotal >= FREE_DELIVERY_MIN_SUBTOTAL) return 0;
+  if (subtotal <= 0) return 0;
+  if (getSelectedPaymentMethod() === 'online' && subtotal >= FREE_DELIVERY_MIN_SUBTOTAL) return 0;
   return getBaseDeliveryCharge();
 }
 
 function getDeliveryLabel() {
-  if (getCartTotal() >= FREE_DELIVERY_MIN_SUBTOTAL) return 'Free over Rs. 499';
+  if (getSelectedPaymentMethod() === 'online' && getCartTotal() >= FREE_DELIVERY_MIN_SUBTOTAL) return 'Prepaid free delivery';
+  if (getSelectedPaymentMethod() === 'cod') return isNearDelhiAddress() ? 'COD Delhi/NCR' : 'COD Pan India';
   return isNearDelhiAddress() ? 'Delhi/NCR delivery' : 'Pan India delivery';
 }
 
