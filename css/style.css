@@ -6324,3 +6324,24 @@ body:has(.hero-cover-slider) .benefit-strip {
     padding-top: 1.8rem;
   }
 }
+
+/* ===== ANNOUNCEMENT STRIPE SPACING FIX ===== */
+.announcement-bar .marquee-track {
+  column-gap: 3rem;
+}
+
+.announcement-bar .marquee-track span {
+  display: inline-flex;
+  align-items: center;
+  padding-right: 3rem;
+}
+
+@media (max-width: 768px) {
+  .announcement-bar .marquee-track {
+    column-gap: 2rem;
+  }
+
+  .announcement-bar .marquee-track span {
+    padding-right: 2rem;
+  }
+}
