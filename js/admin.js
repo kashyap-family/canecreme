@@ -157,6 +157,10 @@ function getFilteredOrders() {
   });
 }
 
+function isCancelledOrder(order) {
+  return String(order?.order_status || '').trim().toLowerCase() === 'cancelled';
+}
+
 function getCustomerKey(order) {
   const phone = String(order.customer_phone || '').replace(/\D/g, '');
   const email = String(order.customer_email || '').trim().toLowerCase();
@@ -189,6 +193,8 @@ function buildCustomerProfiles() {
   const map = new Map();
 
   allOrders.forEach(order => {
+    if (isCancelledOrder(order)) return;
+
     const key = getCustomerKey(order);
     if (!map.has(key)) {
       map.set(key, {
