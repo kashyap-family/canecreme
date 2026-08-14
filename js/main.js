@@ -64,11 +64,12 @@
 
     // Show success state
     form.innerHTML = `
-      <div style="text-align:center;padding:1.5rem 0;">
-        <div style="font-size:3rem;margin-bottom:1rem;">🎉</div>
-        <p style="font-family:var(--font-display);font-size:1.5rem;color:var(--dark);margin-bottom:0.5rem;">You're in!</p>
-        <p style="font-size:0.88rem;color:var(--gray);line-height:1.6;margin-bottom:1.25rem;">Use code <strong style="color:var(--green);letter-spacing:0.05em;">WELCOME10</strong> at checkout for 10% off your first order.</p>
-        <button onclick="document.getElementById('popup-overlay').classList.remove('open')" style="background:var(--green);color:white;border:none;padding:0.75rem 2rem;border-radius:6px;font-size:0.88rem;cursor:pointer;font-family:var(--font-body);">Start Shopping →</button>
+      <div class="popup-success">
+        <p class="popup-eyebrow">Coupon saved</p>
+        <h3 class="popup-heading">You're in!</h3>
+        <p class="popup-sub">Use this code at checkout for 10% off your first order.</p>
+        <div class="popup-success-code">WELCOME10 ✓</div>
+        <a class="popup-shop-now" href="shop.html">Shop now</a>
       </div>`;
 
     if (skipBtn) skipBtn.style.display = 'none';
