@@ -8,6 +8,44 @@
   const form     = document.getElementById('popup-form');
   if (!overlay) return;
 
+  async function copyPopupCoupon(button) {
+    const code = button?.dataset?.code || 'WELCOME10';
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(code);
+      } else {
+        const temp = document.createElement('input');
+        temp.value = code;
+        temp.setAttribute('readonly', '');
+        temp.style.position = 'fixed';
+        temp.style.opacity = '0';
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand('copy');
+        temp.remove();
+      }
+      button.classList.add('is-copied');
+      const label = button.querySelector('.popup-copy-label');
+      if (label) label.textContent = 'Copied';
+      window.setTimeout(() => {
+        button.classList.remove('is-copied');
+        if (label) label.textContent = 'Copy';
+      }, 1800);
+    } catch (_) {
+      const label = button.querySelector('.popup-copy-label');
+      if (label) label.textContent = code;
+    }
+  }
+
+  overlay.addEventListener('click', e => {
+    const copyButton = e.target.closest('.popup-copy-code');
+    if (copyButton) {
+      e.preventDefault();
+      e.stopPropagation();
+      copyPopupCoupon(copyButton);
+    }
+  });
+
   // Don't show if already submitted
   if (localStorage.getItem('cc_popup_done')) return;
 
@@ -68,7 +106,13 @@
         <p class="popup-eyebrow">Coupon saved</p>
         <h3 class="popup-heading">You're in!</h3>
         <p class="popup-sub">Use this code at checkout for 10% off your first order.</p>
-        <div class="popup-success-code">WELCOME10 ✓</div>
+        <div class="popup-success-code">
+          <span>WELCOME10</span>
+          <button type="button" class="popup-copy-code" data-code="WELCOME10" aria-label="Copy coupon code WELCOME10">
+            <span class="popup-copy-icon" aria-hidden="true"></span>
+            <span class="popup-copy-label">Copy</span>
+          </button>
+        </div>
         <a class="popup-shop-now" href="shop.html">Shop now</a>
       </div>`;
 

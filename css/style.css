@@ -5431,6 +5431,75 @@ body:has(.hero-cover-slider) .benefit-strip {
   font-size: 1.35rem;
 }
 
+.popup-copy-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 0;
+  background: transparent;
+  color: #df3925;
+  font: inherit;
+  font-size: clamp(0.78rem, 1.4vw, 0.96rem);
+  font-weight: 900;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.popup-copy-code:focus-visible {
+  outline: 2px solid #df3925;
+  outline-offset: 3px;
+}
+
+.popup-copy-icon {
+  position: relative;
+  width: 22px;
+  height: 24px;
+  display: inline-block;
+}
+
+.popup-copy-icon::before,
+.popup-copy-icon::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 17px;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+  background: transparent;
+}
+
+.popup-copy-icon::before {
+  left: 1px;
+  top: 1px;
+  opacity: 0.7;
+}
+
+.popup-copy-icon::after {
+  left: 6px;
+  top: 6px;
+  background: #ffd5c9;
+}
+
+.popup-copy-code.is-copied .popup-copy-icon::before,
+.popup-copy-code.is-copied .popup-copy-icon::after {
+  border-radius: 50%;
+}
+
+.popup-copy-code.is-copied .popup-copy-icon::after {
+  content: "✓";
+  width: 22px;
+  height: 22px;
+  left: 0;
+  top: 1px;
+  display: grid;
+  place-items: center;
+  background: #df3925;
+  color: #fff;
+  border-color: #df3925;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
 .popup-shop-now {
   width: min(100%, 430px);
   min-height: 64px;
@@ -5571,6 +5640,10 @@ body:has(.hero-cover-slider) .benefit-strip {
 .popup-success-code {
   margin: 1rem 0;
   padding: 0.8rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
   border: 2px dashed #df3925;
   background: #ffd5c9;
   color: #df3925;
