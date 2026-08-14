@@ -6197,3 +6197,88 @@ body:has(.hero-cover-slider) .benefit-strip {
     padding-top: 204px;
   }
 }
+
+/* ===== POPUP COMPACT SIZE TUNE ===== */
+.popup-box {
+  width: min(404px, 84vw);
+}
+
+.popup-stage-intro {
+  min-height: 548px;
+  padding: 198px 40px 40px;
+}
+
+.popup-gift {
+  top: -88px;
+  width: 260px;
+  height: 236px;
+}
+
+.popup-close {
+  top: 26px;
+  right: 26px;
+  width: 42px;
+  height: 42px;
+}
+
+.popup-heading {
+  font-size: 1.52rem;
+}
+
+.popup-sub {
+  max-width: 282px;
+  margin-bottom: 52px;
+  font-size: 0.93rem;
+}
+
+.popup-accept,
+.popup-decline {
+  min-height: 62px;
+}
+
+.popup-decline {
+  margin-top: 26px;
+}
+
+@media (max-width: 520px) {
+  .popup-box {
+    width: min(350px, 88vw);
+  }
+
+  .popup-stage-intro {
+    min-height: 486px;
+    padding: 178px 26px 30px;
+  }
+
+  .popup-gift {
+    top: -72px;
+    width: 202px;
+    height: 188px;
+  }
+
+  .popup-close {
+    top: 22px;
+    right: 22px;
+    width: 38px;
+    height: 38px;
+  }
+
+  .popup-heading {
+    font-size: 1.28rem;
+  }
+
+  .popup-sub {
+    max-width: 250px;
+    margin-bottom: 34px;
+    font-size: 0.86rem;
+  }
+
+  .popup-accept,
+  .popup-decline {
+    min-height: 58px;
+  }
+
+  .popup-decline {
+    margin-top: 20px;
+  }
+}
