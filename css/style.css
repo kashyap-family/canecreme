@@ -5239,6 +5239,10 @@ body:has(.hero-cover-slider) .benefit-strip {
   display: none;
 }
 
+.home-page .marquee-strip {
+  display: none;
+}
+
 .home-page .category-section {
   background:
     radial-gradient(circle at 20% 0%, rgba(188, 213, 42, 0.15), transparent 34%),
