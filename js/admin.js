@@ -713,6 +713,11 @@ async function openProductModal(productId) {
   document.getElementById('p-compare-price').value = '';
   document.getElementById('p-stock').value = '';
   document.getElementById('p-image').value = '';
+  document.getElementById('p-ingredients').value = '';
+  document.getElementById('p-allergens').value = '';
+  document.getElementById('p-nutritional-info').value = '';
+  document.getElementById('p-storage-info').value = '';
+  document.getElementById('p-shelf-life').value = '';
   document.getElementById('p-delivery-type').value = 'pan_india';
   document.getElementById('p-active').checked = true;
   overlay.style.display = 'flex';
@@ -733,6 +738,11 @@ async function openProductModal(productId) {
   document.getElementById('p-compare-price').value = product.compare_at_price || '';
   document.getElementById('p-stock').value = product.stock;
   document.getElementById('p-image').value = (product.images || []).join('\n');
+  document.getElementById('p-ingredients').value = product.ingredients || '';
+  document.getElementById('p-allergens').value = product.allergens || '';
+  document.getElementById('p-nutritional-info').value = product.nutritional_info || product.nutrition || '';
+  document.getElementById('p-storage-info').value = product.storage_info || product.storage || '';
+  document.getElementById('p-shelf-life').value = product.shelf_life || '';
   document.getElementById('p-delivery-type').value = product.delivery_type || 'pan_india';
   document.getElementById('p-active').checked = product.is_active;
 }
@@ -763,6 +773,11 @@ async function saveProduct() {
     compare_at_price: document.getElementById('p-compare-price').value ? parseFloat(document.getElementById('p-compare-price').value) : null,
     stock: parseInt(stock),
     images,
+    ingredients: document.getElementById('p-ingredients').value.trim(),
+    allergens: document.getElementById('p-allergens').value.trim(),
+    nutritional_info: document.getElementById('p-nutritional-info').value.trim(),
+    storage_info: document.getElementById('p-storage-info').value.trim(),
+    shelf_life: document.getElementById('p-shelf-life').value.trim(),
     delivery_type: document.getElementById('p-delivery-type').value,
     is_active: document.getElementById('p-active').checked
   };
@@ -788,9 +803,14 @@ async function saveProduct() {
   if (!res.ok) {
     errorDetails = await res.json().catch(async () => ({ message: await res.text() }));
     const schemaMessage = `${errorDetails.message || ''} ${errorDetails.details || ''} ${errorDetails.hint || ''}`;
-    if (/delivery_type|schema cache|column/i.test(schemaMessage)) {
+    if (/delivery_type|ingredients|allergens|nutritional_info|storage_info|shelf_life|schema cache|column/i.test(schemaMessage)) {
       const fallbackPayload = { ...payload };
       delete fallbackPayload.delivery_type;
+      delete fallbackPayload.ingredients;
+      delete fallbackPayload.allergens;
+      delete fallbackPayload.nutritional_info;
+      delete fallbackPayload.storage_info;
+      delete fallbackPayload.shelf_life;
       res = await saveWithPayload(fallbackPayload);
       if (!res.ok) {
         errorDetails = await res.json().catch(async () => ({ message: await res.text() }));
