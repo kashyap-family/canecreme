@@ -142,24 +142,82 @@ function getOrderSearchText(order) {
   ].filter(Boolean).join(' ').toLowerCase();
 }
 
+function normalizeOrderField(value) {
+  return String(value ?? '').trim().toLowerCase();
+}
+
+function isDeletedOrder(order) {
+  return Boolean(order?.deleted_at || order?.is_deleted || order?.deleted);
+}
+
+function isCancelledOrder(order) {
+  return normalizeOrderField(order?.order_status) === 'cancelled';
+}
+
+function isFailedOrder(order) {
+  const paymentStatus = normalizeOrderField(order?.payment_status);
+  const orderStatus = normalizeOrderField(order?.order_status);
+  return ['failed', 'failure', 'payment_failed'].includes(paymentStatus) ||
+    ['failed', 'failure', 'payment_failed'].includes(orderStatus);
+}
+
+function isTestOrder(order) {
+  const haystack = [
+    order?.id,
+    order?.order_number,
+    order?.customer_name,
+    order?.customer_email,
+    order?.customer_phone,
+    order?.payment_id,
+    order?.shipping_address?.line1,
+    order?.shipping_address?.line2,
+    order?.shipping_address?.city,
+    order?.shipping_address?.state,
+    order?.shipping_address?.pin,
+    getOrderItemNames(order).join(' ')
+  ].filter(Boolean).join(' ').toLowerCase();
+
+  return /\b(test|trial|preview|codex|dummy|sample)\b/.test(haystack) ||
+    ['9999999999', '9876543210'].includes(String(order?.customer_phone || '').replace(/\D/g, ''));
+}
+
+function isSettledOrder(order) {
+  const paymentStatus = normalizeOrderField(order?.payment_status);
+  const paymentMethod = normalizeOrderField(order?.payment_method || order?.shipping_address?.payment_method);
+  return paymentStatus === 'paid' || paymentStatus === 'cod' || paymentMethod === 'cod';
+}
+
+function isValidOrder(order) {
+  return !isCancelledOrder(order) &&
+    !isDeletedOrder(order) &&
+    !isFailedOrder(order) &&
+    !isTestOrder(order) &&
+    isSettledOrder(order);
+}
+
+function getValidOrders() {
+  return allOrders.filter(isValidOrder);
+}
+
 function getFilteredOrders() {
   const search = (document.getElementById('order-search')?.value || '').trim().toLowerCase();
   const payment = document.getElementById('payment-filter')?.value || 'all';
   const status = document.getElementById('status-filter')?.value || 'all';
   const date = document.getElementById('date-filter')?.value || 'all';
 
-  return allOrders.filter(order => {
+  return getValidOrders().filter(order => {
+    const paymentStatus = normalizeOrderField(order.payment_status);
+    const paymentMethod = normalizeOrderField(order.payment_method || order.shipping_address?.payment_method);
+    const orderStatus = normalizeOrderField(order.order_status || 'new');
     const matchesSearch = !search || getOrderSearchText(order).includes(search);
-    const matchesPayment = payment === 'all' || order.payment_status === payment;
-    if (isCancelledOrder(order)) return false;
-    const matchesStatus = status === 'all' || order.order_status === status;
+    const matchesPayment =
+      payment === 'all' ||
+      (payment === 'cod' && (paymentStatus === 'cod' || paymentMethod === 'cod')) ||
+      (payment !== 'cod' && paymentStatus === payment);
+    const matchesStatus = status === 'all' || orderStatus === status;
     const matchesDate = isWithinDateFilter(order, date);
     return matchesSearch && matchesPayment && matchesStatus && matchesDate;
   });
-}
-
-function isCancelledOrder(order) {
-  return String(order?.order_status || '').trim().toLowerCase() === 'cancelled';
 }
 
 function getCustomerKey(order) {
@@ -193,9 +251,7 @@ function getCustomerSearchText(customer) {
 function buildCustomerProfiles() {
   const map = new Map();
 
-  allOrders.forEach(order => {
-    if (isCancelledOrder(order)) return;
-
+  getValidOrders().forEach(order => {
     const key = getCustomerKey(order);
     if (!map.has(key)) {
       map.set(key, {
@@ -338,11 +394,16 @@ function getFilteredAbandonedCheckouts() {
 }
 
 function updateOrderMetrics() {
-  const total = allOrders.length;
-  const pending = allOrders.filter(order => ['new', 'processing'].includes(order.order_status)).length;
-  const cod = allOrders.filter(order => order.payment_status === 'cod').length;
-  const paidRevenue = allOrders
-    .filter(order => order.payment_status === 'paid')
+  const validOrders = getValidOrders();
+  const total = validOrders.length;
+  const pending = validOrders.filter(order => ['new', 'processing'].includes(normalizeOrderField(order.order_status || 'new'))).length;
+  const cod = validOrders.filter(order => {
+    const paymentStatus = normalizeOrderField(order.payment_status);
+    const paymentMethod = normalizeOrderField(order.payment_method || order.shipping_address?.payment_method);
+    return paymentStatus === 'cod' || paymentMethod === 'cod';
+  }).length;
+  const paidRevenue = validOrders
+    .filter(order => normalizeOrderField(order.payment_status) === 'paid')
     .reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
 
   const setText = (id, value) => {
@@ -839,7 +900,7 @@ function renderOrders() {
 
   const orders = getFilteredOrders();
 
-  if (allOrders.length === 0) {
+  if (getValidOrders().length === 0) {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:#6b6b6b;">No orders yet.</td></tr>';
     return;
   }
@@ -982,7 +1043,7 @@ function renderCustomers() {
 
   const customers = getFilteredCustomers();
 
-  if (allOrders.length === 0) {
+  if (getValidOrders().length === 0) {
     tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:#6b6b6b;">No customer activity yet. Customers appear here after orders are placed.</td></tr>';
     return;
   }
