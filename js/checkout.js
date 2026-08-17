@@ -13,9 +13,11 @@ let phoneLookupTimer = null;
 let lastPinLookup = '';
 let abandonedCheckoutTimer = null;
 let appliedCouponCode = normalizeCouponCode(localStorage.getItem(CHECKOUT_COUPON_KEY) || '');
+let recoveryOffer = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   hydrateSavedCheckoutProfile();
+  handleRecoveryLink().catch(err => console.warn('Recovery link skipped:', err.message));
 
   const phoneInput = document.getElementById('c-phone');
   if (phoneInput) {
@@ -220,7 +222,8 @@ async function completeAbandonedCheckout(orderId) {
       action: 'complete',
       checkout_id: checkoutId || undefined,
       session_id: sessionId || undefined,
-      order_id: orderId
+      order_id: orderId,
+      coupon_code: isValidCouponCode(appliedCouponCode) ? appliedCouponCode : undefined
     })
   });
 
@@ -231,6 +234,57 @@ async function completeAbandonedCheckout(orderId) {
 
   localStorage.removeItem(ABANDONED_CHECKOUT_ID_KEY);
   localStorage.removeItem(ABANDONED_CHECKOUT_SESSION_KEY);
+}
+
+async function handleRecoveryLink() {
+  const params = new URLSearchParams(window.location.search);
+  const checkoutId = params.get('recover');
+  if (!checkoutId) return;
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/abandoned-checkouts`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      action: 'recover',
+      checkout_id: checkoutId
+    })
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Recovery link is unavailable');
+
+  const recoveredItems = Array.isArray(data.checkout?.cart_items) ? data.checkout.cart_items : [];
+  if (recoveredItems.length > 0) {
+    cart = recoveredItems.map(item => ({
+      id: item.id || item.product_id,
+      name: item.name,
+      price: Number(item.price || 0),
+      quantity: Number(item.quantity || 0),
+      image: item.image || ''
+    })).filter(item => item.id && item.quantity > 0 && item.price > 0);
+    localStorage.setItem('canecreme_cart', JSON.stringify(cart));
+    if (typeof updateCartUI === 'function') updateCartUI();
+  }
+
+  localStorage.setItem(ABANDONED_CHECKOUT_ID_KEY, checkoutId);
+  recoveryOffer = data.offer || null;
+  if (recoveryOffer?.coupon_code && recoveryOffer.offer_type !== 'none') {
+    appliedCouponCode = normalizeCouponCode(recoveryOffer.coupon_code);
+    localStorage.setItem(CHECKOUT_COUPON_KEY, appliedCouponCode);
+    const input = document.getElementById('coupon-code');
+    if (input) input.value = appliedCouponCode;
+  }
+
+  renderOrderSummary();
+  if (recoveryOffer?.coupon_code && recoveryOffer.offer_type !== 'none') {
+    setCouponMessage(`${appliedCouponCode} applied from your CaneCreme recovery offer.`);
+  } else {
+    setMobileMessage('Your CaneCreme cart has been restored.');
+  }
 }
 
 function saveCheckoutProfile(profile) {
@@ -364,11 +418,19 @@ function normalizeCouponCode(value) {
 }
 
 function isValidCouponCode(code) {
-  return normalizeCouponCode(code) === WELCOME_COUPON_CODE;
+  const normalized = normalizeCouponCode(code);
+  return normalized === WELCOME_COUPON_CODE || (recoveryOffer?.coupon_code && normalized === normalizeCouponCode(recoveryOffer.coupon_code));
 }
 
 function getCouponDiscount(subtotal) {
   if (!isValidCouponCode(appliedCouponCode) || subtotal <= 0) return 0;
+  if (recoveryOffer?.coupon_code && normalizeCouponCode(appliedCouponCode) === normalizeCouponCode(recoveryOffer.coupon_code)) {
+    const type = recoveryOffer.offer_type;
+    const value = Number(recoveryOffer.offer_value || 0);
+    if (type === 'percent') return Math.round((subtotal * (value / 100)) * 100) / 100;
+    if (type === 'amount') return Math.min(subtotal, value);
+    return 0;
+  }
   return Math.round((subtotal * WELCOME_COUPON_PERCENT / 100) * 100) / 100;
 }
 
@@ -410,7 +472,7 @@ function applyCouponFromInput() {
   const code = normalizeCouponCode(input?.value || '');
 
   if (!code) {
-    setCouponMessage('Enter coupon code WELCOME10.', true);
+    setCouponMessage('Enter a coupon code.', true);
     return;
   }
 
@@ -422,11 +484,14 @@ function applyCouponFromInput() {
     return;
   }
 
-  appliedCouponCode = WELCOME_COUPON_CODE;
+  appliedCouponCode = code === WELCOME_COUPON_CODE ? WELCOME_COUPON_CODE : code;
   localStorage.setItem(CHECKOUT_COUPON_KEY, appliedCouponCode);
   renderOrderSummary();
   const { discount } = getCheckoutPricing();
-  setCouponMessage(`WELCOME10 applied. You saved Rs. ${discount.toFixed(2)}.`);
+  const freeShipping = recoveryOffer?.offer_type === 'free_shipping' && normalizeCouponCode(appliedCouponCode) === normalizeCouponCode(recoveryOffer.coupon_code);
+  setCouponMessage(freeShipping
+    ? `${appliedCouponCode} applied. Free shipping unlocked.`
+    : `${appliedCouponCode} applied. You saved Rs. ${discount.toFixed(2)}.`);
   scheduleAbandonedCheckoutSave('coupon_applied');
 }
 
@@ -566,7 +631,7 @@ function renderOrderSummary() {
     </div>
     ${discount > 0 ? `
       <div class="summary-line summary-discount-row">
-        <span>Coupon (${WELCOME_COUPON_CODE})</span>
+        <span>Coupon (${escapeHtml(appliedCouponCode || WELCOME_COUPON_CODE)})</span>
         <strong>- Rs. ${discount.toFixed(2)}</strong>
       </div>
     ` : ''}
@@ -591,7 +656,8 @@ async function createOrderInDB(customerData) {
       items: cart,
       payment_method: paymentMethod,
       delivery_charge: getDeliveryCharge(),
-      coupon_code: isValidCouponCode(appliedCouponCode) ? appliedCouponCode : undefined
+      coupon_code: isValidCouponCode(appliedCouponCode) ? appliedCouponCode : undefined,
+      checkout_id: getAbandonedCheckoutId() || undefined
     })
   });
 
@@ -657,7 +723,26 @@ async function saveOrderItems(orderId) {
   return orderId;
 }
 
-async function updatePaymentStatus(orderId, paymentId) {
+async function createRazorpayOrder(orderId) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/create-razorpay-order`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ order_id: orderId })
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Razorpay order error (${res.status}): ${errText}`);
+  }
+
+  return await res.json();
+}
+
+async function updatePaymentStatus(orderId, paymentId, razorpayOrderId, razorpaySignature) {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/confirm-paid-order`, {
     method: 'POST',
     headers: {
@@ -667,7 +752,9 @@ async function updatePaymentStatus(orderId, paymentId) {
     },
     body: JSON.stringify({
       order_id: orderId,
-      payment_id: paymentId
+      payment_id: paymentId,
+      razorpay_order_id: razorpayOrderId,
+      razorpay_signature: razorpaySignature
     })
   });
 
@@ -699,6 +786,11 @@ function getBaseDeliveryCharge() {
 function getDeliveryCharge() {
   const subtotal = getCartTotal();
   if (subtotal <= 0) return 0;
+  if (
+    recoveryOffer?.offer_type === 'free_shipping' &&
+    recoveryOffer?.coupon_code &&
+    normalizeCouponCode(appliedCouponCode) === normalizeCouponCode(recoveryOffer.coupon_code)
+  ) return 0;
   if (getSelectedPaymentMethod() === 'online' && subtotal >= FREE_DELIVERY_MIN_SUBTOTAL) return 0;
   return getBaseDeliveryCharge();
 }
@@ -847,12 +939,14 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
   }
 
   try {
+    const razorpayOrder = await createRazorpayOrder(currentOrderId);
     const options = {
-      key: RAZORPAY_KEY_ID,
-      amount: Math.round(total * 100),
-      currency: STORE_CURRENCY,
+      key: razorpayOrder.key_id || RAZORPAY_KEY_ID,
+      amount: razorpayOrder.amount || Math.round(total * 100),
+      currency: razorpayOrder.currency || STORE_CURRENCY,
       name: STORE_NAME,
       description: 'Order #' + currentOrderId.slice(0, 8),
+      order_id: razorpayOrder.razorpay_order_id,
       notes: {
         order_id: currentOrderId,
         customer_name: name,
@@ -873,7 +967,12 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
       handler: async function(response) {
         if (currentOrderId) {
           try {
-            await updatePaymentStatus(currentOrderId, response.razorpay_payment_id);
+            await updatePaymentStatus(
+              currentOrderId,
+              response.razorpay_payment_id,
+              response.razorpay_order_id || razorpayOrder.razorpay_order_id,
+              response.razorpay_signature
+            );
           } catch (confirmErr) {
             console.warn('Payment confirmation failed:', confirmErr.message);
           }

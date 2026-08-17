@@ -6,10 +6,16 @@ verify_jwt = false
 [functions.create-rapidshyp-order]
 verify_jwt = false
 
+[functions.create-shiprocket-order]
+verify_jwt = false
+
 [functions.create-razorpay-order]
 verify_jwt = false
 
 [functions.confirm-paid-order]
+verify_jwt = false
+
+[functions.razorpay-webhook]
 verify_jwt = false
 
 [functions.confirm-cod-order]
@@ -25,6 +31,15 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.admin-leads]
+verify_jwt = false
+
+[functions.admin-auth]
+verify_jwt = false
+
+[functions.admin-products]
+verify_jwt = false
+
+[functions.admin-users]
 verify_jwt = false
 
 [functions.send-order-email]

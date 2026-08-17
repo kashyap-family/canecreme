@@ -49,10 +49,23 @@ Deno.serve(async (req) => {
     const order = orders[0];
     if (!order) return jsonResponse({ error: "Order not found" }, 404);
     if (order.payment_status === "paid") return jsonResponse({ error: "Order is already paid" }, 409);
+    if (order.payment_status === "cod" || order.payment_method === "cod" || order.shipping_address?.payment_method === "cod") {
+      return jsonResponse({ error: "COD orders do not need Razorpay payment" }, 409);
+    }
 
     const amount = Math.round(Number(order.total_amount || 0) * 100);
     if (!Number.isFinite(amount) || amount < 100) {
       return jsonResponse({ error: "Invalid order amount" }, 400);
+    }
+
+    if (order.razorpay_order_id) {
+      return jsonResponse({
+        razorpay_order_id: order.razorpay_order_id,
+        amount,
+        currency: "INR",
+        key_id: razorpayKeyId,
+        reused: true,
+      });
     }
 
     const razorpayRes = await fetch("https://api.razorpay.com/v1/orders", {
@@ -78,11 +91,28 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "Razorpay order create failed", details: razorpayData }, 502);
     }
 
+    const updateRes = await fetch(`${supabaseUrl}/rest/v1/orders?id=eq.${encodedOrderId}`, {
+      method: "PATCH",
+      headers: {
+        apikey: serviceRoleKey,
+        Authorization: `Bearer ${serviceRoleKey}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        razorpay_order_id: razorpayData.id,
+        payment_method: "online",
+        updated_at: new Date().toISOString(),
+      }),
+    });
+    if (!updateRes.ok) throw new Error(`Razorpay order link failed: ${await updateRes.text()}`);
+
     return jsonResponse({
       razorpay_order_id: razorpayData.id,
       amount: razorpayData.amount,
       currency: razorpayData.currency,
       key_id: razorpayKeyId,
+      reused: false,
     });
   } catch (error) {
     return jsonResponse({ error: error instanceof Error ? error.message : "Unknown error" }, 500);

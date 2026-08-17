@@ -21,6 +21,7 @@ type CheckoutBody = {
   payment_method?: "online" | "cod";
   delivery_charge?: number;
   coupon_code?: string;
+  checkout_id?: string;
 };
 
 const normalizeItems = (items: CheckoutItem[]) =>
@@ -83,6 +84,81 @@ const hasUsedWelcomeCoupon = async (supabaseUrl: string, headers: HeadersInit, p
 
 const FREE_DELIVERY_MIN_SUBTOTAL = 499;
 
+const getRecoveryOffer = async (supabaseUrl: string, headers: HeadersInit, couponCode: string, phone: string) => {
+  if (!couponCode || couponCode === "WELCOME10") return null;
+
+  const res = await fetch(
+    `${supabaseUrl}/rest/v1/abandoned_checkout_offers?select=*&coupon_code=eq.${encodeURIComponent(couponCode)}&limit=1`,
+    { headers },
+  );
+  if (!res.ok) throw new Error(`Recovery coupon lookup failed: ${await res.text()}`);
+
+  const rows = await res.json();
+  const offer = Array.isArray(rows) ? rows[0] : null;
+  if (!offer) throw new Error("This recovery coupon is not valid.");
+  if (offer.used_at || offer.status === "recovered") throw new Error("This recovery coupon has already been used.");
+  if (offer.status === "expired" || new Date(offer.expires_at).getTime() <= Date.now()) {
+    throw new Error("This recovery coupon has expired.");
+  }
+
+  const customerPhone = String(offer.customer_phone || "").replace(/\D/g, "").slice(-10);
+  const submittedPhone = String(phone || "").replace(/\D/g, "").slice(-10);
+  if (customerPhone && submittedPhone && customerPhone !== submittedPhone) {
+    throw new Error("This recovery coupon is linked to another customer.");
+  }
+
+  return offer;
+};
+
+const getRecoveryDiscount = (offer: Record<string, unknown> | null, subtotal: number, deliveryCharge: number) => {
+  if (!offer || subtotal <= 0) return { discountAmount: 0, deliveryCharge };
+  const offerType = String(offer.offer_type || "");
+  const offerValue = Number(offer.offer_value || 0);
+
+  if (offerType === "percent") {
+    return {
+      discountAmount: Math.round((subtotal * (offerValue / 100)) * 100) / 100,
+      deliveryCharge,
+    };
+  }
+  if (offerType === "amount") {
+    return {
+      discountAmount: Math.min(subtotal, offerValue),
+      deliveryCharge,
+    };
+  }
+  if (offerType === "free_shipping") {
+    return {
+      discountAmount: 0,
+      deliveryCharge: 0,
+    };
+  }
+  return { discountAmount: 0, deliveryCharge };
+};
+
+const getReusableCheckoutOrder = async (supabaseUrl: string, headers: HeadersInit, checkoutId?: string) => {
+  if (!checkoutId) return null;
+
+  const checkoutRes = await fetch(
+    `${supabaseUrl}/rest/v1/abandoned_checkouts?select=order_id&id=eq.${encodeURIComponent(checkoutId)}&limit=1`,
+    { headers },
+  );
+  if (!checkoutRes.ok) return null;
+
+  const checkouts = await checkoutRes.json();
+  const existingOrderId = Array.isArray(checkouts) ? checkouts[0]?.order_id : null;
+  if (!existingOrderId) return null;
+
+  const orderRes = await fetch(
+    `${supabaseUrl}/rest/v1/orders?select=*&id=eq.${encodeURIComponent(existingOrderId)}&payment_status=eq.pending&order_status=not.eq.cancelled&limit=1`,
+    { headers },
+  );
+  if (!orderRes.ok) return null;
+
+  const orders = await orderRes.json();
+  return Array.isArray(orders) ? orders[0] || null : null;
+};
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -126,7 +202,7 @@ Deno.serve(async (req) => {
     }
     const paymentMethod = body.payment_method === "cod" ? "cod" : "online";
     const deliveryZone = isNearDelhiAddress(customer) ? "delhi_ncr" : "pan_india";
-    const deliveryCharge = paymentMethod === "online" && subtotal >= FREE_DELIVERY_MIN_SUBTOTAL
+    let deliveryCharge = paymentMethod === "online" && subtotal >= FREE_DELIVERY_MIN_SUBTOTAL
       ? 0
       : deliveryZone === "delhi_ncr" ? 50 : 80;
     const couponCode = normalizeCouponCode(body.coupon_code);
@@ -144,9 +220,18 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "WELCOME10 can be used only once per customer." }, 400);
     }
 
-    const discountAmount = getCouponDiscount(couponCode, subtotal);
+    const recoveryOffer = await getRecoveryOffer(supabaseUrl, dbHeaders, couponCode, customer.phone);
+    const recoveryPricing = getRecoveryDiscount(recoveryOffer, subtotal, deliveryCharge);
+    deliveryCharge = recoveryPricing.deliveryCharge;
+    const discountAmount = recoveryOffer ? recoveryPricing.discountAmount : getCouponDiscount(couponCode, subtotal);
+    const effectiveCouponCode = discountAmount > 0 || recoveryOffer ? couponCode : "";
     const total = Math.max(0, subtotal - discountAmount + deliveryCharge);
     const itemSnapshot = normalizeItems(items);
+
+    const reusableOrder = await getReusableCheckoutOrder(supabaseUrl, dbHeaders, body.checkout_id);
+    if (reusableOrder) {
+      return jsonResponse({ order: reusableOrder, reused: true });
+    }
 
     const orderRes = await fetch(`${supabaseUrl}/rest/v1/orders`, {
       method: "POST",
@@ -166,13 +251,15 @@ Deno.serve(async (req) => {
           delivery_zone: deliveryZone,
           delivery_charge: deliveryCharge,
           subtotal_before_discount: subtotal,
-          coupon_code: discountAmount > 0 ? couponCode : null,
+          coupon_code: effectiveCouponCode || null,
           discount_amount: discountAmount,
+          recovery_offer_id: recoveryOffer?.id || null,
+          recovery_offer_label: recoveryOffer?.offer_label || null,
           items: itemSnapshot,
         },
         total_amount: total,
         discount_amount: discountAmount,
-        coupon_code: discountAmount > 0 ? couponCode : null,
+        coupon_code: effectiveCouponCode || null,
         payment_status: "pending",
         order_status: "new",
       }),
@@ -181,6 +268,14 @@ Deno.serve(async (req) => {
 
     const orders = await orderRes.json();
     const order = orders[0];
+
+    if (body.checkout_id) {
+      await fetch(`${supabaseUrl}/rest/v1/abandoned_checkouts?id=eq.${encodeURIComponent(body.checkout_id)}`, {
+        method: "PATCH",
+        headers: { ...dbHeaders, Prefer: "return=minimal" },
+        body: JSON.stringify({ order_id: order.id, last_step: "order_created", updated_at: new Date().toISOString() }),
+      }).catch(() => null);
+    }
 
     const orderItems = items.map((item) => ({
       order_id: order.id,
@@ -195,6 +290,17 @@ Deno.serve(async (req) => {
       body: JSON.stringify(orderItems),
     });
     if (!itemsRes.ok) throw new Error(`Order items create failed: ${await itemsRes.text()}`);
+
+    if (recoveryOffer?.abandoned_checkout_id) {
+      await fetch(
+        `${supabaseUrl}/rest/v1/abandoned_checkouts?id=eq.${encodeURIComponent(recoveryOffer.abandoned_checkout_id)}`,
+        {
+          method: "PATCH",
+          headers: { ...dbHeaders, Prefer: "return=minimal" },
+          body: JSON.stringify({ order_id: order.id, last_step: "order_created", updated_at: new Date().toISOString() }),
+        },
+      ).catch(() => null);
+    }
 
     return jsonResponse({ order });
   } catch (error) {
