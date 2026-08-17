@@ -81,9 +81,12 @@ test('migration adds payment idempotency indexes and Razorpay order uniqueness',
 
 test('checkout order creation reuses a linked pending checkout order', () => {
   assert.match(createCheckoutOrder, /getReusableCheckoutOrder/);
+  assert.match(createCheckoutOrder, /getRecentReusablePendingOrder/);
   assert.match(createCheckoutOrder, /abandoned_checkouts\?select=order_id/);
   assert.match(createCheckoutOrder, /reused: true/);
+  assert.match(createCheckoutOrder, /reuse_reason: "recent_pending_match"/);
   assert.match(createCheckoutOrder, /last_step: "order_created"/);
+  assert.match(createCheckoutOrder, /payment_method: paymentMethod/);
 });
 
 test('post-payment email and shipment side effects are one-time locked', () => {

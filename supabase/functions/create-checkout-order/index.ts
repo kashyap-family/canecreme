@@ -159,6 +159,48 @@ const getReusableCheckoutOrder = async (supabaseUrl: string, headers: HeadersIni
   return Array.isArray(orders) ? orders[0] || null : null;
 };
 
+const getRecentReusablePendingOrder = async (
+  supabaseUrl: string,
+  headers: HeadersInit,
+  customer: CheckoutBody["customer"],
+  total: number,
+) => {
+  const phoneFilters = getPhoneVariants(customer.phone).map((value) => `customer_phone.eq.${value}`);
+  if (phoneFilters.length === 0) return null;
+
+  const params = new URLSearchParams({
+    select: "*",
+    payment_status: "eq.pending",
+    order_status: "not.eq.cancelled",
+    razorpay_order_id: "is.null",
+    total_amount: `eq.${total.toFixed(2)}`,
+    created_at: `gte.${new Date(Date.now() - 20 * 60 * 1000).toISOString()}`,
+    order: "created_at.desc",
+    limit: "1",
+  });
+  params.set("or", `(${phoneFilters.join(",")})`);
+
+  const res = await fetch(`${supabaseUrl}/rest/v1/orders?${params.toString()}`, { headers });
+  if (!res.ok) return null;
+
+  const rows = await res.json();
+  return Array.isArray(rows) ? rows[0] || null : null;
+};
+
+const linkCheckoutToOrder = async (
+  supabaseUrl: string,
+  headers: HeadersInit,
+  checkoutId: string | undefined,
+  orderId: string,
+) => {
+  if (!checkoutId) return;
+  await fetch(`${supabaseUrl}/rest/v1/abandoned_checkouts?id=eq.${encodeURIComponent(checkoutId)}`, {
+    method: "PATCH",
+    headers: { ...headers, Prefer: "return=minimal" },
+    body: JSON.stringify({ order_id: orderId, last_step: "order_created", updated_at: new Date().toISOString() }),
+  }).catch(() => null);
+};
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -233,6 +275,12 @@ Deno.serve(async (req) => {
       return jsonResponse({ order: reusableOrder, reused: true });
     }
 
+    const recentReusableOrder = await getRecentReusablePendingOrder(supabaseUrl, dbHeaders, customer, total);
+    if (recentReusableOrder) {
+      await linkCheckoutToOrder(supabaseUrl, dbHeaders, body.checkout_id, recentReusableOrder.id);
+      return jsonResponse({ order: recentReusableOrder, reused: true, reuse_reason: "recent_pending_match" });
+    }
+
     const orderRes = await fetch(`${supabaseUrl}/rest/v1/orders`, {
       method: "POST",
       headers: dbHeaders,
@@ -261,6 +309,7 @@ Deno.serve(async (req) => {
         discount_amount: discountAmount,
         coupon_code: effectiveCouponCode || null,
         payment_status: "pending",
+        payment_method: paymentMethod,
         order_status: "new",
       }),
     });
@@ -269,13 +318,7 @@ Deno.serve(async (req) => {
     const orders = await orderRes.json();
     const order = orders[0];
 
-    if (body.checkout_id) {
-      await fetch(`${supabaseUrl}/rest/v1/abandoned_checkouts?id=eq.${encodeURIComponent(body.checkout_id)}`, {
-        method: "PATCH",
-        headers: { ...dbHeaders, Prefer: "return=minimal" },
-        body: JSON.stringify({ order_id: order.id, last_step: "order_created", updated_at: new Date().toISOString() }),
-      }).catch(() => null);
-    }
+    await linkCheckoutToOrder(supabaseUrl, dbHeaders, body.checkout_id, order.id);
 
     const orderItems = items.map((item) => ({
       order_id: order.id,
