@@ -5,7 +5,7 @@ const SUPABASE_URL = 'https://qfphvsyidbyhbyeyigrh.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_usfZZ8OEQjJKYP0dGLqImg_pbAyUrL6';
 
 // Razorpay Live Key ID. Never store the Key Secret in this static website.
-const RAZORPAY_KEY_ID = 'rzp_live_SvBwWNQkqzmora';
+const RAZORPAY_KEY_ID = 'rzp_live_TQoVymLrovvsEH';
 
 // Admin password - CHANGE THIS to something only you know!
 const ADMIN_PASSWORD = 'canecreme2026';
