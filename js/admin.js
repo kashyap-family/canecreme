@@ -521,7 +521,10 @@ async function callRapidShypOrder(orderId) {
       'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ order_id: orderId })
+    body: JSON.stringify({
+      admin_password: ADMIN_PASSWORD,
+      order_id: orderId
+    })
   });
 
   const data = await res.json().catch(() => ({}));
