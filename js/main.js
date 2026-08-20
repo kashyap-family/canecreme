@@ -9,10 +9,44 @@
   const introStage = document.getElementById('popup-intro');
   const detailsStage = document.getElementById('popup-details');
   const form     = document.getElementById('popup-form');
-  if (!overlay) return;
+  const popupDoneKey = 'cc_popup_done';
+  const checkoutCouponKey = 'canecreme_checkout_coupon';
+  const firstTimeCoupon = 'WELCOME10';
+  const sitePathPrefix = window.location.pathname.includes('/blog/') ? '../' : '';
+  const pagePath = window.location.pathname.toLowerCase();
+  const hasClaimedFirstCoupon = () => localStorage.getItem(popupDoneKey) === '1';
+  const shouldShowNewHere = () =>
+    !hasClaimedFirstCoupon() &&
+    !pagePath.endsWith('/checkout.html') &&
+    !pagePath.endsWith('/success.html') &&
+    !pagePath.endsWith('/order-placed.html') &&
+    !pagePath.endsWith('/admin.html') &&
+    !document.body.classList.contains('checkout-page') &&
+    !document.body.classList.contains('success-page') &&
+    !document.body.classList.contains('order-placed-page') &&
+    !document.body.classList.contains('admin-page');
+
+  function hideNewHereButton() {
+    document.querySelector('.new-here-coupon-trigger')?.remove();
+  }
+
+  function rememberCouponClaimed() {
+    localStorage.setItem(popupDoneKey, '1');
+    localStorage.setItem(checkoutCouponKey, firstTimeCoupon);
+    hideNewHereButton();
+  }
+
+  function openPopup() {
+    if (introStage) introStage.hidden = false;
+    if (detailsStage) {
+      detailsStage.hidden = true;
+      detailsStage.classList.remove('is-unlocked');
+    }
+    overlay?.classList.add('open');
+  }
 
   async function copyPopupCoupon(button) {
-    const code = button?.dataset?.code || 'WELCOME10';
+    const code = button?.dataset?.code || firstTimeCoupon;
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(code);
@@ -40,6 +74,109 @@
     }
   }
 
+  function createFallbackCouponModal() {
+    if (document.getElementById('first-time-coupon-modal')) return;
+    const modal = document.createElement('div');
+    modal.className = 'first-time-coupon-modal';
+    modal.id = 'first-time-coupon-modal';
+    modal.innerHTML = `
+      <div class="first-time-coupon-card" role="dialog" aria-modal="true" aria-label="First order coupon">
+        <button class="first-time-coupon-close" type="button" aria-label="Close">×</button>
+        <p class="popup-eyebrow">New to CaneCreme?</p>
+        <h2 class="popup-heading">Unlock 10% off your first order</h2>
+        <p class="popup-sub">Enter your phone number and email to reveal your WELCOME10 coupon.</p>
+        <form class="popup-form first-time-coupon-form" novalidate>
+          <div class="popup-field"><div class="popup-phone-wrap"><span class="popup-phone-code">+91</span><input type="tel" name="phone" placeholder="WhatsApp number *" inputmode="numeric" maxlength="10" required /></div></div>
+          <div class="popup-field"><input type="email" name="email" placeholder="Email address *" autocomplete="email" required /></div>
+          <div class="popup-error" style="display:none;"></div>
+          <button type="submit" class="popup-submit">Show my coupon</button>
+        </form>
+      </div>`;
+    document.body.appendChild(modal);
+
+    const close = () => modal.classList.remove('open');
+    modal.querySelector('.first-time-coupon-close')?.addEventListener('click', close);
+    modal.addEventListener('click', event => { if (event.target === modal) close(); });
+    modal.querySelector('form')?.addEventListener('submit', async event => {
+      event.preventDefault();
+      const phone = modal.querySelector('input[name="phone"]')?.value.trim();
+      const email = modal.querySelector('input[name="email"]')?.value.trim();
+      const errEl = modal.querySelector('.popup-error');
+      if (!phone || !email) {
+        errEl.textContent = 'Please enter your phone number and email.';
+        errEl.style.display = 'block';
+        return;
+      }
+      if (!/^\d{10}$/.test(phone)) {
+        errEl.textContent = 'Please enter a valid 10-digit phone number.';
+        errEl.style.display = 'block';
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errEl.textContent = 'Please enter a valid email address.';
+        errEl.style.display = 'block';
+        return;
+      }
+      errEl.style.display = 'none';
+      try {
+        if (typeof SUPABASE_URL !== 'undefined' && typeof SUPABASE_ANON_KEY !== 'undefined') {
+          await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({ name: '', phone: '+91' + phone, email, source: 'new_here_button' })
+          });
+        }
+      } catch (_) { /* silent fail - still show coupon */ }
+      modal.querySelector('.first-time-coupon-card').innerHTML = `
+        <button class="first-time-coupon-close" type="button" aria-label="Close">×</button>
+        <div class="popup-success">
+          <p class="popup-eyebrow">Coupon saved</p>
+          <h2 class="popup-heading">Your first-order treat is unlocked!</h2>
+          <p class="popup-sub">Use this code at checkout for 10% off your first order.</p>
+          <div class="popup-success-code"><span>${firstTimeCoupon}</span><button type="button" class="popup-copy-code" data-code="${firstTimeCoupon}" aria-label="Copy coupon code ${firstTimeCoupon}"><span class="popup-copy-icon" aria-hidden="true"></span><span class="popup-copy-label">Copy</span></button></div>
+        <a class="popup-shop-now" href="${sitePathPrefix}shop.html">Shop now</a>
+      </div>`;
+      modal.querySelector('.first-time-coupon-close')?.addEventListener('click', close);
+      rememberCouponClaimed();
+    });
+  }
+
+  function openFallbackCouponModal() {
+    createFallbackCouponModal();
+    document.getElementById('first-time-coupon-modal')?.classList.add('open');
+  }
+
+  function createNewHereButton() {
+    if (!shouldShowNewHere() || document.querySelector('.new-here-coupon-trigger')) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'new-here-coupon-trigger';
+    button.setAttribute('aria-label', 'Open first order coupon');
+    button.innerHTML = '<span class="new-here-coupon-icon" aria-hidden="true">□</span><span>New Here?</span>';
+    button.addEventListener('click', () => {
+      if (overlay) openPopup();
+      else openFallbackCouponModal();
+    });
+    document.body.appendChild(button);
+  }
+
+  createNewHereButton();
+
+  document.addEventListener('click', e => {
+    const copyButton = e.target.closest('#first-time-coupon-modal .popup-copy-code');
+    if (!copyButton) return;
+    e.preventDefault();
+    e.stopPropagation();
+    copyPopupCoupon(copyButton);
+  });
+
+  if (!overlay) return;
+
   overlay.addEventListener('click', e => {
     const copyButton = e.target.closest('.popup-copy-code');
     if (copyButton) {
@@ -49,8 +186,8 @@
     }
   });
 
-  // Don't show if already submitted
-  if (localStorage.getItem('cc_popup_done')) return;
+  // Don't auto-show if already submitted.
+  if (hasClaimedFirstCoupon()) return;
 
   // Show after 1.8 seconds
   setTimeout(() => overlay.classList.add('open'), 1800);
@@ -119,8 +256,8 @@
         <h2 class="popup-heading">Your mystery treat is unlocked!</h2>
         <p class="popup-sub">Use this code at checkout for 10% off your first order.</p>
         <div class="popup-success-code">
-          <span>WELCOME10</span>
-          <button type="button" class="popup-copy-code" data-code="WELCOME10" aria-label="Copy coupon code WELCOME10">
+          <span>${firstTimeCoupon}</span>
+          <button type="button" class="popup-copy-code" data-code="${firstTimeCoupon}" aria-label="Copy coupon code ${firstTimeCoupon}">
             <span class="popup-copy-icon" aria-hidden="true"></span>
             <span class="popup-copy-label">Copy</span>
           </button>
@@ -129,7 +266,7 @@
       </div>`;
 
     if (skipBtn) skipBtn.style.display = 'none';
-    localStorage.setItem('cc_popup_done', '1');
+    rememberCouponClaimed();
   });
 })();
 
