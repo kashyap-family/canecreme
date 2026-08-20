@@ -701,6 +701,13 @@ function clearRejectedCoupon(message) {
   setCouponMessage(message, true);
 }
 
+function markWelcomeCouponUsed() {
+  if (normalizeCouponCode(appliedCouponCode) !== WELCOME_COUPON_CODE) return;
+  localStorage.setItem('cc_welcome10_used', '1');
+  localStorage.setItem('cc_popup_done', '1');
+  localStorage.removeItem(CHECKOUT_COUPON_KEY);
+}
+
 async function confirmCodOrder(orderId) {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/confirm-cod-order`, {
     method: 'POST',
@@ -925,6 +932,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     try {
       await confirmCodOrder(currentOrderId);
       await completeAbandonedCheckout(currentOrderId).catch(err => console.warn('Abandoned checkout completion failed:', err.message));
+      markWelcomeCouponUsed();
       localStorage.removeItem('canecreme_cart');
       window.location.href = `order-placed.html?order=${encodeURIComponent(currentOrderId)}`;
       return;
@@ -978,6 +986,7 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
           }
           await completeAbandonedCheckout(currentOrderId).catch(err => console.warn('Abandoned checkout completion failed:', err.message));
         }
+        markWelcomeCouponUsed();
         localStorage.removeItem('canecreme_cart');
         window.location.href = `order-placed.html?order=${encodeURIComponent(currentOrderId)}`;
       },

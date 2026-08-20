@@ -10,13 +10,15 @@
   const detailsStage = document.getElementById('popup-details');
   const form     = document.getElementById('popup-form');
   const popupDoneKey = 'cc_popup_done';
+  const couponUsedKey = 'cc_welcome10_used';
   const checkoutCouponKey = 'canecreme_checkout_coupon';
   const firstTimeCoupon = 'WELCOME10';
   const sitePathPrefix = window.location.pathname.includes('/blog/') ? '../' : '';
   const pagePath = window.location.pathname.toLowerCase();
   const hasClaimedFirstCoupon = () => localStorage.getItem(popupDoneKey) === '1';
+  const hasUsedFirstCoupon = () => localStorage.getItem(couponUsedKey) === '1';
   const shouldShowNewHere = () =>
-    !hasClaimedFirstCoupon() &&
+    !hasUsedFirstCoupon() &&
     !pagePath.endsWith('/checkout.html') &&
     !pagePath.endsWith('/success.html') &&
     !pagePath.endsWith('/order-placed.html') &&
@@ -33,7 +35,25 @@
   function rememberCouponClaimed() {
     localStorage.setItem(popupDoneKey, '1');
     localStorage.setItem(checkoutCouponKey, firstTimeCoupon);
-    hideNewHereButton();
+  }
+
+  function getCouponSuccessHtml(heading = 'Your first-order treat is unlocked!') {
+    return `
+      <button class="first-time-coupon-close" type="button" aria-label="Close">×</button>
+      <div class="popup-success">
+        <p class="popup-eyebrow">Coupon saved</p>
+        <h2 class="popup-heading">${heading}</h2>
+        <p class="popup-sub">Use this code at checkout for 10% off your first order.</p>
+        <div class="popup-success-code"><span>${firstTimeCoupon}</span><button type="button" class="popup-copy-code" data-code="${firstTimeCoupon}" aria-label="Copy coupon code ${firstTimeCoupon}"><span class="popup-copy-icon" aria-hidden="true"></span><span class="popup-copy-label">Copy</span></button></div>
+        <a class="popup-shop-now" href="${sitePathPrefix}shop.html">Shop now</a>
+      </div>`;
+  }
+
+  function showFallbackCouponSuccess(modal, heading) {
+    const card = modal.querySelector('.first-time-coupon-card');
+    if (!card) return;
+    card.innerHTML = getCouponSuccessHtml(heading);
+    modal.querySelector('.first-time-coupon-close')?.addEventListener('click', () => modal.classList.remove('open'));
   }
 
   function openPopup() {
@@ -97,6 +117,10 @@
     const close = () => modal.classList.remove('open');
     modal.querySelector('.first-time-coupon-close')?.addEventListener('click', close);
     modal.addEventListener('click', event => { if (event.target === modal) close(); });
+    if (hasClaimedFirstCoupon()) {
+      showFallbackCouponSuccess(modal, 'Your first-order coupon is ready');
+      return;
+    }
     modal.querySelector('form')?.addEventListener('submit', async event => {
       event.preventDefault();
       const phone = modal.querySelector('input[name="phone"]')?.value.trim();
@@ -132,17 +156,8 @@
           });
         }
       } catch (_) { /* silent fail - still show coupon */ }
-      modal.querySelector('.first-time-coupon-card').innerHTML = `
-        <button class="first-time-coupon-close" type="button" aria-label="Close">×</button>
-        <div class="popup-success">
-          <p class="popup-eyebrow">Coupon saved</p>
-          <h2 class="popup-heading">Your first-order treat is unlocked!</h2>
-          <p class="popup-sub">Use this code at checkout for 10% off your first order.</p>
-          <div class="popup-success-code"><span>${firstTimeCoupon}</span><button type="button" class="popup-copy-code" data-code="${firstTimeCoupon}" aria-label="Copy coupon code ${firstTimeCoupon}"><span class="popup-copy-icon" aria-hidden="true"></span><span class="popup-copy-label">Copy</span></button></div>
-        <a class="popup-shop-now" href="${sitePathPrefix}shop.html">Shop now</a>
-      </div>`;
-      modal.querySelector('.first-time-coupon-close')?.addEventListener('click', close);
       rememberCouponClaimed();
+      showFallbackCouponSuccess(modal, 'Your first-order treat is unlocked!');
     });
   }
 
@@ -157,9 +172,9 @@
     button.type = 'button';
     button.className = 'new-here-coupon-trigger';
     button.setAttribute('aria-label', 'Open first order coupon');
-    button.innerHTML = '<span class="new-here-coupon-icon" aria-hidden="true">□</span><span>New Here?</span>';
+    button.innerHTML = '<span class="new-here-coupon-icon" aria-hidden="true"></span><span>New Here?</span>';
     button.addEventListener('click', () => {
-      if (overlay) openPopup();
+      if (overlay && !hasClaimedFirstCoupon()) openPopup();
       else openFallbackCouponModal();
     });
     document.body.appendChild(button);
