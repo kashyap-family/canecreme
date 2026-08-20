@@ -59,6 +59,18 @@ const parseJsonMaybe = (value: string) => {
   }
 };
 
+const applyOrderStockSale = async (
+  supabaseUrl: string,
+  headers: HeadersInit,
+  orderId: string,
+) => {
+  const res = await dbFetch(supabaseUrl, headers, "rpc/apply_order_stock_sale", {
+    method: "POST",
+    body: JSON.stringify({ p_order_id: orderId }),
+  });
+  return await res.json();
+};
+
 const sendOrderEmailWithRetry = async (
   supabaseUrl: string,
   serviceRoleKey: string,
@@ -261,7 +273,8 @@ Deno.serve(async (req) => {
     if (!order) return jsonResponse({ error: "Order not found" }, 404);
 
     if (order.payment_status === "paid") {
-      return jsonResponse({ ok: true, order_paid: true, already_paid: true });
+      const stockResult = await applyOrderStockSale(supabaseUrl, dbHeaders, order_id);
+      return jsonResponse({ ok: true, order_paid: true, already_paid: true, stock: stockResult });
     }
 
     let verifiedBy = "";
@@ -335,11 +348,13 @@ Deno.serve(async (req) => {
     });
     if (!paidRes.ok) throw new Error(`Payment status update failed: ${await paidRes.text()}`);
 
+    const stockResult = await applyOrderStockSale(supabaseUrl, dbHeaders, order_id);
     const sideEffects = await processPostPaymentSideEffects(supabaseUrl, serviceRoleKey, dbHeaders, order_id);
     if (!sideEffects.rapidshyp_created && !sideEffects.rapidshyp_skipped) {
       return jsonResponse({
         ok: true,
         order_paid: true,
+        stock: stockResult,
         ...sideEffects,
       }, 207);
     }
@@ -347,6 +362,7 @@ Deno.serve(async (req) => {
     return jsonResponse({
       ok: true,
       order_paid: true,
+      stock: stockResult,
       ...sideEffects,
     });
   } catch (error) {

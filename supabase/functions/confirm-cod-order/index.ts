@@ -18,6 +18,21 @@ const requiredEnv = (name: string) => {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const applyOrderStockSale = async (
+  supabaseUrl: string,
+  headers: HeadersInit,
+  orderId: string,
+) => {
+  const stockRes = await fetch(`${supabaseUrl}/rest/v1/rpc/apply_order_stock_sale`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ p_order_id: orderId }),
+  });
+  const stockText = await stockRes.text();
+  if (!stockRes.ok) throw new Error(`Stock update failed: ${stockText}`);
+  return stockText ? JSON.parse(stockText) : null;
+};
+
 const sendOrderEmailWithRetry = async (
   supabaseUrl: string,
   serviceRoleKey: string,
@@ -86,6 +101,7 @@ Deno.serve(async (req) => {
     });
     if (!codRes.ok) throw new Error(`COD status update failed: ${await codRes.text()}`);
 
+    const stockResult = await applyOrderStockSale(supabaseUrl, dbHeaders, order_id);
     const emailResult = await sendOrderEmailWithRetry(supabaseUrl, serviceRoleKey, order_id);
 
     const rapidshypRes = await fetch(`${supabaseUrl}/functions/v1/create-rapidshyp-order`, {
@@ -103,6 +119,7 @@ Deno.serve(async (req) => {
       return jsonResponse({
         ok: true,
         order_cod: true,
+        stock: stockResult,
         email_sent: emailResult.ok,
         email: emailResult,
         rapidshyp_created: false,
@@ -113,6 +130,7 @@ Deno.serve(async (req) => {
     return jsonResponse({
       ok: true,
       order_cod: true,
+      stock: stockResult,
       email_sent: emailResult.ok,
       email: emailResult,
       rapidshyp_created: true,

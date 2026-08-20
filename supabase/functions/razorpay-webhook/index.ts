@@ -54,6 +54,18 @@ const parseJsonMaybe = (value: string) => {
   }
 };
 
+const applyOrderStockSale = async (
+  supabaseUrl: string,
+  headers: HeadersInit,
+  orderId: string,
+) => {
+  const res = await dbFetch(supabaseUrl, headers, "rpc/apply_order_stock_sale", {
+    method: "POST",
+    body: JSON.stringify({ p_order_id: orderId }),
+  });
+  return await res.json();
+};
+
 const claimOrderSideEffect = async (
   supabaseUrl: string,
   headers: Record<string, string>,
@@ -383,6 +395,7 @@ Deno.serve(async (req) => {
     }
 
     const updateResult = await markOrderPaid(supabaseUrl, headers, order, payment, razorpayOrderId);
+    const stockResult = await applyOrderStockSale(supabaseUrl, headers, String(order.id));
     const sideEffects = updateResult.already_paid
       ? { email_sent: false, email_skipped: true, rapidshyp_created: false, rapidshyp_skipped: true }
       : await processPostPaymentSideEffects(supabaseUrl, serviceRoleKey, headers, String(order.id));
@@ -394,10 +407,11 @@ Deno.serve(async (req) => {
       order_id: order.id,
       payment_id: payment.id,
       updated: updateResult.updated,
+      stock: stockResult,
       side_effects: sideEffects,
     }));
 
-    return jsonResponse({ ok: true, matched: true, paid: true, ...updateResult, ...sideEffects });
+    return jsonResponse({ ok: true, matched: true, paid: true, stock: stockResult, ...updateResult, ...sideEffects });
   } catch (error) {
     console.error("Razorpay webhook failed:", error);
     return jsonResponse({ error: error instanceof Error ? error.message : "Unknown error" }, 500);
