@@ -6346,31 +6346,10 @@ body:has(.hero-cover-slider) .benefit-strip {
   width: 64px;
   height: 64px;
   display: block;
-  background: #df351d;
-  border-radius: 0 8px 8px 0;
+  background: #fffaf2 url('../Assets/icons/new-here-gift-icon.png') center / cover no-repeat;
+  border-radius: 0 10px 10px 0;
+  box-shadow: 0 10px 20px rgba(53, 24, 12, 0.16);
   font-size: 0;
-}
-
-.new-here-coupon-icon::before {
-  content: "";
-  position: absolute;
-  left: 18px;
-  top: 20px;
-  width: 26px;
-  height: 24px;
-  border: 3px solid #ffffff;
-  border-radius: 2px;
-}
-
-.new-here-coupon-icon::after {
-  content: "";
-  position: absolute;
-  left: 30px;
-  top: 15px;
-  width: 3px;
-  height: 34px;
-  background: #ffffff;
-  box-shadow: -13px 13px 0 -10px #ffffff, 13px 13px 0 -10px #ffffff;
 }
 
 .new-here-coupon-trigger:hover {
@@ -6434,20 +6413,6 @@ body:has(.hero-cover-slider) .benefit-strip {
     bottom: 44px;
   }
 
-  .new-here-coupon-icon::before {
-    left: 15px;
-    top: 17px;
-    width: 21px;
-    height: 20px;
-    border-width: 2px;
-  }
-
-  .new-here-coupon-icon::after {
-    left: 25px;
-    top: 13px;
-    width: 2px;
-    height: 29px;
-  }
 }
 
 /* ===== HOME CATEGORY TO BESTSELLERS SPACING ===== */
