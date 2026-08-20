@@ -382,6 +382,11 @@ function getFilteredAbandonedCheckouts() {
   const contact = document.getElementById('abandoned-contact-filter')?.value || 'all';
 
   return allAbandonedCheckouts.filter(checkout => {
+    const isOpenCheckout = !checkout.order_id &&
+      checkout.status === 'active' &&
+      checkout.recovery_status !== 'recovered' &&
+      checkout.last_step !== 'order_created';
+    if (!isOpenCheckout) return false;
     const matchesSearch = !search || getAbandonedSearchText(checkout).includes(search);
     const syntheticOrder = { created_at: checkout.updated_at || checkout.created_at };
     const matchesDate = date === 'all' || isWithinDateFilter(syntheticOrder, date);
@@ -450,13 +455,14 @@ function updateCustomerMetrics() {
 }
 
 function updateAbandonedMetrics() {
-  const total = allAbandonedCheckouts.length;
-  const value = allAbandonedCheckouts.reduce((sum, checkout) => sum + Number(checkout.cart_total || 0), 0);
-  const today = allAbandonedCheckouts.filter(checkout => {
+  const openCheckouts = getFilteredAbandonedCheckouts();
+  const total = openCheckouts.length;
+  const value = openCheckouts.reduce((sum, checkout) => sum + Number(checkout.cart_total || 0), 0);
+  const today = openCheckouts.filter(checkout => {
     const syntheticOrder = { created_at: checkout.updated_at || checkout.created_at };
     return isWithinDateFilter(syntheticOrder, 'today');
   }).length;
-  const withPhone = allAbandonedCheckouts.filter(checkout => checkout.customer_phone).length;
+  const withPhone = openCheckouts.filter(checkout => checkout.customer_phone).length;
 
   const setText = (id, text) => {
     const el = document.getElementById(id);

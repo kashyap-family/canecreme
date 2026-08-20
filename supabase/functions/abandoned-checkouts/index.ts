@@ -154,9 +154,17 @@ Deno.serve(async (req) => {
       const res = await dbFetch(
         supabaseUrl,
         headers,
-        "abandoned_checkouts?select=*&or=(status.eq.active,recovery_status.eq.recovered)&order=updated_at.desc&limit=200",
+        "abandoned_checkouts?select=*&status=eq.active&order_id=is.null&order=updated_at.desc&limit=200",
       );
-      const checkouts = await res.json();
+      const rows = await res.json();
+      const checkouts = Array.isArray(rows)
+        ? rows.filter((checkout: Record<string, unknown>) =>
+          !checkout.order_id &&
+          checkout.status === "active" &&
+          checkout.recovery_status !== "recovered" &&
+          checkout.last_step !== "order_created"
+        )
+        : [];
       const ids = Array.isArray(checkouts) ? checkouts.map((checkout) => checkout.id).filter(Boolean) : [];
       let offers: Record<string, unknown> = {};
 
