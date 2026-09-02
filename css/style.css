@@ -6950,8 +6950,15 @@ body:has(.hero-cover-slider) .benefit-strip {
   }
 
   .product-image {
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 1 / 1.12;
     min-height: 0;
+  }
+
+  .product-image img,
+  .product-image.carousel .carousel-slide {
+    object-fit: contain;
+    transform: scale(1.16) !important;
+    transform-origin: center;
   }
 
   .product-badge {
@@ -6959,7 +6966,7 @@ body:has(.hero-cover-slider) .benefit-strip {
   }
 
   .carousel-dots {
-    bottom: 4px;
+    bottom: 3px;
     gap: 4px;
   }
 
@@ -6970,7 +6977,7 @@ body:has(.hero-cover-slider) .benefit-strip {
 
   .product-info {
     min-width: 0;
-    padding: 0.8rem 0.75rem 0.85rem;
+    padding: 0.65rem 0.75rem 0.8rem;
   }
 
   .product-stock,
