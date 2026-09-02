@@ -61,6 +61,35 @@ const PRODUCT_IMAGE_OVERRIDES = [
     ]
   },
   {
+    match: 'makhana chips',
+    images: [
+      'Assets/Makhana/makhana chips/Makhana-chips-1.jpeg',
+      'Assets/Makhana/makhana chips/Makhana-chips-2.jpeg',
+      'Assets/Makhana/makhana chips/Makhana-chips-3.jpeg',
+      'Assets/Makhana/makhana chips/Makhana-chips-4.jpeg'
+    ]
+  },
+  {
+    match: 'peri pop',
+    images: [
+      'Assets/Makhana/Peri pop/Peri-pop-1.jpeg',
+      'Assets/Makhana/Peri pop/Peri-pop-2.jpeg',
+      'Assets/Makhana/Peri pop/Peri-pop-3.jpeg',
+      'Assets/Makhana/Peri pop/Peri-pop-4.jpeg',
+      'Assets/Makhana/Peri pop/Peri-pop-5.jpeg'
+    ]
+  },
+  {
+    match: 'pudina pop',
+    images: [
+      'Assets/Makhana/pudina pop/Pudina-pop-1.jpeg',
+      'Assets/Makhana/pudina pop/Pudina-pop-2.jpeg',
+      'Assets/Makhana/pudina pop/Pudina-pop-3.jpeg',
+      'Assets/Makhana/pudina pop/Pudina-pop-4.jpeg',
+      'Assets/Makhana/pudina pop/Pudina-pop-5.jpeg'
+    ]
+  },
+  {
     match: 'protein laddoo',
     images: [
       'Assets/Gift Hamper/Laddoo (12 pc pack)/Protein-laddoos-1.jpeg',
