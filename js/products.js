@@ -22,6 +22,24 @@ const PRODUCT_IMAGE_OVERRIDES = [
     ]
   },
   {
+    match: 'millet royale',
+    images: [
+      'Assets/Cookies/Millet royale/Millet-Royale-1.jpeg?v=2',
+      'Assets/Cookies/Millet royale/Millet-Royale-2.jpeg?v=2',
+      'Assets/Cookies/Millet royale/Millet-Royale-3.jpeg?v=2',
+      'Assets/Cookies/Millet royale/Millet-Royale-4.jpeg?v=2'
+    ]
+  },
+  {
+    match: 'tropical cookies',
+    images: [
+      'Assets/Cookies/Tropical cookies/Tropical-Cookies-1.jpeg?v=2',
+      'Assets/Cookies/Tropical cookies/Tropical-Cookies-2.jpeg?v=2',
+      'Assets/Cookies/Tropical cookies/Tropical-Cookies-3.jpeg?v=2',
+      'Assets/Cookies/Tropical cookies/Tropical-Cookies-4.jpeg?v=2'
+    ]
+  },
+  {
     match: 'atta cookies',
     images: [
       'Assets/Cookies/atta cookies/atta-cookies-1.jpeg',
