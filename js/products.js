@@ -33,31 +33,31 @@ const PRODUCT_IMAGE_OVERRIDES = [
   {
     match: 'corn cheese',
     images: [
-      'Assets/Chips/Corn cheese chips/Corn-cheese-1.jpeg',
-      'Assets/Chips/Corn cheese chips/Corn-cheese-2.jpeg',
-      'Assets/Chips/Corn cheese chips/Corn-cheese-3.jpeg',
-      'Assets/Chips/Corn cheese chips/Corn-cheese-4.jpeg',
-      'Assets/Chips/Corn cheese chips/Corn-cheese-5.jpeg'
+      'Assets/Chips/Corn cheese chips/Corn-cheese-1.jpeg?v=2',
+      'Assets/Chips/Corn cheese chips/Corn-cheese-2.jpeg?v=2',
+      'Assets/Chips/Corn cheese chips/Corn-cheese-3.jpeg?v=2',
+      'Assets/Chips/Corn cheese chips/Corn-cheese-4.jpeg?v=2',
+      'Assets/Chips/Corn cheese chips/Corn-cheese-5.jpeg?v=2'
     ]
   },
   {
     match: 'korean chilli',
     images: [
-      'Assets/Chips/Korean chilli chips/Korean-chilli-1.jpeg',
-      'Assets/Chips/Korean chilli chips/Korean-chilli-2.jpeg',
-      'Assets/Chips/Korean chilli chips/Korean-chilli-3.jpeg',
-      'Assets/Chips/Korean chilli chips/Korean-chilli-4.jpeg',
-      'Assets/Chips/Korean chilli chips/Korean-chilli-5.jpeg'
+      'Assets/Chips/Korean chilli chips/Korean-chilli-1.jpeg?v=2',
+      'Assets/Chips/Korean chilli chips/Korean-chilli-2.jpeg?v=2',
+      'Assets/Chips/Korean chilli chips/Korean-chilli-3.jpeg?v=2',
+      'Assets/Chips/Korean chilli chips/Korean-chilli-4.jpeg?v=2',
+      'Assets/Chips/Korean chilli chips/Korean-chilli-5.jpeg?v=2'
     ]
   },
   {
     match: 'pudina crunch',
     images: [
-      'Assets/Chips/Pudina crunch/Pudina-crunch-1.jpeg',
-      'Assets/Chips/Pudina crunch/Pudina-crunch-2.jpeg',
-      'Assets/Chips/Pudina crunch/Pudina-crunch-3.jpeg',
-      'Assets/Chips/Pudina crunch/Pudina-crunch-4.jpeg',
-      'Assets/Chips/Pudina crunch/Pudina-crunch-5.jpeg'
+      'Assets/Chips/Pudina crunch/Pudina-crunch-1.jpeg?v=2',
+      'Assets/Chips/Pudina crunch/Pudina-crunch-2.jpeg?v=2',
+      'Assets/Chips/Pudina crunch/Pudina-crunch-3.jpeg?v=2',
+      'Assets/Chips/Pudina crunch/Pudina-crunch-4.jpeg?v=2',
+      'Assets/Chips/Pudina crunch/Pudina-crunch-5.jpeg?v=2'
     ]
   },
   {
