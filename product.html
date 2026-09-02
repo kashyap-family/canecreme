@@ -410,10 +410,14 @@
             <a href="shop.html?category=cookies">Cookies</a>
             <a href="shop.html?category=makhana">Makhana</a>
             <a href="shop.html?category=teacake">Tea Cake</a>
+            <a href="shop.html?category=combos">Combos</a>
+            <a href="shop.html?category=dryfruits">Dry Fruits</a>
+            <a href="shop.html?category=mouthfreshener">Mouth Freshener</a>
           </div>
         </div>
         <a href="shop.html?category=bites">Healthy Indulgences</a>
-        <a href="shop.html?category=giftboxes">Gift Boxes</a>
+        <a href="shop.html?category=giftboxes">Gift Hamper</a>
+        <a href="shop.html?category=combos">Combos</a>
         <a href="mailto:canecreme@gmail.com?subject=Corporate%20Gifting%20Enquiry">Corporate &amp; Diwali Gifting</a>
         <a href="blog/index.html">Blog</a>
         <a href="about.html">About</a>
@@ -488,7 +492,8 @@
           <a href="shop.html?category=bites">Snacks</a>
           <a href="shop.html?category=cookies">Cookies</a>
           <a href="shop.html?category=teacake">Tea Cakes</a>
-          <a href="shop.html?category=giftboxes">Gift Boxes</a>
+          <a href="shop.html?category=giftboxes">Gift Hamper</a>
+          <a href="shop.html?category=combos">Combos</a>
         </div>
         <div class="footer-col">
           <h5>Learn More</h5>
@@ -523,7 +528,7 @@
   </footer>
 
   <script src="js/config.js?v=4"></script>
-  <script src="js/products.js?v=8"></script>
+  <script src="js/products.js?v=19"></script>
   <script src="js/cart.js?v=7"></script>
   <script src="js/main.js?v=13"></script>
   <script src="js/clarity.js?v=2"></script>
@@ -607,7 +612,9 @@
         `${SUPABASE_URL}/rest/v1/products?is_active=eq.true&order=created_at.desc`,
         { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
       );
-      const data = await res.json();
+      const data = (await res.json()).map(product =>
+        typeof applyProductImageOverrides === 'function' ? applyProductImageOverrides(product) : product
+      );
       const selected = (data || []).find(product => String(product.id) === String(productId));
       if (!selected || (typeof isRakhiStoreProduct === 'function' && isRakhiStoreProduct(selected))) {
         window.location.href = 'shop.html';

@@ -36,7 +36,7 @@
     }
   }
   </script>
-  <link rel="stylesheet" href="css/style.css?v=69" />
+  <link rel="stylesheet" href="css/style.css?v=70" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Lexend:wght@300;400;500;600;700&family=Lobster&display=swap" rel="stylesheet"/>
   <!-- Meta Pixel Code -->
   <script>
@@ -82,15 +82,20 @@
           <a href="shop.html">Shop by Categories</a>
           <div class="dropdown-menu">
             <a href="shop.html">All Products</a>
-            <a href="shop.html?category=bestsellers">Bestsellers</a>
-            <a href="shop.html?category=bites">Snacks</a>
-            <a href="shop.html?category=cookies">Cookies</a>
-            <a href="shop.html?category=makhana">Makhana</a>
-            <a href="shop.html?category=teacake">Tea Cake</a>
+            <a href="shop.html?category=bestsellers" data-store-category="bestsellers">Bestsellers</a>
+            <a href="shop.html?category=bites" data-store-category="bites">Snacks</a>
+            <a href="shop.html?category=cookies" data-store-category="cookies">Cookies</a>
+            <a href="shop.html?category=makhana" data-store-category="makhana">Makhana</a>
+            <a href="shop.html?category=teacake" data-store-category="teacake">Tea Cake</a>
+            <a href="shop.html?category=giftboxes" data-store-category="giftboxes">Gift Hamper</a>
+            <a href="shop.html?category=combos" data-store-category="combos">Combos</a>
+            <a href="shop.html?category=dryfruits" data-store-category="dryfruits">Dry Fruits</a>
+            <a href="shop.html?category=mouthfreshener" data-store-category="mouthfreshener">Mouth Freshener</a>
           </div>
         </div>
         <a href="shop.html?category=bites">Healthy Indulgences</a>
-        <a href="shop.html?category=giftboxes">Gift Boxes</a>
+        <a href="shop.html?category=giftboxes" data-store-category="giftboxes">Gift Hamper</a>
+        <a href="shop.html?category=combos" data-store-category="combos">Combos</a>
         <a href="mailto:canecreme@gmail.com?subject=Corporate%20Gifting%20Enquiry">Corporate &amp; Diwali Gifting</a>
         <a href="blog/index.html">Blog</a>
         <a href="about.html">About</a>
@@ -110,11 +115,15 @@
   <section class="section">
     <div class="shop-filters">
       <button class="filter-btn active" data-category="all">All</button>
-      <button class="filter-btn" data-category="bestsellers">Bestsellers</button>
-      <button class="filter-btn" data-category="bites">Snacks</button>
-      <button class="filter-btn" data-category="cookies">Cookies</button>
-      <button class="filter-btn" data-category="makhana">Makhana</button>
-      <button class="filter-btn" data-category="teacake">Tea Cake</button>
+      <button class="filter-btn" data-category="bestsellers" data-store-category="bestsellers">Bestsellers</button>
+      <button class="filter-btn" data-category="bites" data-store-category="bites">Snacks</button>
+      <button class="filter-btn" data-category="cookies" data-store-category="cookies">Cookies</button>
+      <button class="filter-btn" data-category="makhana" data-store-category="makhana">Makhana</button>
+      <button class="filter-btn" data-category="teacake" data-store-category="teacake">Tea Cake</button>
+      <button class="filter-btn" data-category="giftboxes" data-store-category="giftboxes">Gift Hamper</button>
+      <button class="filter-btn" data-category="combos" data-store-category="combos">Combos</button>
+      <button class="filter-btn" data-category="dryfruits" data-store-category="dryfruits">Dry Fruits</button>
+      <button class="filter-btn" data-category="mouthfreshener" data-store-category="mouthfreshener">Mouth Freshener</button>
     </div>
     <p id="product-count" style="font-size:0.85rem;color:var(--gray-light);margin-bottom:2rem;"></p>
     <div class="products-grid" id="all-products">
@@ -156,10 +165,11 @@
         <div class="footer-col">
           <h5>Shop</h5>
           <a href="shop.html">All Products</a>
-          <a href="shop.html?category=bites">Snacks</a>
-          <a href="shop.html?category=cookies">Cookies</a>
-          <a href="shop.html?category=teacake">Tea Cakes</a>
-          <a href="shop.html?category=giftboxes">Gift Boxes</a>
+          <a href="shop.html?category=bites" data-store-category="bites">Snacks</a>
+          <a href="shop.html?category=cookies" data-store-category="cookies">Cookies</a>
+          <a href="shop.html?category=teacake" data-store-category="teacake">Tea Cakes</a>
+          <a href="shop.html?category=giftboxes" data-store-category="giftboxes">Gift Hamper</a>
+          <a href="shop.html?category=combos" data-store-category="combos">Combos</a>
         </div>
         <div class="footer-col">
           <h5>Learn More</h5>
@@ -222,7 +232,7 @@
 
   <script src="js/config.js?v=4"></script>
   <script src="js/cart.js?v=7"></script>
-  <script src="js/products.js?v=8"></script>
+  <script src="js/products.js?v=19"></script>
   <script src="js/main.js?v=13"></script>
   <script src="js/clarity.js?v=2"></script>
   <script src="js/analytics.js?v=5"></script>
@@ -233,7 +243,10 @@
       cookies: ['cookie', 'cookies'],
       teacake: ['tea cake', 'teacake', 'tea-cake'],
       makhana:    ['makhana', 'peri pop', 'pudina pop'],
-      giftboxes: ['gift box', 'gift boxes', 'giftboxes', 'gift-hamper', 'protein laddoo'],
+      giftboxes: ['gift hamper', 'gift-hamper', 'giftboxes', 'protein laddoo'],
+      combos: ['combo', 'combos'],
+      dryfruits: ['dry fruit', 'dry fruits', 'dryfruit', 'dryfruits', 'nuts', 'almond', 'cashew', 'pistachio', 'walnut'],
+      mouthfreshener: ['mouth freshener', 'mouth freshner', 'mouthfreshener', 'mouthfreshner', 'saunf', 'mukhwas'],
     };
 
     let allProducts = [];

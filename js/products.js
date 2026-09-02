@@ -2,6 +2,101 @@
 
 const BESTSELLER_KEYWORDS = ['beet', 'soya', 'powerbite', 'banana tea cake', 'dry fruit tea cake'];
 
+const PRODUCT_IMAGE_OVERRIDES = [
+  {
+    match: 'powerbite',
+    images: [
+      'Assets/Cookies/powerbite/powerbite-1.jpg',
+      'Assets/Cookies/powerbite/powerbite-2.jpg',
+      'Assets/Cookies/powerbite/powerbite-3.jpg',
+      'Assets/Cookies/powerbite/powerbite-4.jpg'
+    ]
+  },
+  {
+    match: 'chocochip',
+    images: [
+      'Assets/Cookies/chocochip/chocochip-1.jpg',
+      'Assets/Cookies/chocochip/chocochip-2.jpg',
+      'Assets/Cookies/chocochip/chocochip-3.jpg',
+      'Assets/Cookies/chocochip/chocochip-4.jpg'
+    ]
+  },
+  {
+    match: 'atta cookies',
+    images: [
+      'Assets/Cookies/atta cookies/atta-cookies-1.jpeg',
+      'Assets/Cookies/atta cookies/atta-cookies-2.jpg',
+      'Assets/Cookies/atta cookies/atta-cookies-3.jpg',
+      'Assets/Cookies/atta cookies/atta-cookies-4.jpg'
+    ]
+  },
+  {
+    match: 'corn cheese',
+    images: [
+      'Assets/Chips/Corn cheese chips/Corn-cheese-1.jpeg',
+      'Assets/Chips/Corn cheese chips/Corn-cheese-2.jpeg',
+      'Assets/Chips/Corn cheese chips/Corn-cheese-3.jpeg',
+      'Assets/Chips/Corn cheese chips/Corn-cheese-4.jpeg',
+      'Assets/Chips/Corn cheese chips/Corn-cheese-5.jpeg'
+    ]
+  },
+  {
+    match: 'korean chilli',
+    images: [
+      'Assets/Chips/Korean chilli chips/Korean-chilli-1.jpeg',
+      'Assets/Chips/Korean chilli chips/Korean-chilli-2.jpeg',
+      'Assets/Chips/Korean chilli chips/Korean-chilli-3.jpeg',
+      'Assets/Chips/Korean chilli chips/Korean-chilli-4.jpeg',
+      'Assets/Chips/Korean chilli chips/Korean-chilli-5.jpeg'
+    ]
+  },
+  {
+    match: 'pudina crunch',
+    images: [
+      'Assets/Chips/Pudina crunch/Pudina-crunch-1.jpeg',
+      'Assets/Chips/Pudina crunch/Pudina-crunch-2.jpeg',
+      'Assets/Chips/Pudina crunch/Pudina-crunch-3.jpeg',
+      'Assets/Chips/Pudina crunch/Pudina-crunch-4.jpeg',
+      'Assets/Chips/Pudina crunch/Pudina-crunch-5.jpeg'
+    ]
+  },
+  {
+    match: 'protein laddoo',
+    images: [
+      'Assets/Gift Hamper/Laddoo (12 pc pack)/Protein-laddoos-1.jpeg',
+      'Assets/Gift Hamper/Laddoo (12 pc pack)/Protein-laddoos-2.jpg',
+      'Assets/Gift Hamper/Laddoo (12 pc pack)/Protein-laddoos-3.jpeg'
+    ]
+  },
+  {
+    match: 'beet bites',
+    images: [
+      'Assets/Chips/beet bites/beet-bites-1.jpeg',
+      'Assets/Chips/beet bites/beet-bites-2.jpg',
+      'Assets/Chips/beet bites/beet-bites-3.jpg',
+      'Assets/Chips/beet bites/beet-bites-4.jpg'
+    ]
+  },
+  {
+    match: 'broccoli bites',
+    images: [
+      'Assets/Chips/broccoli bites/broccoli-bites-1.jpeg',
+      'Assets/Chips/broccoli bites/broccoli-bites-2.jpg',
+      'Assets/Chips/broccoli bites/broccoli-bites-3.jpg',
+      'Assets/Chips/broccoli bites/broccoli-bites-4.jpg'
+    ]
+  },
+  {
+    match: 'soya bites',
+    images: [
+      'Assets/Chips/soya bites/soya-bites-1.jpeg',
+      'Assets/Chips/soya bites/soya-bites-2.jpg',
+      'Assets/Chips/soya bites/soya-bites-3.jpg',
+      'Assets/Chips/soya bites/soya-bites-4.jpg'
+    ]
+  }
+];
+
 const RAKHI_STOREFRONT_KEYWORDS = [
   'rakhi',
   'mini hamper',
@@ -23,6 +118,12 @@ function isRakhiStoreProduct(product = {}) {
     || RAKHI_STOREFRONT_KEYWORDS.some(keyword => name.includes(keyword));
 }
 
+function applyProductImageOverrides(product = {}) {
+  const name = String(product.name || '').toLowerCase();
+  const override = PRODUCT_IMAGE_OVERRIDES.find(item => name.includes(item.match));
+  return override ? { ...product, images: override.images.slice() } : product;
+}
+
 async function fetchProducts(limit = 100) {
   try {
     let url = `${SUPABASE_URL}/rest/v1/products?is_active=eq.true&order=created_at.desc`;
@@ -36,7 +137,8 @@ async function fetchProducts(limit = 100) {
     });
 
     if (!res.ok) throw new Error('Failed to fetch products');
-    return await res.json();
+    const products = await res.json();
+    return products.map(applyProductImageOverrides);
   } catch (err) {
     console.error('Error fetching products:', err);
     return [];

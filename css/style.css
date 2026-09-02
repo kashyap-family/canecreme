@@ -752,7 +752,7 @@ img { display: block; max-width: 100%; }
 
 .categories-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(150px, 1fr));
+  grid-template-columns: repeat(6, minmax(140px, 1fr));
   gap: 1.35rem;
   max-width: 1420px;
   margin: 0 auto;
