@@ -12,18 +12,6 @@ window.CANECREME_BLOG_POSTS = [
     category: "Ingredients"
   },
   {
-    slug: "healthy-rakhi-gifting-hampers",
-    title: "Healthy Gifting Hampers for Rakhi, Diwali, and Corporate Celebrations",
-    excerpt: "How to choose a thoughtful CaneCreme hamper with cookies, bites, makhana, and festive treats that feel premium without feeling heavy.",
-    author: "CaneCreme Gifting Team",
-    date: "2026-08-20",
-    displayDate: "20 Aug 2026",
-    readingTime: "5 min read",
-    image: "../Assets/website cover photos/rakhi-hamper-cover-1.jpeg",
-    imageAlt: "CaneCreme Rakhi hamper with festive products",
-    category: "Gifting"
-  },
-  {
     slug: "makhana-snacking-guide",
     title: "The Smart Snacking Guide: Makhana, Bites, and Better Evening Cravings",
     excerpt: "Snack ideas for work, travel, kids' tiffins, and tea-time cravings using CaneCreme's makhana, savoury bites, and cookies.",

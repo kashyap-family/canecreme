@@ -1,6 +1,27 @@
 // ===== PRODUCTS — Load from Supabase =====
 
-const BESTSELLER_KEYWORDS = ['beet', 'soya', 'powerbite', 'banana tea cake', 'dry fruit tea cake', 'classic hamper', 'jumbo hamper'];
+const BESTSELLER_KEYWORDS = ['beet', 'soya', 'powerbite', 'banana tea cake', 'dry fruit tea cake'];
+
+const RAKHI_STOREFRONT_KEYWORDS = [
+  'rakhi',
+  'mini hamper',
+  'classic hamper',
+  'jumbo hamper',
+  'chocolate celebration',
+  'belgium indulgence',
+  'signature celebration'
+];
+
+function isRakhiStoreProduct(product = {}) {
+  const category = String(product.category || '').toLowerCase();
+  const name = String(product.name || '').toLowerCase();
+  const imageText = Array.isArray(product.images) ? product.images.join(' ').toLowerCase() : '';
+
+  return category === 'rakhi'
+    || category.includes('rakhi')
+    || imageText.includes('rakhi')
+    || RAKHI_STOREFRONT_KEYWORDS.some(keyword => name.includes(keyword));
+}
 
 async function fetchProducts(limit = 100) {
   try {
@@ -256,7 +277,7 @@ async function loadFeaturedProducts(containerId, limit = 3) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  const products = groupProductVariants(await fetchProducts(100)).slice(0, limit);
+  const products = groupProductVariants((await fetchProducts(100)).filter(product => !isRakhiStoreProduct(product))).slice(0, limit);
 
   if (products.length === 0) {
     container.innerHTML = `
@@ -289,7 +310,7 @@ async function loadBestsellerProducts(containerId, limit = 6) {
   if (!container) return;
 
   try {
-    const products = await fetchProducts(100);
+    const products = (await fetchProducts(100)).filter(product => !isRakhiStoreProduct(product));
     const groupedProducts = groupProductVariants(products);
     const bestsellers = groupedProducts.filter(product =>
       BESTSELLER_KEYWORDS.some(name => String(product.name || '').toLowerCase().includes(name))
@@ -318,3 +339,4 @@ async function loadBestsellerProducts(containerId, limit = 6) {
 
 window.loadBestsellerProducts = loadBestsellerProducts;
 window.loadFeaturedProducts = loadFeaturedProducts;
+window.isRakhiStoreProduct = isRakhiStoreProduct;
