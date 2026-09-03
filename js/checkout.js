@@ -1,4 +1,4 @@
-// ===== CHECKOUT with Razorpay + COD =====
+// ===== CHECKOUT with Razorpay =====
 
 let currentOrderId = null;
 let checkedMobile = '';
@@ -708,23 +708,6 @@ function markWelcomeCouponUsed() {
   localStorage.removeItem(CHECKOUT_COUPON_KEY);
 }
 
-async function confirmCodOrder(orderId) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/confirm-cod-order`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ order_id: orderId })
-  });
-
-  if (!res.ok && res.status !== 207) {
-    const errText = await res.text();
-    throw new Error(`COD order error (${res.status}): ${errText}`);
-  }
-}
-
 async function saveOrderItems(orderId) {
   // Order items are saved by the create-checkout-order Edge Function.
   return orderId;
@@ -772,8 +755,7 @@ async function updatePaymentStatus(orderId, paymentId, razorpayOrderId, razorpay
 }
 
 function getSelectedPaymentMethod() {
-  const selected = document.querySelector('input[name="payment-method"]:checked');
-  return selected ? selected.value : 'online';
+  return 'online';
 }
 
 function isNearDelhiAddress() {
@@ -804,16 +786,13 @@ function getDeliveryCharge() {
 
 function getDeliveryLabel() {
   if (getSelectedPaymentMethod() === 'online' && getCartTotal() >= FREE_DELIVERY_MIN_SUBTOTAL) return 'Prepaid free delivery';
-  if (getSelectedPaymentMethod() === 'cod') return isNearDelhiAddress() ? 'COD Delhi/NCR' : 'COD Pan India';
   return isNearDelhiAddress() ? 'Delhi/NCR delivery' : 'Pan India delivery';
 }
 
 function getCheckoutButtonText() {
   if (!checkedMobile) return 'Check Mobile First';
   const { total } = getCheckoutPricing();
-  return getSelectedPaymentMethod() === 'cod'
-    ? `Place Order Rs. ${total.toFixed(2)} ->`
-    : `Pay Rs. ${total.toFixed(2)} ->`;
+  return `Pay Rs. ${total.toFixed(2)} ->`;
 }
 
 document.addEventListener('change', (event) => {
@@ -840,7 +819,6 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
   const country = document.getElementById('c-country').value.trim();
   const address2 = document.getElementById('c-address2').value.trim();
   const email = emailInput || `customer-${phone}@canecreme.local`;
-  const paymentMethod = getSelectedPaymentMethod();
 
   if (phone !== checkedMobile) {
     errorEl.textContent = 'Please check your mobile number before continuing.';
@@ -926,24 +904,6 @@ document.getElementById('pay-btn').addEventListener('click', async () => {
     btn.textContent = getCheckoutButtonText();
     btn.disabled = false;
     return;
-  }
-
-  if (paymentMethod === 'cod') {
-    try {
-      await confirmCodOrder(currentOrderId);
-      await completeAbandonedCheckout(currentOrderId).catch(err => console.warn('Abandoned checkout completion failed:', err.message));
-      markWelcomeCouponUsed();
-      localStorage.removeItem('canecreme_cart');
-      window.location.href = `order-placed.html?order=${encodeURIComponent(currentOrderId)}`;
-      return;
-    } catch (codErr) {
-      console.error('COD order confirmation failed:', codErr);
-      errorEl.textContent = 'Could not place your COD order. Please try again or contact support.';
-      errorEl.style.display = 'block';
-      btn.textContent = getCheckoutButtonText();
-      btn.disabled = false;
-      return;
-    }
   }
 
   try {

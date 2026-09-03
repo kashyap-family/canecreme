@@ -4310,11 +4310,6 @@ img { display: block; max-width: 100%; }
   object-fit: contain;
 }
 
-.payment-method-icon-cod img {
-  width: 44px;
-  height: 44px;
-}
-
 .checkout-page .payment-method-option strong {
   font-family: var(--font-body);
   font-size: 1.02rem;

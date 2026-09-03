@@ -1,5 +1,5 @@
 # CaneCreme — Project State
-> Last updated: Session 223 pushed public Rakhi removal and mobile product grid (2026-09-02)
+> Last updated: Session 228 removed COD from customer-facing checkout (2026-09-03)
 > Rule: Every agent MUST update this file before context fills. No assumptions. No hallucinations. Only verified facts.
 
 ---
@@ -38,7 +38,7 @@ Never use `git add .` here without checking `git status --short` first. This rep
 ## 3. Tech Stack
 - **Frontend:** Pure static HTML + CSS + Vanilla JS (no frameworks, no npm, no build step)
 - **Backend:** Supabase (PostgreSQL via REST API)
-- **Payments:** Razorpay + Cash on Delivery
+- **Payments:** Razorpay online payment only on the customer-facing website. COD backend/history may still exist, but checkout no longer offers COD as of Session 228.
 - **Fonts:** Lexend (headings) + Lobster (script/tagline) + DM Sans (body) via Google Fonts
 - **No Node.js installed** on the dev machine
 - **Python:** Available as `python` (Microsoft Store version) — use for local HTTP server if needed
@@ -231,7 +231,7 @@ Razorpay theme colour: `#BAD50D`
 
 ### shop.html — products grid, all loaded from Supabase (`id="all-products"`)
 ### about.html — brand story + values process strip + CTA
-### checkout.html — Smart Checkout layout with express mobile lookup, saved delivery card, payment options, order summary, Razorpay/COD
+### checkout.html — Smart Checkout layout with express mobile lookup, saved delivery card, online Razorpay payment, coupon box, and order summary
 ### success.html — order confirmed, shows order ID from URL param `?order=`
 ### admin.html — password-protected: add/edit/delete products. Now includes **Delivery Zone** dropdown (Pan India / Delhi Only) per product. Orders detail popup shows full order ID at top, has an **Open WhatsApp Order** button, and has a **Push to RapidShyp** button that calls `create-rapidshyp-order` directly. The popup shows success, "Already pushed", or the RapidShyp error message.
 ### product.html — individual product detail page. URL: `product.html?id=PRODUCT_UUID`. Shows image gallery with thumbnails, quantity stepper, Add to Cart, Save badge, stock status, badges. Now includes **Pin Code Delivery Checker** (see section 9 below). Product cards on shop/homepage now link here on click (Add to Cart button uses `event.stopPropagation()`).
@@ -275,7 +275,8 @@ Razorpay theme colour: `#BAD50D`
 - Razorpay Checkout now sends `notes` with order ID, customer name/email/phone, shipping PIN, and support phone `9891239312`, so these details can be seen against the payment in Razorpay Dashboard. Success redirect includes `?order=ORDER_ID` when available.
 - Checkout blocks invalid Indian PIN formats before payment using `/^[1-9][0-9]{5}$/`, so values like `000000`, short PINs, or letters cannot proceed.
 - Current cache-busted scripts/styles after 2026-06-20 smart checkout work include `checkout.html` loading `css/style.css?v=13` and `js/checkout.js?v=14`; `index.html` loading `css/style.css?v=11`; `admin.html` loading `css/admin.css?v=3` and `js/admin.js?v=8`. `checkout.html` no longer loads `js/auth.js`.
-- Delivery charges: prepaid/online orders have free delivery. COD orders add delivery charge: ₹50 for Delhi/NCR (`Delhi`, `New Delhi`, `Noida`, `Greater Noida`, `Gurgaon/Gurugram`, `Ghaziabad`, `Faridabad`, or PIN prefixes `110`, `121`, `122`, `201`) and ₹80 for the rest of India. Checkout summary updates when payment method, PIN, city, or state changes.
+- Payment method: customer-facing checkout is Razorpay online payment only as of Session 228. COD option and COD confirmation branch were removed from the website checkout UI/JS.
+- Delivery charges: online orders with subtotal ₹499+ get free delivery; online orders below ₹499 add ₹50 for Delhi/NCR (`Delhi`, `New Delhi`, `Noida`, `Greater Noida`, `Gurgaon/Gurugram`, `Ghaziabad`, `Faridabad`, or PIN prefixes `110`, `121`, `122`, `201`) or ₹80 for the rest of India. Checkout summary updates when PIN, city, or state changes.
 - Smart checkout UX added locally on 2026-06-20: checkout now opens as "Smart Checkout", shows a GoKwik-inspired saved delivery card when local saved details exist, stores returning-customer delivery details in `localStorage` key `canecreme_checkout_profile`, masks the saved phone number in the card, exposes Payment Options outside the address form once the customer is recognized/checked, and allows editing the saved address through a Change button. This is NOT GoKwik network identity or OTP; it is same-browser saved checkout convenience plus existing Supabase order-history autofill. Session 70 further shortened the new-customer form so customers only see Full Name, Delivery Address, and PIN after mobile check; Email/City/State are inside an optional details panel and city/state are auto-filled from PIN via India Post PIN API when available, with NCR fallback for known PIN prefixes.
 
 ### auth.js
@@ -725,3 +726,4 @@ How to add product images correctly:
 | Session 225 | 2026-09-02 | User shared a live mobile screenshot where the product grid was still too cluttered and asked for 2 product cards at a time. Root cause was the mobile override only applied at `max-width: 640px`, while the phone rendering path could still use the wider layout. Expanded the final product-grid override to `@media (max-width: 900px)`, kept `repeat(2, minmax(0, 1fr)) !important`, increased gap/padding/card text slightly for a cleaner two-card row, and bumped `index.html`/`shop.html` stylesheet cache busts to `css/style.css?v=66`. |
 | Session 226 | 2026-09-02 | User shared a mobile screenshot and asked to make the 2-up product cards a little bigger. In clean publish worktree, adjusted final mobile product-grid override by reducing grid gap from `0.85rem` to `0.65rem`, reducing section side gutters from `0.8rem` to `0.45rem`, and increasing mobile product-info padding, product title, price, and Add to Cart button height/font size. Bumped `index.html` and `shop.html` stylesheet cache busts to `css/style.css?v=67`. |
 | Session 227 | 2026-09-02 | User asked for the product itself/photo to look bigger inside mobile product cards. Updated clean publish worktree mobile product override so `.product-image` uses taller `aspect-ratio: 1 / 1.12`, product images/carousel slides scale to `1.16` with centered origin, carousel dots sit slightly lower, and product-info top padding is reduced to give more room to the photo. Bumped `index.html` and `shop.html` stylesheet cache busts to `css/style.css?v=68`. |
+| Session 228 | 2026-09-03 | User asked to remove the COD option from the website. Treated this as customer-facing checkout removal only, not backend/function/database deletion. Removed the Cash on Delivery radio option from `checkout.html`, leaving only `UPI / Cards / Net Banking`; bumped checkout cache busts to `css/style.css?v=61` and `js/checkout.js?v=25`; removed the unused COD payment-icon CSS selector; updated `js/checkout.js` header to Razorpay-only, made `getSelectedPaymentMethod()` always return `online`, removed `confirmCodOrder()`, removed the COD checkout branch and COD delivery labels, and kept checkout proceeding through Razorpay order creation/payment confirmation only. Updated current project-state payment/checkout/delivery notes. Verification: bundled Node syntax check for `js/checkout.js` passed; public checkout HTML/JS/CSS search found no active `Cash on Delivery`, `confirmCodOrder`, or `confirm-cod-order` customer-facing checkout code. No Supabase/database/order/product/backend function changes were made. |
