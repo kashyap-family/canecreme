@@ -1126,6 +1126,9 @@ img { display: block; max-width: 100%; }
   width: 100%;
   aspect-ratio: 1/1;
   background: var(--green-pale);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
   display: flex;
   align-items: center;
   justify-content: center;

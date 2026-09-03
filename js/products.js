@@ -192,6 +192,19 @@ function normalizeProductImageSrc(src) {
   return query ? `${encodedPath}?${query}` : encodedPath;
 }
 
+function escapeHtmlAttr(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function productImageBackgroundStyle(src) {
+  const normalized = normalizeProductImageSrc(src);
+  return normalized ? ` style="background-image: url(&quot;${escapeHtmlAttr(normalized)}&quot;)"` : '';
+}
+
 function handleProductImageError(img) {
   if (!img) return;
   img.classList.add('image-load-failed');
@@ -297,9 +310,9 @@ function renderProductCard(product) {
     const dots = product.images.map((_, i) =>
       `<button class="carousel-dot${i === 0 ? ' active' : ''}" onclick="event.stopPropagation();carouselGo(this,${i})" aria-label="Image ${i+1}"></button>`
     ).join('');
-    imageHtml = `<div class="product-image carousel"><div class="carousel-track">${slides}</div><div class="carousel-dots">${dots}</div></div>`;
+    imageHtml = `<div class="product-image carousel"${productImageBackgroundStyle(product.images[0])}><div class="carousel-track">${slides}</div><div class="carousel-dots">${dots}</div></div>`;
   } else if (product.images && product.images.length === 1) {
-    imageHtml = `<div class="product-image"><img src="${normalizeProductImageSrc(product.images[0])}" alt="${product.name}" loading="eager" decoding="async" onerror="handleProductImageError(this)" /></div>`;
+    imageHtml = `<div class="product-image"${productImageBackgroundStyle(product.images[0])}><img src="${normalizeProductImageSrc(product.images[0])}" alt="${product.name}" loading="eager" decoding="async" onerror="handleProductImageError(this)" /></div>`;
   } else {
     imageHtml = `<div class="product-image product-image-empty">🌿</div>`;
   }
