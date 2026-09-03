@@ -116,6 +116,15 @@ const PRODUCT_IMAGE_OVERRIDES = [
     ]
   },
   {
+    match: 'anardana kismish',
+    images: [
+      'Assets/Dry fruits/Anardana Kismish/Anardana-Kismish-1.jpeg',
+      'Assets/Dry fruits/Anardana Kismish/Anardana-Kismish-2.jpeg',
+      'Assets/Dry fruits/Anardana Kismish/Anardana-Kismish-3.jpeg',
+      'Assets/Dry fruits/Anardana Kismish/Anardana-Kismish-4.jpeg'
+    ]
+  },
+  {
     match: 'beet bites',
     images: [
       'Assets/Chips/beet bites/beet-bites-1.jpeg',
@@ -169,6 +178,36 @@ function applyProductImageOverrides(product = {}) {
   const name = String(product.name || '').toLowerCase();
   const override = PRODUCT_IMAGE_OVERRIDES.find(item => name.includes(item.match));
   return override ? { ...product, images: override.images.slice() } : product;
+}
+
+function normalizeProductImageSrc(src) {
+  const value = String(src || '').trim();
+  if (!value) return '';
+  if (/^(https?:|data:|blob:)/i.test(value)) return value;
+  const [path, query = ''] = value.split('?');
+  const encodedPath = path
+    .split('/')
+    .map(part => encodeURIComponent(part))
+    .join('/');
+  return query ? `${encodedPath}?${query}` : encodedPath;
+}
+
+function handleProductImageError(img) {
+  if (!img) return;
+  img.classList.add('image-load-failed');
+
+  const carousel = img.closest('.product-image.carousel');
+  if (!carousel) {
+    img.parentElement.innerHTML = '<span class="product-image-fallback">Image coming soon</span>';
+    return;
+  }
+
+  const slides = Array.from(carousel.querySelectorAll('.carousel-slide'));
+  const visibleSlides = slides.filter(slide => !slide.classList.contains('image-load-failed'));
+  if (visibleSlides.length === 0) {
+    carousel.classList.add('product-image-empty');
+    carousel.innerHTML = '<span class="product-image-fallback">Image coming soon</span>';
+  }
 }
 
 async function fetchProducts(limit = 100) {
@@ -253,14 +292,14 @@ function renderProductCard(product) {
   let imageHtml;
   if (product.images && product.images.length > 1) {
     const slides = product.images.map((src) =>
-      `<img src="${src}" alt="${product.name}" class="carousel-slide" loading="lazy" onerror="this.style.display='none'" />`
+      `<img src="${normalizeProductImageSrc(src)}" alt="${product.name}" class="carousel-slide" loading="eager" decoding="async" onerror="handleProductImageError(this)" />`
     ).join('');
     const dots = product.images.map((_, i) =>
       `<button class="carousel-dot${i === 0 ? ' active' : ''}" onclick="event.stopPropagation();carouselGo(this,${i})" aria-label="Image ${i+1}"></button>`
     ).join('');
     imageHtml = `<div class="product-image carousel"><div class="carousel-track">${slides}</div><div class="carousel-dots">${dots}</div></div>`;
   } else if (product.images && product.images.length === 1) {
-    imageHtml = `<div class="product-image"><img src="${product.images[0]}" alt="${product.name}" loading="lazy" onerror="this.parentElement.innerHTML='🌿'" /></div>`;
+    imageHtml = `<div class="product-image"><img src="${normalizeProductImageSrc(product.images[0])}" alt="${product.name}" loading="eager" decoding="async" onerror="handleProductImageError(this)" /></div>`;
   } else {
     imageHtml = `<div class="product-image product-image-empty">🌿</div>`;
   }
